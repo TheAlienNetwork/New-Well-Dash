@@ -73,7 +73,7 @@ export default function GammaPlot() {
     .sort((a, b) => a.depth - b.depth)
     .filter(point => {
       const maxDepth = Math.max(...gammaData.map(p => Number(p.depth)));
-      return point.depth >= maxDepth - 100;
+      return point.depth >= maxDepth - 50; // Show only last 50ft for more compact view
     });
 
   return (
@@ -131,9 +131,9 @@ export default function GammaPlot() {
         </div>
         
         {/* Vertical Gamma plot */}
-        <div className="col-span-2 p-3 flex-1 flex">
+        <div className="col-span-2 p-3 flex-1 flex" style={{ maxHeight: '400px' }}>
           <div className="chart-container glass-panel rounded-lg p-3 flex-1 border border-cyan-500/20 bg-navy-950/70">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart 
                 data={chartData} 
                 layout="vertical"
