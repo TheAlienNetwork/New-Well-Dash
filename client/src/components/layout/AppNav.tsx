@@ -34,31 +34,31 @@ export default function AppNav() {
             icon={<BarChart3 className="h-5 w-5 mr-2" />} 
             label="MWD SURVEY" 
           />
-          
+
           <NavItem 
             path="/wits-parameters" 
             icon={<Box className="h-5 w-5 mr-2" />} 
             label="WITS PARAMETERS" 
           />
-          
+
           <NavItem 
             path="/directional-drilling" 
             icon={<Sliders className="h-5 w-5 mr-2" />} 
             label="DIRECTIONAL DRILLING" 
           />
-          
+
           <NavItem 
             path="/email-automation" 
             icon={<Mail className="h-5 w-5 mr-2" />} 
             label="EMAIL AUTOMATION" 
           />
-          
+
           <NavItem 
             path="/well-info" 
             icon={<User className="h-5 w-5 mr-2" />} 
             label="WELL INFO" 
           />
-          
+
           <NavItem 
             path="/wits-mapping" 
             icon={<Settings className="h-5 w-5 mr-2" />} 
