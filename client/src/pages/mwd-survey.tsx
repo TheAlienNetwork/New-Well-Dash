@@ -53,13 +53,12 @@ export default function MwdSurvey() {
 
         {/* AI Analytics */}
         <AIAnalytics />
-      </div>
-      <SurveyModal
-        open={showSurveyModal}
-        onOpenChange={setShowSurveyModal}
-        survey={modalSurvey}
-        mode={modalMode}
-      />
+        <SurveyModal
+          open={showSurveyModal}
+          onOpenChange={setShowSurveyModal}
+          survey={modalSurvey}
+          mode={modalMode}
+        />
     </div>
   );
 }
