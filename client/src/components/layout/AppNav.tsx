@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { 
-  BarChart, 
+  BarChart3, 
   Box, 
   Sliders, 
   Mail, 
@@ -16,79 +16,84 @@ export default function AppNav() {
     return location === path;
   };
 
+  const NavItem = ({ path, icon, label }: { path: string, icon: React.ReactNode, label: string }) => (
+    <Link href={path}>
+      <div className={`nav-link px-6 py-4 transition-all flex items-center cursor-pointer ${isActive(path) ? 'active text-cyan-400 font-medium border-b-2 border-cyan-400' : 'text-navy-200 hover:text-cyan-300'}`}>
+        {icon}
+        <span className="font-mono text-sm">{label}</span>
+      </div>
+    </Link>
+  );
+
   return (
-    <nav className="bg-neutral-surface border-b border-neutral-border">
+    <nav className="bg-navy-950 border-b border-cyan-500/20">
       <div className="container mx-auto">
         <div className="flex overflow-x-auto custom-scrollbar">
-          <Link href="/">
-            <a className={`nav-link px-6 py-4 transition-all flex items-center ${isActive('/') ? 'active text-primary font-medium border-b-2 border-primary' : 'text-gray-400 hover:text-white'}`}>
-              <BarChart className="h-5 w-5 mr-2" />
-              MWD Survey
-            </a>
-          </Link>
+          <NavItem 
+            path="/" 
+            icon={<BarChart3 className="h-5 w-5 mr-2" />} 
+            label="MWD SURVEY" 
+          />
           
-          <Link href="/wits-parameters">
-            <a className={`nav-link px-6 py-4 transition-all flex items-center ${isActive('/wits-parameters') ? 'active text-primary font-medium border-b-2 border-primary' : 'text-gray-400 hover:text-white'}`}>
-              <Box className="h-5 w-5 mr-2" />
-              WITS Parameters
-            </a>
-          </Link>
+          <NavItem 
+            path="/wits-parameters" 
+            icon={<Box className="h-5 w-5 mr-2" />} 
+            label="WITS PARAMETERS" 
+          />
           
-          <Link href="/directional-drilling">
-            <a className={`nav-link px-6 py-4 transition-all flex items-center ${isActive('/directional-drilling') ? 'active text-primary font-medium border-b-2 border-primary' : 'text-gray-400 hover:text-white'}`}>
-              <Sliders className="h-5 w-5 mr-2" />
-              Directional Drilling
-            </a>
-          </Link>
+          <NavItem 
+            path="/directional-drilling" 
+            icon={<Sliders className="h-5 w-5 mr-2" />} 
+            label="DIRECTIONAL DRILLING" 
+          />
           
-          <Link href="/email-automation">
-            <a className={`nav-link px-6 py-4 transition-all flex items-center ${isActive('/email-automation') ? 'active text-primary font-medium border-b-2 border-primary' : 'text-gray-400 hover:text-white'}`}>
-              <Mail className="h-5 w-5 mr-2" />
-              Email Automation
-            </a>
-          </Link>
+          <NavItem 
+            path="/email-automation" 
+            icon={<Mail className="h-5 w-5 mr-2" />} 
+            label="EMAIL AUTOMATION" 
+          />
           
-          <Link href="/well-info">
-            <a className={`nav-link px-6 py-4 transition-all flex items-center ${isActive('/well-info') ? 'active text-primary font-medium border-b-2 border-primary' : 'text-gray-400 hover:text-white'}`}>
-              <User className="h-5 w-5 mr-2" />
-              Well Info
-            </a>
-          </Link>
+          <NavItem 
+            path="/well-info" 
+            icon={<User className="h-5 w-5 mr-2" />} 
+            label="WELL INFO" 
+          />
           
-          <Link href="/wits-mapping">
-            <a className={`nav-link px-6 py-4 transition-all flex items-center ${isActive('/wits-mapping') ? 'active text-primary font-medium border-b-2 border-primary' : 'text-gray-400 hover:text-white'}`}>
-              <Settings className="h-5 w-5 mr-2" />
-              WITS Mapping
-            </a>
-          </Link>
+          <NavItem 
+            path="/wits-mapping" 
+            icon={<Settings className="h-5 w-5 mr-2" />} 
+            label="WITS MAPPING" 
+          />
         </div>
       </div>
 
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #1E1E1E;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #3498DB;
-          border-radius: 4px;
-        }
-        .nav-link.active {
-          border-bottom: 2px solid #3498DB;
-          box-shadow: 0 2px 5px rgba(52, 152, 219, 0.5);
-        }
-        .pulse {
-          animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-          0% { opacity: 0.6; }
-          50% { opacity: 1; }
-          100% { opacity: 0.6; }
-        }
-      `}</style>
+      <style jsx>
+        {`
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #061024;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #06b6d4;
+            border-radius: 4px;
+          }
+          .nav-link.active {
+            border-bottom: 2px solid #06b6d4;
+            box-shadow: 0 2px 5px rgba(6, 182, 212, 0.5);
+          }
+          .pulse {
+            animation: pulse 2s infinite;
+          }
+          @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+          }
+        `}
+      </style>
     </nav>
   );
 }

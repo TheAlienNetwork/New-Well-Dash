@@ -160,7 +160,7 @@ export default function AIAnalytics() {
           <div className="pl-11">
             <div className="text-xs space-y-3 font-mono text-navy-200">
               <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10">
-                <p>Gamma spike detected at <span className="glow-text">{latestSurvey ? (latestSurvey.md - 6.3).toFixed(1) : 0}ft (74.28 gAPI)</span>, suggesting potential formation change.</p>
+                <p>Gamma spike detected at <span className="glow-text">{latestSurvey ? (Number(latestSurvey.md) - 6.3).toFixed(1) : 0}ft (74.28 gAPI)</span>, suggesting potential formation change.</p>
               </div>
               <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10">
                 <p>Correlation with offset well "<span className="glow-text">DEEP HORIZON #38</span>" indicates approaching target sandstone layer.</p>
