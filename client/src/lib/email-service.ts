@@ -85,7 +85,6 @@ export class EmailService {
             <div><strong>Projected Az:</strong> ${curveData.projectedAz.toFixed(2)}°</div>
             <div><strong>Slide Seen:</strong> ${curveData.slideSeen.toFixed(2)} ft</div>
             <div><strong>Slide Ahead:</strong> ${curveData.slideAhead.toFixed(2)} ft</div>
-            <div><strong>Target Position:</strong> ${curveData.isAbove ? curveData.aboveTarget.toFixed(2) + 'ft Above' : curveData.belowTarget.toFixed(2) + 'ft Below'}, ${curveData.isRight ? curveData.rightTarget.toFixed(2) + 'ft Right' : curveData.leftTarget.toFixed(2) + 'ft Left'}</div>
           </div>
         </div>
         ` : ''}
