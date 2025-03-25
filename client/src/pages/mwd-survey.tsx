@@ -29,9 +29,9 @@ export default function MwdSurvey() {
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
       {/* Left column (Survey table, Survey form, etc) */}
-      <div className="xl:col-span-8 space-y-6">
+      <div className="xl:col-span-8 space-y-4">
         {/* MWD Survey Table */}
         <SurveyTable
           onAddSurvey={handleAddSurvey}
@@ -43,7 +43,7 @@ export default function MwdSurvey() {
       </div>
 
       {/* Right column (Gamma plot, AI Analytics, etc) */}
-      <div className="xl:col-span-4 space-y-6">
+      <div className="xl:col-span-4 space-y-4 mt-8">
         {/* Gamma Plot */}
         <GammaPlot />
 

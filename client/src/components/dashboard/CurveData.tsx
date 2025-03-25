@@ -8,7 +8,7 @@ import { Save, Mail, ArrowLeftRight, Compass, Ruler, MoveHorizontal, Waypoints }
 
 export default function CurveData() {
   const { curveData, updateCurveData, projections } = useSurveyContext();
-  
+
   const [formData, setFormData] = useState({
     motorYield: 0,
     dogLegNeeded: 0,
@@ -98,7 +98,7 @@ export default function CurveData() {
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 flex-1">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-full"> {/* Changed gap from 6 to 3 */}
           <div className="space-y-3">
             <div className="glass-panel p-3 group transition-all hover:border-cyan-500/40 border border-cyan-500/20">
               <div className="flex justify-between items-center mb-1">
