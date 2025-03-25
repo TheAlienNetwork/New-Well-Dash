@@ -41,19 +41,25 @@ export class EmailService {
       <!DOCTYPE html>
       <html>
       <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
           body { 
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #1a1a1a;
             margin: 0;
             padding: 0;
+            background: #f5f5f5;
           }
           .container { 
             max-width: 800px;
-            margin: 0 auto;
-            padding: 30px;
+            margin: 20px auto;
+            padding: 32px;
             background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           }
           .header {
             padding-bottom: 20px;
@@ -113,6 +119,10 @@ export class EmailService {
               <tr>
                 <th>Measured Depth (ft)</th>
                 <td>${survey.md.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <th>Bit Depth (ft)</th>
+                <td>${survey.bitDepth.toFixed(2)}</td>
               </tr>
               <tr>
                 <th>Inclination (°)</th >
@@ -190,9 +200,11 @@ export class EmailService {
           </div>
 
           ${gammaImageUrl ? `
-          <div>
+          <div class="data-section">
             <h3>Gamma Plot</h3>
-            <img src="${gammaImageUrl}" alt="Gamma Plot" />
+            <div style="text-align: center;">
+              <img src="cid:gamma-plot" alt="Gamma Plot" style="max-width: 100%; height: auto;" />
+            </div>
           </div>
           ` : ''}
 
