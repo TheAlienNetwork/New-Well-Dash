@@ -67,8 +67,7 @@ export default function AppNav() {
         </div>
       </div>
 
-      <style jsx>
-        {`
+      <style jsx>{`
           .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
             height: 8px;

@@ -175,8 +175,8 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent aria-describedby="survey-form-content" className="bg-neutral-surface rounded-lg max-w-3xl mx-4 futuristic-border">
-        <div id="survey-form-content" className="sr-only">Form for managing survey data</div>
+      <DialogContent aria-describedby="survey-form-description" className="bg-neutral-surface rounded-lg max-w-3xl mx-4 futuristic-border">
+        <div id="survey-form-description" className="sr-only">Survey form for adding or editing survey data</div>
         <DialogHeader className="p-4 bg-primary-dark">
           <div className="flex justify-between items-center">
             <DialogTitle className="font-heading text-lg font-semibold flex items-center">
