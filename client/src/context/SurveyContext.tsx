@@ -107,15 +107,15 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Update curve data with projections if it exists
       if (curveData && wellInfo) {
-        // Create the update payload manually to avoid typescript errors
-        // The numeric type in the schema expects a number, not a string
+        // Create the update payload manually
+        // The numeric type in the schema expects a string, not a number
         const curveUpdateData = {
           id: curveData.id,
-          projectedInc: projection.projectedInc,
-          projectedAz: projection.projectedAz
+          projectedInc: String(projection.projectedInc),
+          projectedAz: String(projection.projectedAz)
         };
         
-        updateCurveData(curveUpdateData as any);
+        updateCurveData(curveUpdateData);
       }
     }
   }, [surveys, latestSurvey]);
@@ -301,10 +301,10 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const id = data.id || (curveData?.id || 0);
       
-      // Convert any string values to the appropriate types
+      // Convert numeric values to strings to match the schema validation
       const processedData: Record<string, any> = {};
       
-      // First copy all data with the correct key names
+      // Process the data to ensure correct types for the API
       Object.entries(data).forEach(([key, value]) => {
         if (key === 'id' || key === 'wellId') {
           // Keep IDs as numbers
@@ -312,11 +312,11 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         } else if (key === 'includeInEmail') {
           // Keep boolean values
           processedData[key] = value;
-        } else if (typeof value === 'string') {
-          // Convert other string values to numbers
-          processedData[key] = parseFloat(value);
+        } else if (typeof value === 'number') {
+          // Convert numbers to strings for numeric fields
+          processedData[key] = String(value);
         } else {
-          // Keep non-string values as is (likely already numbers)
+          // Keep other values as is
           processedData[key] = value;
         }
       });
