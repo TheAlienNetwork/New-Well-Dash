@@ -58,9 +58,10 @@ export default function MwdSurvey() {
 
         {/* AI Analytics */}
         <AIAnalytics />
-
-        {/* Target Position */}
-        <div className="card rounded-lg overflow-hidden mt-6">
+        
+        <div>
+          {/* Target Position */}
+          <div className="card rounded-lg overflow-hidden mt-6">
           <div className="p-3 bg-indigo-900/30 flex justify-between items-center border-b border-indigo-500/20">
             <h2 className="font-heading text-lg font-semibold flex items-center text-indigo-100">
               <ArrowUpDown className="h-5 w-5 mr-2 text-indigo-400" />
@@ -149,7 +150,8 @@ export default function MwdSurvey() {
           </div>
         </div>
       </div>
-      <SurveyModal
+    </div>
+    <SurveyModal
           open={showSurveyModal}
           onOpenChange={setShowSurveyModal}
           survey={modalSurvey}
