@@ -43,7 +43,7 @@ export default function MwdSurvey() {
       </div>
 
       {/* Right column (Gamma plot, AI Analytics, etc) */}
-      <div className="xl:col-span-4 space-y-4 mt-8">
+      <div className="xl:col-span-4 space-y-4">
         {/* Gamma Plot */}
         <GammaPlot />
 
