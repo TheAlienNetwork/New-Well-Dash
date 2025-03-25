@@ -131,11 +131,11 @@ export default function GammaPlot() {
         </div>
         
         {/* Vertical Gamma plot */}
-        <div className="col-span-2 p-3 flex-1 flex" style={{ maxHeight: '400px' }}>
+        <div className="col-span-2 p-3 flex" style={{ height: '250px' }}>
           <div className="chart-container glass-panel rounded-lg p-3 flex-1 border border-cyan-500/20 bg-navy-950/70">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart 
-                data={chartData} 
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart
+                data={chartData}
                 layout="vertical"
                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
               >
@@ -174,13 +174,13 @@ export default function GammaPlot() {
                   labelFormatter={(label) => `Depth: ${label.toFixed(2)} ft`}
                   cursor={{ fill: 'rgba(6, 182, 212, 0.15)' }}
                 />
-                <Bar 
-                  dataKey="gamma" 
-                  fill="url(#gammaGradient)" 
-                  radius={[4, 4, 0, 0]}
-                  barSize={8}
+                <Line
+                  type="monotone"
+                  dataKey="gamma"
+                  stroke="#00ff00"
+                  strokeWidth={2}
+                  dot={{ fill: '#00ff00', r: 4 }}
                   animationDuration={500}
-                  animationEasing="ease-out"
                 />
                 
                 <Legend 
