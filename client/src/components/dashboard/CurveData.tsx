@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Save, Info, ArrowLeftRight, Compass, Ruler, MoveHorizontal } from 'lucide-react';
+import { Save, Mail, ArrowLeftRight, Compass, Ruler, MoveHorizontal, Waypoints } from 'lucide-react';
 
 export default function CurveData() {
   const { curveData, updateCurveData, projections } = useSurveyContext();
@@ -69,14 +69,14 @@ export default function CurveData() {
   };
 
   return (
-    <div className="card rounded-lg overflow-hidden">
-      <div className="p-3 bg-violet-900/30 flex justify-between items-center border-b border-violet-500/20">
-        <h2 className="font-heading text-lg font-semibold flex items-center text-violet-100">
-          <ArrowLeftRight className="h-5 w-5 mr-2 text-violet-400" />
-          Curve Data
+    <div className="futuristic-container flex flex-col h-full">
+      <div className="p-3 flex justify-between items-center border-b border-cyan-500/20">
+        <h2 className="font-heading text-lg font-semibold flex items-center text-navy-100">
+          <Waypoints className="h-5 w-5 mr-2 text-cyan-400" />
+          <span>CURVE DATA</span>
         </h2>
-        <div className="flex items-center">
-          <span className="text-sm mr-2 text-violet-200">Include in Email</span>
+        <div className="flex items-center space-x-2 bg-navy-900/50 px-3 py-1 rounded-full border border-cyan-500/20">
+          <span className="text-xs mr-2 text-navy-200 font-mono">INCLUDE IN EMAIL</span>
           <Switch 
             checked={formData.includeInEmail}
             onCheckedChange={(checked) => {
@@ -91,19 +91,22 @@ export default function CurveData() {
                 });
               }
             }}
+            className="data-[state=checked]:bg-cyan-500"
           />
+          <Mail className={`h-4 w-4 ${formData.includeInEmail ? 'text-cyan-400' : 'text-navy-400'}`} />
         </div>
       </div>
-      <form onSubmit={handleSubmit} className="p-4 glass-container">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <form onSubmit={handleSubmit} className="p-4 flex-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
           <div className="space-y-3">
-            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+            <div className="glass-panel p-3 group transition-all hover:border-cyan-500/40 border border-cyan-500/20">
               <div className="flex justify-between items-center mb-1">
-                <Label className="text-xs text-violet-300 flex items-center">
-                  <MoveHorizontal className="h-3 w-3 mr-1 text-violet-400" />
-                  Motor Yield 
+                <Label className="text-xs text-navy-200 flex items-center font-mono">
+                  <MoveHorizontal className="h-3 w-3 mr-1 text-cyan-400" />
+                  MOTOR YIELD 
                 </Label>
-                <span className="text-[10px] text-violet-400">°/100ft</span>
+                <span className="text-[10px] text-cyan-400 font-mono">°/100ft</span>
               </div>
               <div className="relative">
                 <Input 
@@ -112,18 +115,18 @@ export default function CurveData() {
                   name="motorYield"
                   value={formData.motorYield}
                   onChange={handleInputChange}
-                  className="font-mono text-emerald-400"
+                  className="font-mono glow-text-green text-lg"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500/0 via-cyan-500 to-cyan-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
               </div>
             </div>
-            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+            <div className="glass-panel p-3 group transition-all hover:border-cyan-500/40 border border-cyan-500/20">
               <div className="flex justify-between items-center mb-1">
-                <Label className="text-xs text-violet-300 flex items-center">
-                  <ArrowLeftRight className="h-3 w-3 mr-1 text-violet-400" />
-                  Dog Leg Needed
+                <Label className="text-xs text-navy-200 flex items-center font-mono">
+                  <ArrowLeftRight className="h-3 w-3 mr-1 text-cyan-400" />
+                  DOG LEG NEEDED
                 </Label>
-                <span className="text-[10px] text-violet-400">°/100ft</span>
+                <span className="text-[10px] text-cyan-400 font-mono">°/100ft</span>
               </div>
               <div className="relative">
                 <Input 
@@ -132,20 +135,20 @@ export default function CurveData() {
                   name="dogLegNeeded"
                   value={formData.dogLegNeeded}
                   onChange={handleInputChange}
-                  className="font-mono text-emerald-400"
+                  className="font-mono glow-text-green text-lg"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500/0 via-cyan-500 to-cyan-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
               </div>
             </div>
           </div>
           <div className="space-y-3">
-            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+            <div className="glass-panel p-3 group transition-all hover:border-cyan-500/40 border border-cyan-500/20">
               <div className="flex justify-between items-center mb-1">
-                <Label className="text-xs text-violet-300 flex items-center">
-                  <ArrowLeftRight className="h-3 w-3 mr-1 text-violet-400" />
-                  Projected Inc
+                <Label className="text-xs text-navy-200 flex items-center font-mono">
+                  <ArrowLeftRight className="h-3 w-3 mr-1 text-cyan-400" />
+                  PROJECTED INC
                 </Label>
-                <span className="text-[10px] text-violet-400">°</span>
+                <span className="text-[10px] text-cyan-400 font-mono">°</span>
               </div>
               <div className="relative">
                 <Input 
@@ -154,18 +157,18 @@ export default function CurveData() {
                   name="projectedInc"
                   value={formData.projectedInc}
                   onChange={handleInputChange}
-                  className="font-mono text-blue-400"
+                  className="font-mono glow-text text-lg"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500/0 via-cyan-500 to-cyan-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
               </div>
             </div>
-            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+            <div className="glass-panel p-3 group transition-all hover:border-cyan-500/40 border border-cyan-500/20">
               <div className="flex justify-between items-center mb-1">
-                <Label className="text-xs text-violet-300 flex items-center">
-                  <Compass className="h-3 w-3 mr-1 text-violet-400" />
-                  Projected Az
+                <Label className="text-xs text-navy-200 flex items-center font-mono">
+                  <Compass className="h-3 w-3 mr-1 text-cyan-400" />
+                  PROJECTED AZ
                 </Label>
-                <span className="text-[10px] text-violet-400">°</span>
+                <span className="text-[10px] text-cyan-400 font-mono">°</span>
               </div>
               <div className="relative">
                 <Input 
@@ -174,20 +177,20 @@ export default function CurveData() {
                   name="projectedAz"
                   value={formData.projectedAz}
                   onChange={handleInputChange}
-                  className="font-mono text-blue-400"
+                  className="font-mono glow-text text-lg"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500/0 via-cyan-500 to-cyan-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
               </div>
             </div>
           </div>
           <div className="space-y-3">
-            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+            <div className="glass-panel p-3 group transition-all hover:border-cyan-500/40 border border-cyan-500/20">
               <div className="flex justify-between items-center mb-1">
-                <Label className="text-xs text-violet-300 flex items-center">
-                  <Ruler className="h-3 w-3 mr-1 text-violet-400" />
-                  Slide Seen
+                <Label className="text-xs text-navy-200 flex items-center font-mono">
+                  <Ruler className="h-3 w-3 mr-1 text-cyan-400" />
+                  SLIDE SEEN
                 </Label>
-                <span className="text-[10px] text-violet-400">ft</span>
+                <span className="text-[10px] text-cyan-400 font-mono">ft</span>
               </div>
               <div className="relative">
                 <Input 
@@ -196,18 +199,18 @@ export default function CurveData() {
                   name="slideSeen"
                   value={formData.slideSeen}
                   onChange={handleInputChange}
-                  className="font-mono text-cyan-300"
+                  className="font-mono glow-text-orange text-lg"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500/0 via-cyan-500 to-cyan-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
               </div>
             </div>
-            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+            <div className="glass-panel p-3 group transition-all hover:border-cyan-500/40 border border-cyan-500/20">
               <div className="flex justify-between items-center mb-1">
-                <Label className="text-xs text-violet-300 flex items-center">
-                  <Ruler className="h-3 w-3 mr-1 text-violet-400" />
-                  Slide Ahead
+                <Label className="text-xs text-navy-200 flex items-center font-mono">
+                  <Ruler className="h-3 w-3 mr-1 text-cyan-400" />
+                  SLIDE AHEAD
                 </Label>
-                <span className="text-[10px] text-violet-400">ft</span>
+                <span className="text-[10px] text-cyan-400 font-mono">ft</span>
               </div>
               <div className="relative">
                 <Input 
@@ -216,9 +219,9 @@ export default function CurveData() {
                   name="slideAhead"
                   value={formData.slideAhead}
                   onChange={handleInputChange}
-                  className="font-mono text-cyan-300"
+                  className="font-mono glow-text-orange text-lg"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500/0 via-cyan-500 to-cyan-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
               </div>
             </div>
           </div>
@@ -226,22 +229,23 @@ export default function CurveData() {
         <div className="mt-5 flex justify-end">
           <Button 
             type="submit" 
-            className="bg-gradient-to-r from-violet-600 to-violet-800 hover:from-violet-500 hover:to-violet-700 transition-all px-5 py-2 rounded-md text-sm font-medium flex items-center shadow-lg shadow-violet-900/20"
+            className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-cyan-400 hover:text-cyan-300 transition-all px-5 py-2 rounded-md text-xs font-mono flex items-center shadow-lg hover:shadow-cyan-900/20"
           >
             <Save className="h-4 w-4 mr-2" />
-            Save Changes
+            SAVE CHANGES
           </Button>
         </div>
       </form>
 
-      <style>{`
-        .glass-container {
-          background-color: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(2px);
-          border-radius: 0.5rem;
-          border: 1px solid rgba(139, 92, 246, 0.1);
-        }
-      `}</style>
+      <div className="p-2 border-t border-cyan-500/20 flex justify-between items-center bg-navy-950/60 text-xs font-mono">
+        <div className="flex items-center">
+          <Waypoints className="h-4 w-4 text-cyan-400 mr-2" />
+          <span className="text-navy-200">DIRECTIONAL DATA</span>
+        </div>
+        <div className="text-cyan-400/70">
+          LAST UPDATE: {new Date().toLocaleTimeString()}
+        </div>
+      </div>
     </div>
   );
 }

@@ -8,21 +8,61 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-navy-950 text-foreground;
+    background: linear-gradient(to bottom, #0a192f, #0f1c2e);
   }
-  
+}
+
+@layer components {
   /* Futuristic input and textarea styling */
   input, textarea, select {
-    @apply bg-gradient-to-br from-slate-800 to-slate-900 border-violet-500/30 focus:border-violet-400;
+    @apply bg-navy-900 border-cyan-500/30 focus:border-cyan-400 shadow-md;
   }
   
   /* Application color schemes */
   .card {
-    @apply bg-gradient-to-br from-slate-900 via-slate-900 to-violet-950/40 shadow-lg hover:shadow-violet-900/20 transition-all duration-300;
+    @apply bg-navy-900 shadow-lg hover:shadow-cyan-900/20 transition-all duration-300 border border-cyan-500/20;
   }
   
   /* Futuristic glassmorphism effects */
   .glass-panel {
-    @apply bg-violet-950/20 backdrop-blur-sm border border-violet-500/20 rounded-lg shadow-lg;
+    @apply bg-navy-950/40 backdrop-blur-sm border border-cyan-500/20 rounded-lg shadow-lg;
+  }
+  
+  /* Neon glowing values */
+  .glow-text {
+    @apply text-cyan-400 font-mono;
+    text-shadow: 0 0 8px rgba(0, 191, 255, 0.6);
+  }
+  
+  .glow-text-green {
+    @apply text-emerald-400 font-mono;
+    text-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+  }
+  
+  .glow-text-orange {
+    @apply text-orange-400 font-mono;
+    text-shadow: 0 0 8px rgba(251, 146, 60, 0.6);
+  }
+  
+  .glow-border {
+    @apply border border-cyan-500/30 shadow-md;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.2);
+  }
+  
+  /* Futuristic container styling */
+  .futuristic-container {
+    @apply bg-navy-900/80 backdrop-blur-md rounded-lg border border-cyan-500/20 shadow-lg;
+  }
+  
+  /* Animated pulse effect */
+  .pulse-effect {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
   }
 }

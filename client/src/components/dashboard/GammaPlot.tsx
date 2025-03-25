@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, ReferenceLine, Legend
 } from 'recharts';
-import { LucideActivity } from 'lucide-react';
+import { Activity, BarChart3, Download, Zap } from 'lucide-react';
 
 interface GammaPoint {
   depth: number;
@@ -46,67 +46,71 @@ export default function GammaPlot() {
   })).sort((a, b) => a.depth - b.depth);
 
   return (
-    <div className="card rounded-lg overflow-hidden futuristic-border h-full">
-      <div className="p-3 bg-violet-900/30 flex justify-between items-center border-b border-violet-500/20">
-        <h2 className="font-heading text-lg font-semibold flex items-center text-violet-100">
-          <LucideActivity className="h-5 w-5 mr-2 text-violet-400" />
-          Gamma Plot
+    <div className="futuristic-container h-full flex flex-col">
+      <div className="p-3 flex justify-between items-center border-b border-cyan-500/20">
+        <h2 className="font-heading text-lg font-semibold flex items-center text-navy-100">
+          <BarChart3 className="h-5 w-5 mr-2 text-cyan-400" />
+          <span>GAMMA PLOT</span>
         </h2>
         <div className="flex space-x-2">
-          <button className="glass-panel px-3 py-1 rounded text-xs text-violet-200 hover:bg-violet-800/20 transition-all">
-            Export
+          <button className="glass-panel px-3 py-1 rounded text-xs text-cyan-200 hover:bg-cyan-800/20 transition-all duration-300 flex items-center">
+            <Download className="h-3 w-3 mr-1" />
+            EXPORT
           </button>
-          <div className="bg-violet-950/40 text-xs px-2 py-1 rounded flex items-center">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 pulse mr-1"></div>
-            <span className="text-emerald-300">Live</span>
+          <div className="bg-navy-950/40 text-xs px-2 py-1 rounded flex items-center border border-emerald-500/20">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 pulse-effect mr-1"></div>
+            <span className="text-emerald-400 font-mono">LIVE</span>
           </div>
         </div>
       </div>
       
-      <div className="grid grid-cols-3 gap-0">
+      <div className="grid grid-cols-3 gap-0 flex-1">
         {/* Side metrics panel */}
-        <div className="glass-panel m-3 p-3 rounded-lg flex flex-col justify-between">
+        <div className="glass-panel m-3 p-3 rounded-lg flex flex-col justify-between border border-cyan-500/20 bg-navy-950/70">
           <div className="space-y-4">
-            <div className="bg-violet-900/20 rounded-md p-2 border border-violet-500/20">
-              <span className="text-xs text-violet-300">Current API</span>
-              <div className="font-mono font-bold text-2xl text-emerald-400 mt-1">{currentGamma?.toFixed(1) || 'N/A'}</div>
-              <span className="text-[10px] text-violet-400">gAPI</span>
+            <div className="bg-navy-900/70 rounded-md p-2 border border-cyan-500/20 glow-border">
+              <span className="text-xs text-navy-200 font-mono">CURRENT API</span>
+              <div className="font-mono font-bold text-2xl glow-text-green mt-1">{currentGamma?.toFixed(1) || 'N/A'}</div>
+              <span className="text-[10px] text-cyan-400/70 font-mono">gAPI</span>
             </div>
             
-            <div className="bg-violet-900/20 rounded-md p-2 border border-violet-500/20">
-              <span className="text-xs text-violet-300">Avg API</span>
-              <div className="font-mono font-medium text-lg text-violet-200 mt-1">{avgGamma?.toFixed(1) || 'N/A'}</div>
-              <span className="text-[10px] text-violet-400">gAPI</span>
+            <div className="bg-navy-900/70 rounded-md p-2 border border-cyan-500/20">
+              <span className="text-xs text-navy-200 font-mono">AVG API</span>
+              <div className="font-mono font-medium text-lg glow-text mt-1">{avgGamma?.toFixed(1) || 'N/A'}</div>
+              <span className="text-[10px] text-cyan-400/70 font-mono">gAPI</span>
             </div>
             
-            <div className="bg-violet-900/20 rounded-md p-2 border border-violet-500/20">
-              <span className="text-xs text-violet-300">Depth Range</span>
-              <div className="font-mono font-medium text-sm text-violet-200 mt-1">{depthRange || 'N/A'}</div>
-              <span className="text-[10px] text-violet-400">ft MD</span>
+            <div className="bg-navy-900/70 rounded-md p-2 border border-cyan-500/20">
+              <span className="text-xs text-navy-200 font-mono">DEPTH RANGE</span>
+              <div className="font-mono font-medium text-sm glow-text mt-1">{depthRange || 'N/A'}</div>
+              <span className="text-[10px] text-cyan-400/70 font-mono">ft MD</span>
             </div>
           </div>
           
           <div className="mt-auto">
-            <div className="text-[10px] text-violet-400 mt-2">Last Update</div>
-            <div className="font-mono text-xs text-violet-200">{lastUpdate || 'N/A'}</div>
+            <div className="text-[10px] text-cyan-400/70 mt-2 font-mono flex items-center">
+              <Activity className="h-3 w-3 mr-1 text-cyan-400 pulse-effect" />
+              LAST UPDATE
+            </div>
+            <div className="font-mono text-xs text-cyan-200">{lastUpdate || 'N/A'}</div>
           </div>
         </div>
         
         {/* Vertical Gamma plot */}
-        <div className="col-span-2 p-3">
-          <div className="chart-container glass-panel rounded-lg p-3 h-full">
+        <div className="col-span-2 p-3 flex-1 flex">
+          <div className="chart-container glass-panel rounded-lg p-3 flex-1 border border-cyan-500/20 bg-navy-950/70">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
                 data={chartData} 
                 layout="vertical"
                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" className="grid-line" stroke="rgba(139, 92, 246, 0.1)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(6, 182, 212, 0.15)" />
                 <XAxis 
                   type="number"
                   domain={[0, 'dataMax + 20']}
-                  stroke="#8b5cf6"
-                  tick={{ fill: '#c4b5fd' }}
+                  stroke="#06b6d4"
+                  tick={{ fill: '#a5f3fc' }}
                   orientation="top"
                 />
                 <YAxis 
@@ -114,22 +118,27 @@ export default function GammaPlot() {
                   type="number"
                   domain={['dataMin - 5', 'dataMax + 5']}
                   reversed={true}
-                  stroke="#8b5cf6"
-                  tick={{ fill: '#c4b5fd' }}
+                  stroke="#06b6d4"
+                  tick={{ fill: '#a5f3fc' }}
                   tickFormatter={(value) => value.toFixed(0)}
-                  label={{ value: 'Depth (ft)', angle: -90, position: 'insideLeft', fill: '#c4b5fd', fontSize: 12 }}
+                  label={{ value: 'DEPTH (ft)', angle: -90, position: 'insideLeft', fill: '#a5f3fc', fontSize: 12, fontFamily: 'monospace' }}
                 />
                 <Tooltip
                   contentStyle={{ 
-                    backgroundColor: 'rgba(15, 23, 42, 0.8)', 
-                    border: '1px solid rgba(139, 92, 246, 0.4)', 
+                    backgroundColor: 'rgba(6, 16, 36, 0.9)', 
+                    border: '1px solid rgba(6, 182, 212, 0.4)', 
                     borderRadius: '4px',
-                    color: '#f5f3ff',
-                    backdropFilter: 'blur(8px)'
+                    color: '#a5f3fc',
+                    backdropFilter: 'blur(8px)',
+                    fontFamily: 'monospace',
+                    boxShadow: '0 0 15px rgba(6, 182, 212, 0.2)'
                   }}
-                  formatter={(value: number) => [value.toFixed(2) + ' gAPI', 'Gamma']}
+                  formatter={(value: number) => [
+                    <span className="glow-text">{value.toFixed(2)} gAPI</span>, 
+                    <span className="text-cyan-200">Gamma</span>
+                  ]}
                   labelFormatter={(label) => `Depth: ${label.toFixed(2)} ft`}
-                  cursor={{ fill: 'rgba(139, 92, 246, 0.2)' }}
+                  cursor={{ fill: 'rgba(6, 182, 212, 0.15)' }}
                 />
                 <Bar 
                   dataKey="gamma" 
@@ -142,20 +151,20 @@ export default function GammaPlot() {
                 
                 <Legend 
                   verticalAlign="bottom" 
-                  wrapperStyle={{ paddingTop: '10px' }}
-                  formatter={() => 'Gamma Readings (gAPI)'}
+                  wrapperStyle={{ paddingTop: '10px', fontFamily: 'monospace' }}
+                  formatter={() => <span className="text-cyan-200">Gamma Readings (gAPI)</span>}
                 />
                 
                 {/* Reference lines for significant gamma values */}
-                <ReferenceLine y={0} stroke="rgba(139, 92, 246, 0.5)" strokeDasharray="3 3" />
-                <ReferenceLine x={60} stroke="rgba(20, 184, 166, 0.6)" strokeDasharray="3 3" />
+                <ReferenceLine y={0} stroke="rgba(6, 182, 212, 0.4)" strokeDasharray="3 3" />
+                <ReferenceLine x={60} stroke="rgba(16, 185, 129, 0.6)" strokeDasharray="3 3" />
                 
                 {/* Gradient definition */}
                 <defs>
                   <linearGradient id="gammaGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#4c1d95" />
-                    <stop offset="50%" stopColor="#8b5cf6" />
-                    <stop offset="100%" stopColor="#5eead4" />
+                    <stop offset="0%" stopColor="#0891b2" />
+                    <stop offset="50%" stopColor="#06b6d4" />
+                    <stop offset="100%" stopColor="#22d3ee" />
                   </linearGradient>
                 </defs>
               </BarChart>
@@ -164,44 +173,15 @@ export default function GammaPlot() {
         </div>
       </div>
 
-      <style>{`
-        .pulse {
-          animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-          0% { opacity: 0.6; }
-          50% { opacity: 1; }
-          100% { opacity: 0.6; }
-        }
-        .chart-container {
-          min-height: 400px;
-          position: relative;
-        }
-        .futuristic-border {
-          position: relative;
-          box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
-        }
-        .futuristic-border::before, .futuristic-border::after {
-          content: '';
-          position: absolute;
-          width: 20px;
-          height: 20px;
-          border-color: rgb(139, 92, 246);
-          z-index: 1;
-        }
-        .futuristic-border::before {
-          top: -1px;
-          left: -1px;
-          border-top: 2px solid;
-          border-left: 2px solid;
-        }
-        .futuristic-border::after {
-          bottom: -1px;
-          right: -1px;
-          border-bottom: 2px solid;
-          border-right: 2px solid;
-        }
-      `}</style>
+      <div className="p-2 border-t border-cyan-500/20 flex justify-between items-center bg-navy-950/60">
+        <div className="flex items-center">
+          <Zap className="h-4 w-4 text-cyan-400 mr-1" />
+          <span className="text-xs text-navy-200 font-mono">REAL-TIME GAMMA ANALYSIS</span>
+        </div>
+        <div className="text-xs text-cyan-400/70 font-mono">
+          SAMPLES: {chartData.length}
+        </div>
+      </div>
     </div>
   );
 }
