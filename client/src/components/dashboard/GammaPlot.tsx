@@ -22,7 +22,7 @@ export default function GammaPlot() {
     if (gammaData.length > 0) {
       // Get current gamma (latest data point)
       const latest = gammaData[gammaData.length - 1];
-      setCurrentGamma(latest.value);
+      setCurrentGamma(Number(latest.value));
       
       // Calculate average
       const sum = gammaData.reduce((acc, point) => acc + Number(point.value), 0);

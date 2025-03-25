@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Save, ArrowLeftRight, Compass, Ruler, MoveHorizontal, ArrowUpDown, ArrowUp, ArrowRight, CornerDownRight } from 'lucide-react';
+import { Save, ArrowLeftRight, Compass, Ruler, MoveHorizontal, ArrowUpDown, ArrowUp, ArrowDown, ArrowRight, CornerDownRight } from 'lucide-react';
 
 export default function DirectionalCurveData() {
   const { curveData, updateCurveData } = useSurveyContext();
@@ -55,12 +55,12 @@ export default function DirectionalCurveData() {
     if (curveData) {
       // Update the main curve data (we'll add the target position fields to the schema later)
       await updateCurveData({
-        motorYield: formData.motorYield,
-        dogLegNeeded: formData.dogLegNeeded,
-        projectedInc: formData.projectedInc,
-        projectedAz: formData.projectedAz,
-        slideSeen: formData.slideSeen,
-        slideAhead: formData.slideAhead,
+        motorYield: String(formData.motorYield),
+        dogLegNeeded: String(formData.dogLegNeeded),
+        projectedInc: String(formData.projectedInc),
+        projectedAz: String(formData.projectedAz),
+        slideSeen: String(formData.slideSeen),
+        slideAhead: String(formData.slideAhead),
         includeInEmail: formData.includeInEmail,
         id: curveData.id,
         wellId: curveData.wellId

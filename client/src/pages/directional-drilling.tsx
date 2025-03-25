@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SurveyTable from '@/components/dashboard/SurveyTable';
+import DirectionalCurveData from '@/components/dashboard/DirectionalCurveData';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { useWellContext } from '@/context/WellContext';
 import { Button } from '@/components/ui/button';
@@ -125,8 +126,8 @@ export default function DirectionalDrilling() {
     if (curveData) {
       updateCurveData({
         id: curveData.id,
-        dogLegNeeded: results.dogLegNeeded,
-        slideAhead: results.slideAhead
+        dogLegNeeded: String(results.dogLegNeeded),
+        slideAhead: String(results.slideAhead)
       });
     }
   };
@@ -168,91 +169,7 @@ export default function DirectionalDrilling() {
           
           {/* Curve Data Tab */}
           <TabsContent value="curve">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <div className="bg-neutral-background rounded-md p-3">
-                    <Label className="block text-xs text-gray-400 mb-1">Motor Yield (°/100ft)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      name="motorYield"
-                      value={formData.motorYield}
-                      onChange={handleInputChange}
-                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-                    />
-                  </div>
-                  <div className="bg-neutral-background rounded-md p-3">
-                    <Label className="block text-xs text-gray-400 mb-1">Dog Leg Needed (°/100ft)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      name="dogLegNeeded"
-                      value={formData.dogLegNeeded}
-                      onChange={handleInputChange}
-                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="bg-neutral-background rounded-md p-3">
-                    <Label className="block text-xs text-gray-400 mb-1">Projected Inc (°)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      name="projectedInc"
-                      value={formData.projectedInc}
-                      onChange={handleInputChange}
-                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-                    />
-                  </div>
-                  <div className="bg-neutral-background rounded-md p-3">
-                    <Label className="block text-xs text-gray-400 mb-1">Projected Az (°)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      name="projectedAz"
-                      value={formData.projectedAz}
-                      onChange={handleInputChange}
-                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="bg-neutral-background rounded-md p-3">
-                    <Label className="block text-xs text-gray-400 mb-1">Slide Seen (ft)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      name="slideSeen"
-                      value={formData.slideSeen}
-                      onChange={handleInputChange}
-                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-                    />
-                  </div>
-                  <div className="bg-neutral-background rounded-md p-3">
-                    <Label className="block text-xs text-gray-400 mb-1">Slide Ahead (ft)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      name="slideAhead"
-                      value={formData.slideAhead}
-                      onChange={handleInputChange}
-                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button 
-                  type="submit" 
-                  className="bg-primary hover:bg-blue-600 transition-colors px-4 py-2 rounded-md text-sm font-medium flex items-center"
-                >
-                  <Save className="h-4 w-4 mr-1" />
-                  Save Changes
-                </Button>
-              </div>
-            </form>
+            <DirectionalCurveData />
           </TabsContent>
           
           {/* Nudge Projection Tab */}
@@ -411,10 +328,10 @@ export default function DirectionalDrilling() {
                             if (curveData) {
                               updateCurveData({
                                 id: curveData.id,
-                                dogLegNeeded: nudgeResults.dogLegNeeded,
-                                slideAhead: nudgeResults.slideAhead,
-                                projectedInc: nudgeData.targetInc,
-                                projectedAz: nudgeData.targetAz
+                                dogLegNeeded: String(nudgeResults.dogLegNeeded),
+                                slideAhead: String(nudgeResults.slideAhead),
+                                projectedInc: String(nudgeData.targetInc),
+                                projectedAz: String(nudgeData.targetAz)
                               });
                             }
                           }}

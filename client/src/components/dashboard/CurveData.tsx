@@ -55,7 +55,13 @@ export default function CurveData() {
     e.preventDefault();
     if (curveData) {
       await updateCurveData({
-        ...formData,
+        motorYield: String(formData.motorYield),
+        dogLegNeeded: String(formData.dogLegNeeded),
+        projectedInc: String(formData.projectedInc),
+        projectedAz: String(formData.projectedAz),
+        slideSeen: String(formData.slideSeen),
+        slideAhead: String(formData.slideAhead),
+        includeInEmail: formData.includeInEmail,
         id: curveData.id,
         wellId: curveData.wellId
       });
