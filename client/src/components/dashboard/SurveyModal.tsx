@@ -19,121 +19,119 @@ interface SurveyModalProps {
 export default function SurveyModal({ open, onOpenChange, survey, mode }: SurveyModalProps) {
   const { addSurvey, updateSurvey, surveys } = useSurveyContext();
   const { wellInfo } = useWellContext();
-  
+
   const [formData, setFormData] = useState({
-    bitDepth: 0,
-    inc: 0,
-    azi: 0,
-    toolFace: 0,
-    gTotal: 0.999,
-    bTotal: 1.002,
-    dipAngle: 67.52,
-    md: 0,
-    tvd: 0,
-    northSouth: 0,
+    bitDepth: '',
+    inc: '',
+    azi: '',
+    toolFace: '',
+    gTotal: '0.999',
+    bTotal: '1.002',
+    dipAngle: '67.52',
+    md: '',
+    tvd: '',
+    northSouth: '',
     isNorth: true,
-    eastWest: 0,
+    eastWest: '',
     isEast: true,
-    vs: 0,
-    dls: 0
+    vs: '',
+    dls: ''
   });
-  
+
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
 
   useEffect(() => {
     if (survey && mode === 'edit') {
       setFormData({
-        bitDepth: Number(survey.bitDepth),
-        inc: Number(survey.inc),
-        azi: Number(survey.azi),
-        toolFace: Number(survey.toolFace || 0),
-        gTotal: Number(survey.gTotal || 0.999),
-        bTotal: Number(survey.bTotal || 1.002),
-        dipAngle: Number(survey.dipAngle || 67.52),
-        md: Number(survey.md),
-        tvd: Number(survey.tvd),
-        northSouth: Number(survey.northSouth),
+        bitDepth: survey.bitDepth,
+        inc: survey.inc,
+        azi: survey.azi,
+        toolFace: survey.toolFace || '',
+        gTotal: survey.gTotal || '0.999',
+        bTotal: survey.bTotal || '1.002',
+        dipAngle: survey.dipAngle || '67.52',
+        md: survey.md,
+        tvd: survey.tvd,
+        northSouth: survey.northSouth,
         isNorth: survey.isNorth,
-        eastWest: Number(survey.eastWest),
+        eastWest: survey.eastWest,
         isEast: survey.isEast,
-        vs: Number(survey.vs),
-        dls: Number(survey.dls)
+        vs: survey.vs,
+        dls: survey.dls
       });
-      
+
       // Calculate AI analysis for this survey
       const analysis = generateSurveyAnalysis(survey, surveys.filter(s => s.id !== survey.id));
       setAiAnalysis(analysis);
     } else {
       // For add mode, set default values
       const lastSurvey = surveys.length > 0 ? surveys[surveys.length - 1] : null;
-      
-      const defaultMd = lastSurvey ? Number(lastSurvey.md) + 100 : 1000;
+
+      const defaultMd = lastSurvey ? parseFloat(lastSurvey.md) + 100 : 1000;
       const defaultBitDepth = defaultMd + (wellInfo?.sensorOffset || 100);
-      
+
       setFormData({
-        bitDepth: defaultBitDepth,
-        inc: lastSurvey ? Number(lastSurvey.inc) : 0,
-        azi: lastSurvey ? Number(lastSurvey.azi) : 0,
-        toolFace: lastSurvey ? Number(lastSurvey.toolFace || 0) : 0,
-        gTotal: 0.999,
-        bTotal: 1.002,
-        dipAngle: 67.52,
-        md: defaultMd,
-        tvd: lastSurvey ? Number(lastSurvey.tvd) : defaultMd,
-        northSouth: lastSurvey ? Number(lastSurvey.northSouth) : 0,
+        bitDepth: defaultBitDepth.toString(),
+        inc: lastSurvey ? lastSurvey.inc : '',
+        azi: lastSurvey ? lastSurvey.azi : '',
+        toolFace: lastSurvey ? lastSurvey.toolFace || '' : '',
+        gTotal: '0.999',
+        bTotal: '1.002',
+        dipAngle: '67.52',
+        md: defaultMd.toString(),
+        tvd: lastSurvey ? lastSurvey.tvd : defaultMd.toString(),
+        northSouth: lastSurvey ? lastSurvey.northSouth : '',
         isNorth: lastSurvey ? lastSurvey.isNorth : true,
-        eastWest: lastSurvey ? Number(lastSurvey.eastWest) : 0,
+        eastWest: lastSurvey ? lastSurvey.eastWest : '',
         isEast: lastSurvey ? lastSurvey.isEast : true,
-        vs: lastSurvey ? Number(lastSurvey.vs) : 0,
-        dls: 0
+        vs: lastSurvey ? lastSurvey.vs : '',
+        dls: ''
       });
-      
+
       setAiAnalysis(null);
     }
   }, [survey, mode, surveys, wellInfo]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    const numValue = type === 'number' ? parseFloat(value) : value;
-    
+    const { name, value } = e.target;
+
     setFormData(prev => ({
       ...prev,
-      [name]: numValue
+      [name]: value
     }));
-    
+
     // Update MD based on bit depth and sensor offset
     if (name === 'bitDepth' && wellInfo) {
       const sensorOffset = wellInfo.sensorOffset || 100;
       const newMd = parseFloat(value) - sensorOffset;
-      
       setFormData(prev => ({
         ...prev,
-        md: newMd
+        md: isNaN(newMd) ? '' : newMd.toString()
       }));
-      
+
       // If we have a previous survey, we can calculate the rest
       const lastSurvey = surveys.length > 0 ? surveys[surveys.length - 1] : null;
-      
+
       if (lastSurvey) {
         const calculated = calculateSurveyValues(
           {
-            md: newMd,
-            inc: prev.inc,
-            azi: prev.azi
+            md: isNaN(parseFloat(value)) ? 0 : parseFloat(value) - sensorOffset,
+            inc: parseFloat(prev.inc) || 0,
+            azi: parseFloat(prev.azi) || 0
           },
           {
-            md: Number(lastSurvey.md),
-            inc: Number(lastSurvey.inc),
-            azi: Number(lastSurvey.azi),
-            tvd: Number(lastSurvey.tvd),
-            northSouth: Number(lastSurvey.northSouth),
+            md: parseFloat(lastSurvey.md),
+            inc: parseFloat(lastSurvey.inc),
+            azi: parseFloat(lastSurvey.azi),
+            tvd: parseFloat(lastSurvey.tvd),
+            northSouth: parseFloat(lastSurvey.northSouth),
             isNorth: lastSurvey.isNorth,
-            eastWest: Number(lastSurvey.eastWest),
+            eastWest: parseFloat(lastSurvey.eastWest),
             isEast: lastSurvey.isEast
           },
-          Number(wellInfo.proposedDirection || 0)
+          parseFloat(wellInfo.proposedDirection || '0')
         );
-        
+
         setFormData(prev => ({
           ...prev,
           ...calculated
@@ -144,34 +142,34 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!wellInfo) return;
-    
+
     const surveyData: InsertSurvey = {
-      md: formData.md,
-      inc: formData.inc,
-      azi: formData.azi,
-      tvd: formData.tvd,
-      northSouth: formData.northSouth,
+      md: parseFloat(formData.md) || 0,
+      inc: parseFloat(formData.inc) || 0,
+      azi: parseFloat(formData.azi) || 0,
+      tvd: parseFloat(formData.tvd) || 0,
+      northSouth: parseFloat(formData.northSouth) || 0,
       isNorth: formData.isNorth,
-      eastWest: formData.eastWest,
+      eastWest: parseFloat(formData.eastWest) || 0,
       isEast: formData.isEast,
-      vs: formData.vs,
-      dls: formData.dls,
-      bitDepth: formData.bitDepth,
-      gTotal: formData.gTotal,
-      bTotal: formData.bTotal,
-      dipAngle: formData.dipAngle,
-      toolFace: formData.toolFace,
+      vs: parseFloat(formData.vs) || 0,
+      dls: parseFloat(formData.dls) || 0,
+      bitDepth: parseFloat(formData.bitDepth) || 0,
+      gTotal: parseFloat(formData.gTotal) || 0,
+      bTotal: parseFloat(formData.bTotal) || 0,
+      dipAngle: parseFloat(formData.dipAngle) || 0,
+      toolFace: parseFloat(formData.toolFace) || 0,
       wellId: wellInfo.id
     };
-    
+
     if (mode === 'add') {
       await addSurvey(surveyData);
     } else if (mode === 'edit' && survey) {
       await updateSurvey(survey.id, surveyData);
     }
-    
+
     onOpenChange(false);
   };
 
@@ -242,9 +240,14 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-neutral-background rounded-md p-3">
                     <Label className="block text-xs text-gray-400 mb-2">MD (ft)</Label>
-                    <div className="font-mono bg-neutral-surface/50 px-3 py-2 rounded border border-neutral-border">
-                      {formData.md.toFixed(2)}
-                    </div>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      name="md"
+                      value={formData.md}
+                      onChange={handleInputChange}
+                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
+                    />
                   </div>
                   <div className="bg-neutral-background rounded-md p-3">
                     <Label className="block text-xs text-gray-400 mb-2">Survey Tool Face (°)</Label>
@@ -268,21 +271,36 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-neutral-background rounded-md p-3">
                     <Label className="block text-xs text-gray-400 mb-2">G Total</Label>
-                    <div className="font-mono bg-neutral-surface/50 px-3 py-2 rounded border border-neutral-border">
-                      {formData.gTotal.toFixed(3)}
-                    </div>
+                    <Input 
+                      type="number" 
+                      step="0.001"
+                      name="gTotal"
+                      value={formData.gTotal}
+                      onChange={handleInputChange}
+                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
+                    />
                   </div>
                   <div className="bg-neutral-background rounded-md p-3">
                     <Label className="block text-xs text-gray-400 mb-2">B Total</Label>
-                    <div className="font-mono bg-neutral-surface/50 px-3 py-2 rounded border border-neutral-border">
-                      {formData.bTotal.toFixed(3)}
-                    </div>
+                    <Input 
+                      type="number" 
+                      step="0.001"
+                      name="bTotal"
+                      value={formData.bTotal}
+                      onChange={handleInputChange}
+                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
+                    />
                   </div>
                   <div className="bg-neutral-background rounded-md p-3">
                     <Label className="block text-xs text-gray-400 mb-2">Dip Angle (°)</Label>
-                    <div className="font-mono bg-neutral-surface/50 px-3 py-2 rounded border border-neutral-border">
-                      {formData.dipAngle.toFixed(2)}
-                    </div>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      name="dipAngle"
+                      value={formData.dipAngle}
+                      onChange={handleInputChange}
+                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
+                    />
                   </div>
                 </div>
 
@@ -311,7 +329,7 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Dogleg Severity:</span>
-                      <span className="font-medium">{aiAnalysis?.doglegs || formData.dls.toFixed(2) + '°/100ft'}</span>
+                      <span className="font-medium">{aiAnalysis?.doglegs || (formData.dls ? parseFloat(formData.dls).toFixed(2) + '°/100ft' : 'Analyzing...')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Survey Trend:</span>
@@ -327,15 +345,25 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-neutral-background rounded-md p-3">
                     <Label className="block text-xs text-gray-400 mb-2">Calculated TVD (ft)</Label>
-                    <div className="font-mono bg-neutral-surface/50 px-3 py-2 rounded border border-neutral-border">
-                      {formData.tvd.toFixed(2)}
-                    </div>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      name="tvd"
+                      value={formData.tvd}
+                      onChange={handleInputChange}
+                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
+                    />
                   </div>
                   <div className="bg-neutral-background rounded-md p-3">
                     <Label className="block text-xs text-gray-400 mb-2">VS (ft)</Label>
-                    <div className="font-mono bg-neutral-surface/50 px-3 py-2 rounded border border-neutral-border">
-                      {formData.vs.toFixed(2)}
-                    </div>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      name="vs"
+                      value={formData.vs}
+                      onChange={handleInputChange}
+                      className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
+                    />
                   </div>
                 </div>
               </div>
