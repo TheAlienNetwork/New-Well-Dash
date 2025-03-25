@@ -19,8 +19,6 @@ interface SurveyModalProps {
 export default function SurveyModal({ open, onOpenChange, survey, mode }: SurveyModalProps) {
   const { addSurvey, updateSurvey, surveys } = useSurveyContext();
   const { wellInfo } = useWellContext();
-
-  if (!open) return null;
   
   const [formData, setFormData] = useState({
     bitDepth: 0,
