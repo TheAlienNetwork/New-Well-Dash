@@ -150,13 +150,12 @@ export default function MwdSurvey() {
           </div>
         </div>
       </div>
-    </div>
     <SurveyModal
-          open={showSurveyModal}
-          onOpenChange={setShowSurveyModal}
-          survey={modalSurvey}
-          mode={modalMode}
-        />
+        open={showSurveyModal}
+        onOpenChange={setShowSurveyModal}
+        survey={modalSurvey}
+        mode={modalMode}
+      />
     </div>
   );
 }
