@@ -6,6 +6,9 @@ import {
 } from 'recharts';
 import { Activity, BarChart3, Download, Zap } from 'lucide-react';
 
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 interface GammaPoint {
   depth: number;
   value: number;
@@ -17,6 +20,28 @@ export default function GammaPlot() {
   const [avgGamma, setAvgGamma] = useState<number | null>(null);
   const [depthRange, setDepthRange] = useState<string>('');
   const [lastUpdate, setLastUpdate] = useState<string>('');
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const tableData = gammaData
+      .sort((a, b) => a.depth - b.depth)
+      .map(point => [point.depth.toFixed(2), point.value.toFixed(2)]);
+    
+    doc.setFontSize(16);
+    doc.text('Gamma Data Report', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 25);
+    
+    autoTable(doc, {
+      head: [['Depth (ft)', 'Gamma (gAPI)']],
+      body: tableData,
+      startY: 30,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 2 }
+    });
+    
+    doc.save('gamma-data.pdf');
+  };
 
   useEffect(() => {
     if (gammaData.length > 0) {
@@ -39,11 +64,17 @@ export default function GammaPlot() {
     }
   }, [gammaData]);
 
-  // Format data for Recharts
-  const chartData = gammaData.map(point => ({
-    depth: Number(point.depth),
-    gamma: Number(point.value)
-  })).sort((a, b) => a.depth - b.depth);
+  // Format data for Recharts - only show last 100ft
+  const chartData = gammaData
+    .map(point => ({
+      depth: Number(point.depth),
+      gamma: Number(point.value)
+    }))
+    .sort((a, b) => a.depth - b.depth)
+    .filter(point => {
+      const maxDepth = Math.max(...gammaData.map(p => Number(p.depth)));
+      return point.depth >= maxDepth - 100;
+    });
 
   return (
     <div className="futuristic-container h-full flex flex-col">
@@ -53,9 +84,12 @@ export default function GammaPlot() {
           <span>GAMMA PLOT</span>
         </h2>
         <div className="flex space-x-2">
-          <button className="glass-panel px-3 py-1 rounded text-xs text-cyan-200 hover:bg-cyan-800/20 transition-all duration-300 flex items-center">
+          <button 
+            onClick={handleExportPDF}
+            className="glass-panel px-3 py-1 rounded text-xs text-cyan-200 hover:bg-cyan-800/20 transition-all duration-300 flex items-center"
+          >
             <Download className="h-3 w-3 mr-1" />
-            EXPORT
+            EXPORT PDF
           </button>
           <div className="bg-navy-950/40 text-xs px-2 py-1 rounded flex items-center border border-emerald-500/20">
             <div className="h-2 w-2 rounded-full bg-emerald-500 pulse-effect mr-1"></div>
