@@ -107,13 +107,15 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Update curve data with projections if it exists
       if (curveData && wellInfo) {
-        const curveUpdate: Partial<CurveData> = {
+        // Create the update payload manually to avoid typescript errors
+        // The numeric type in the schema expects a number, not a string
+        const curveUpdateData = {
           id: curveData.id,
-          // Make sure we're passing the correct type to match the schema
           projectedInc: projection.projectedInc,
           projectedAz: projection.projectedAz
         };
-        updateCurveData(curveUpdate);
+        
+        updateCurveData(curveUpdateData as any);
       }
     }
   }, [surveys, latestSurvey]);
@@ -299,16 +301,27 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const id = data.id || (curveData?.id || 0);
       
-      // Convert numeric string values to actual numbers for the API
+      // Convert any string values to the appropriate types
       const processedData: Record<string, any> = {};
+      
+      // First copy all data with the correct key names
       Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'id' && key !== 'wellId' && key !== 'includeInEmail' && typeof value === 'string') {
+        if (key === 'id' || key === 'wellId') {
+          // Keep IDs as numbers
+          processedData[key] = typeof value === 'string' ? parseInt(value) : value;
+        } else if (key === 'includeInEmail') {
+          // Keep boolean values
+          processedData[key] = value;
+        } else if (typeof value === 'string') {
+          // Convert other string values to numbers
           processedData[key] = parseFloat(value);
         } else {
+          // Keep non-string values as is (likely already numbers)
           processedData[key] = value;
         }
       });
       
+      console.log('Sending PATCH data:', processedData);
       const response = await apiRequest('PATCH', `/api/curve-data/${id}`, processedData);
       const updatedCurve = await response.json();
       setCurveData(updatedCurve);

@@ -244,7 +244,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   router.patch('/curve-data/:id', async (req: Request, res: Response) => {
     try {
       const curveId = parseInt(req.params.id);
+      console.log('Curve data PATCH request received:', req.body);
+      
+      // Log the schema requirements
+      console.log('Schema fields:', Object.keys(insertCurveDataSchema.shape));
+      
       const validatedData = insertCurveDataSchema.partial().parse(req.body);
+      console.log('Validated data:', validatedData);
       
       const updated = await storage.updateCurveData(curveId, validatedData);
       
