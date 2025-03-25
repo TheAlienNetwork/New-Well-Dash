@@ -10,12 +10,12 @@ export default function DirectionalCurveData() {
   const { curveData, updateCurveData } = useSurveyContext();
 
   const [formData, setFormData] = useState({
-    motorYield: '',
-    dogLegNeeded: '',
-    projectedInc: '',
-    projectedAz: '',
-    slideSeen: '',
-    slideAhead: '',
+    motorYield: 0,
+    dogLegNeeded: 0,
+    projectedInc: 0,
+    projectedAz: 0,
+    slideSeen: 0,
+    slideAhead: 0,
     includeInEmail: true,
     aboveTarget: 0,
     belowTarget: 0,
