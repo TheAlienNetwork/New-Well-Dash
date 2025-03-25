@@ -164,7 +164,7 @@ export default function GammaPlot() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .pulse {
           animation: pulse 2s infinite;
         }

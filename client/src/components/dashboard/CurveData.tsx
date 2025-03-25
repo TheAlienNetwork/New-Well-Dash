@@ -234,7 +234,7 @@ export default function CurveData() {
         </div>
       </form>
 
-      <style jsx>{`
+      <style>{`
         .glass-container {
           background-color: rgba(15, 23, 42, 0.6);
           backdrop-filter: blur(2px);

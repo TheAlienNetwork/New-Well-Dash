@@ -101,7 +101,13 @@ export default function DirectionalDrilling() {
     e.preventDefault();
     if (curveData) {
       await updateCurveData({
-        ...formData,
+        motorYield: String(formData.motorYield),
+        dogLegNeeded: String(formData.dogLegNeeded),
+        projectedInc: String(formData.projectedInc),
+        projectedAz: String(formData.projectedAz),
+        slideSeen: String(formData.slideSeen),
+        slideAhead: String(formData.slideAhead),
+        includeInEmail: formData.includeInEmail,
         id: curveData.id,
         wellId: curveData.wellId
       });
@@ -372,7 +378,7 @@ export default function DirectionalDrilling() {
         mode={modalMode}
       />
 
-      <style jsx>{`
+      <style>{`
         .futuristic-border {
           border: 1px solid rgba(52, 152, 219, 0.3);
           position: relative;
