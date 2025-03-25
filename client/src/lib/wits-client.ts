@@ -132,7 +132,7 @@ export class WitsClient {
 
   sendMessage(type: string, data: any) {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({ type, ...data }));
+      this.socket.send(JSON.stringify({ type, data }));
     } else {
       console.error('Cannot send message, WebSocket is not connected');
     }
