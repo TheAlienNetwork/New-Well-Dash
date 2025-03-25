@@ -7,8 +7,8 @@ import SurveyModal from '@/components/dashboard/SurveyModal';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { Survey } from '@shared/schema';
 import { ArrowUpDown, ArrowLeft } from 'react-icons/md';
-import { Switch, Input } from '@nextui-org/react'; // Assumed import, adjust as needed
-import { Label } from '@/components/ui/Label'; // Assumed import, adjust as needed
+import { Switch, Input } from '@nextui-org/react'; 
+import { Label } from '@/components/ui/label'; 
 
 
 export default function MwdSurvey() {
@@ -19,7 +19,7 @@ export default function MwdSurvey() {
     setModalSurvey 
   } = useSurveyContext();
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
-  const { curveData, updateCurveData } = useSurveyContext(); // Assuming curveData and updateCurveData are available in context
+  const { curveData, updateCurveData } = useSurveyContext(); 
 
   const handleAddSurvey = () => {
     setModalSurvey(null);
@@ -58,7 +58,7 @@ export default function MwdSurvey() {
 
         {/* AI Analytics */}
         <AIAnalytics />
-        
+
         <div>
           {/* Target Position */}
           <div className="card rounded-lg overflow-hidden mt-6">
