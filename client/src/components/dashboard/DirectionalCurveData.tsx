@@ -8,7 +8,7 @@ import { Save, ArrowLeftRight, Compass, Ruler, MoveHorizontal, ArrowUpDown, Arro
 
 export default function DirectionalCurveData() {
   const { curveData, updateCurveData } = useSurveyContext();
-  
+
   const [formData, setFormData] = useState({
     motorYield: 0,
     dogLegNeeded: 0,
@@ -20,7 +20,9 @@ export default function DirectionalCurveData() {
     aboveTarget: 0,
     belowTarget: 0,
     leftTarget: 0,
-    rightTarget: 0
+    rightTarget: 0,
+    isAbove: true,
+    isRight: true
   });
 
   useEffect(() => {
@@ -33,11 +35,12 @@ export default function DirectionalCurveData() {
         slideSeen: Number(curveData.slideSeen) || 0,
         slideAhead: Number(curveData.slideAhead) || 0,
         includeInEmail: curveData.includeInEmail,
-        // Default values for target position (these will be updated from server once we add them to the schema)
         aboveTarget: 0,
         belowTarget: 0,
         leftTarget: 0,
-        rightTarget: 0
+        rightTarget: 0,
+        isAbove: true,
+        isRight: true
       });
     }
   }, [curveData]);
@@ -53,7 +56,6 @@ export default function DirectionalCurveData() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (curveData) {
-      // Update the main curve data (we'll add the target position fields to the schema later)
       await updateCurveData({
         motorYield: String(formData.motorYield),
         dogLegNeeded: String(formData.dogLegNeeded),
@@ -62,6 +64,10 @@ export default function DirectionalCurveData() {
         slideSeen: String(formData.slideSeen),
         slideAhead: String(formData.slideAhead),
         includeInEmail: formData.includeInEmail,
+        aboveTarget: String(formData.isAbove ? formData.aboveTarget : formData.belowTarget),
+        belowTarget: String(formData.isAbove ? formData.belowTarget : formData.aboveTarget),
+        leftTarget: String(formData.isRight ? formData.leftTarget : formData.rightTarget),
+        rightTarget: String(formData.isRight ? formData.rightTarget : formData.leftTarget),
         id: curveData.id,
         wellId: curveData.wellId
       });
@@ -79,94 +85,82 @@ export default function DirectionalCurveData() {
           </h2>
         </div>
         <div className="p-4 glass-container">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="glass-panel rounded-md p-3 group transition-all hover:bg-indigo-900/10">
               <div className="flex justify-between items-center mb-1">
                 <Label className="text-xs text-indigo-300 flex items-center">
-                  <ArrowUp className="h-3 w-3 mr-1 text-indigo-400" />
-                  Above Target
+                  <ArrowUpDown className="h-3 w-3 mr-1 text-indigo-400" />
+                  VERTICAL OFFSET
                 </Label>
-                <span className="text-[10px] text-indigo-400">ft</span>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={formData.isAbove}
+                    onCheckedChange={(checked) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        isAbove: checked,
+                        aboveTarget: checked ? Math.abs(prev.belowTarget || 0) : 0,
+                        belowTarget: !checked ? Math.abs(prev.aboveTarget || 0) : 0
+                      }));
+                    }}
+                  />
+                  <span className="text-[10px] text-indigo-400">
+                    {formData.isAbove ? 'ABOVE' : 'BELOW'}
+                  </span>
+                </div>
               </div>
               <div className="relative">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.01"
-                  name="aboveTarget"
-                  value={formData.aboveTarget}
+                  name={formData.isAbove ? "aboveTarget" : "belowTarget"}
+                  value={formData.isAbove ? formData.aboveTarget : formData.belowTarget}
                   onChange={handleInputChange}
                   className="font-mono text-cyan-300"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500/0 via-indigo-500 to-indigo-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400">ft</span>
               </div>
             </div>
-            
+
             <div className="glass-panel rounded-md p-3 group transition-all hover:bg-indigo-900/10">
               <div className="flex justify-between items-center mb-1">
                 <Label className="text-xs text-indigo-300 flex items-center">
-                  <ArrowDown className="h-3 w-3 mr-1 text-indigo-400" />
-                  Below Target
+                  <ArrowLeftRight className="h-3 w-3 mr-1 text-indigo-400" />
+                  HORIZONTAL OFFSET
                 </Label>
-                <span className="text-[10px] text-indigo-400">ft</span>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={formData.isRight}
+                    onCheckedChange={(checked) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        isRight: checked,
+                        rightTarget: checked ? Math.abs(prev.leftTarget || 0) : 0,
+                        leftTarget: !checked ? Math.abs(prev.rightTarget || 0) : 0
+                      }));
+                    }}
+                  />
+                  <span className="text-[10px] text-indigo-400">
+                    {formData.isRight ? 'RIGHT' : 'LEFT'}
+                  </span>
+                </div>
               </div>
               <div className="relative">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.01"
-                  name="belowTarget"
-                  value={formData.belowTarget}
+                  name={formData.isRight ? "rightTarget" : "leftTarget"}
+                  value={formData.isRight ? formData.rightTarget : formData.leftTarget}
                   onChange={handleInputChange}
                   className="font-mono text-cyan-300"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500/0 via-indigo-500 to-indigo-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-              </div>
-            </div>
-            
-            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-indigo-900/10">
-              <div className="flex justify-between items-center mb-1">
-                <Label className="text-xs text-indigo-300 flex items-center">
-                  <CornerDownRight className="h-3 w-3 mr-1 text-indigo-400" />
-                  Left of Target
-                </Label>
-                <span className="text-[10px] text-indigo-400">ft</span>
-              </div>
-              <div className="relative">
-                <Input 
-                  type="number" 
-                  step="0.01"
-                  name="leftTarget"
-                  value={formData.leftTarget}
-                  onChange={handleInputChange}
-                  className="font-mono text-cyan-300"
-                />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500/0 via-indigo-500 to-indigo-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-              </div>
-            </div>
-            
-            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-indigo-900/10">
-              <div className="flex justify-between items-center mb-1">
-                <Label className="text-xs text-indigo-300 flex items-center">
-                  <ArrowRight className="h-3 w-3 mr-1 text-indigo-400" />
-                  Right of Target
-                </Label>
-                <span className="text-[10px] text-indigo-400">ft</span>
-              </div>
-              <div className="relative">
-                <Input 
-                  type="number" 
-                  step="0.01"
-                  name="rightTarget"
-                  value={formData.rightTarget}
-                  onChange={handleInputChange}
-                  className="font-mono text-cyan-300"
-                />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500/0 via-indigo-500 to-indigo-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400">ft</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Curve Data Component */}
       <div className="card rounded-lg overflow-hidden">
         <div className="p-3 bg-violet-900/30 flex justify-between items-center border-b border-violet-500/20">
@@ -176,7 +170,7 @@ export default function DirectionalCurveData() {
           </h2>
           <div className="flex items-center">
             <span className="text-sm mr-2 text-violet-200">Include in Email</span>
-            <Switch 
+            <Switch
               checked={formData.includeInEmail}
               onCheckedChange={(checked) => {
                 setFormData(prev => ({
@@ -200,13 +194,13 @@ export default function DirectionalCurveData() {
                 <div className="flex justify-between items-center mb-1">
                   <Label className="text-xs text-violet-300 flex items-center">
                     <MoveHorizontal className="h-3 w-3 mr-1 text-violet-400" />
-                    Motor Yield 
+                    Motor Yield
                   </Label>
                   <span className="text-[10px] text-violet-400">°/100ft</span>
                 </div>
                 <div className="relative">
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     step="0.01"
                     name="motorYield"
                     value={formData.motorYield}
@@ -225,8 +219,8 @@ export default function DirectionalCurveData() {
                   <span className="text-[10px] text-violet-400">°/100ft</span>
                 </div>
                 <div className="relative">
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     step="0.01"
                     name="dogLegNeeded"
                     value={formData.dogLegNeeded}
@@ -247,8 +241,8 @@ export default function DirectionalCurveData() {
                   <span className="text-[10px] text-violet-400">°</span>
                 </div>
                 <div className="relative">
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     step="0.01"
                     name="projectedInc"
                     value={formData.projectedInc}
@@ -267,8 +261,8 @@ export default function DirectionalCurveData() {
                   <span className="text-[10px] text-violet-400">°</span>
                 </div>
                 <div className="relative">
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     step="0.01"
                     name="projectedAz"
                     value={formData.projectedAz}
@@ -289,8 +283,8 @@ export default function DirectionalCurveData() {
                   <span className="text-[10px] text-violet-400">ft</span>
                 </div>
                 <div className="relative">
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     step="0.01"
                     name="slideSeen"
                     value={formData.slideSeen}
@@ -309,8 +303,8 @@ export default function DirectionalCurveData() {
                   <span className="text-[10px] text-violet-400">ft</span>
                 </div>
                 <div className="relative">
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     step="0.01"
                     name="slideAhead"
                     value={formData.slideAhead}
@@ -323,8 +317,8 @@ export default function DirectionalCurveData() {
             </div>
           </div>
           <div className="mt-5 flex justify-end">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="bg-gradient-to-r from-violet-600 to-violet-800 hover:from-violet-500 hover:to-violet-700 transition-all px-5 py-2 rounded-md text-sm font-medium flex items-center shadow-lg shadow-violet-900/20"
             >
               <Save className="h-4 w-4 mr-2" />
