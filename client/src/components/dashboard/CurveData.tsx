@@ -4,10 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Download } from 'lucide-react';
-import { 
-  Info 
-} from 'lucide-react';
+import { Save, Info, ArrowLeftRight, Compass, Ruler, MoveHorizontal } from 'lucide-react';
 
 export default function CurveData() {
   const { curveData, updateCurveData, projections } = useSurveyContext();
@@ -66,14 +63,14 @@ export default function CurveData() {
   };
 
   return (
-    <div className="bg-neutral-surface rounded-lg overflow-hidden futuristic-border">
-      <div className="p-4 bg-primary-dark flex justify-between items-center">
-        <h2 className="font-heading text-lg font-semibold flex items-center">
-          <Info className="h-5 w-5 mr-2" />
+    <div className="card rounded-lg overflow-hidden">
+      <div className="p-3 bg-violet-900/30 flex justify-between items-center border-b border-violet-500/20">
+        <h2 className="font-heading text-lg font-semibold flex items-center text-violet-100">
+          <ArrowLeftRight className="h-5 w-5 mr-2 text-violet-400" />
           Curve Data
         </h2>
         <div className="flex items-center">
-          <span className="text-sm mr-2">Include in Email</span>
+          <span className="text-sm mr-2 text-violet-200">Include in Email</span>
           <Switch 
             checked={formData.includeInEmail}
             onCheckedChange={(checked) => {
@@ -91,115 +88,152 @@ export default function CurveData() {
           />
         </div>
       </div>
-      <form onSubmit={handleSubmit} className="p-4">
+      <form onSubmit={handleSubmit} className="p-4 glass-container">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <div className="bg-neutral-background rounded-md p-3">
-              <Label className="block text-xs text-gray-400 mb-1">Motor Yield (°/100ft)</Label>
-              <Input 
-                type="number" 
-                step="0.01"
-                name="motorYield"
-                value={formData.motorYield}
-                onChange={handleInputChange}
-                className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-              />
+          <div className="space-y-3">
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+              <div className="flex justify-between items-center mb-1">
+                <Label className="text-xs text-violet-300 flex items-center">
+                  <MoveHorizontal className="h-3 w-3 mr-1 text-violet-400" />
+                  Motor Yield 
+                </Label>
+                <span className="text-[10px] text-violet-400">°/100ft</span>
+              </div>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  step="0.01"
+                  name="motorYield"
+                  value={formData.motorYield}
+                  onChange={handleInputChange}
+                  className="font-mono text-emerald-400"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+              </div>
             </div>
-            <div className="bg-neutral-background rounded-md p-3">
-              <Label className="block text-xs text-gray-400 mb-1">Dog Leg Needed (°/100ft)</Label>
-              <Input 
-                type="number" 
-                step="0.01"
-                name="dogLegNeeded"
-                value={formData.dogLegNeeded}
-                onChange={handleInputChange}
-                className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="bg-neutral-background rounded-md p-3">
-              <Label className="block text-xs text-gray-400 mb-1">Projected Inc (°)</Label>
-              <Input 
-                type="number" 
-                step="0.01"
-                name="projectedInc"
-                value={formData.projectedInc}
-                onChange={handleInputChange}
-                className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-              />
-            </div>
-            <div className="bg-neutral-background rounded-md p-3">
-              <Label className="block text-xs text-gray-400 mb-1">Projected Az (°)</Label>
-              <Input 
-                type="number" 
-                step="0.01"
-                name="projectedAz"
-                value={formData.projectedAz}
-                onChange={handleInputChange}
-                className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-              />
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+              <div className="flex justify-between items-center mb-1">
+                <Label className="text-xs text-violet-300 flex items-center">
+                  <ArrowLeftRight className="h-3 w-3 mr-1 text-violet-400" />
+                  Dog Leg Needed
+                </Label>
+                <span className="text-[10px] text-violet-400">°/100ft</span>
+              </div>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  step="0.01"
+                  name="dogLegNeeded"
+                  value={formData.dogLegNeeded}
+                  onChange={handleInputChange}
+                  className="font-mono text-emerald-400"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="bg-neutral-background rounded-md p-3">
-              <Label className="block text-xs text-gray-400 mb-1">Slide Seen (ft)</Label>
-              <Input 
-                type="number" 
-                step="0.01"
-                name="slideSeen"
-                value={formData.slideSeen}
-                onChange={handleInputChange}
-                className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-              />
+          <div className="space-y-3">
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+              <div className="flex justify-between items-center mb-1">
+                <Label className="text-xs text-violet-300 flex items-center">
+                  <ArrowLeftRight className="h-3 w-3 mr-1 text-violet-400" />
+                  Projected Inc
+                </Label>
+                <span className="text-[10px] text-violet-400">°</span>
+              </div>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  step="0.01"
+                  name="projectedInc"
+                  value={formData.projectedInc}
+                  onChange={handleInputChange}
+                  className="font-mono text-blue-400"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+              </div>
             </div>
-            <div className="bg-neutral-background rounded-md p-3">
-              <Label className="block text-xs text-gray-400 mb-1">Slide Ahead (ft)</Label>
-              <Input 
-                type="number" 
-                step="0.01"
-                name="slideAhead"
-                value={formData.slideAhead}
-                onChange={handleInputChange}
-                className="bg-neutral-surface border border-neutral-border rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-white font-mono"
-              />
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+              <div className="flex justify-between items-center mb-1">
+                <Label className="text-xs text-violet-300 flex items-center">
+                  <Compass className="h-3 w-3 mr-1 text-violet-400" />
+                  Projected Az
+                </Label>
+                <span className="text-[10px] text-violet-400">°</span>
+              </div>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  step="0.01"
+                  name="projectedAz"
+                  value={formData.projectedAz}
+                  onChange={handleInputChange}
+                  className="font-mono text-blue-400"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+              <div className="flex justify-between items-center mb-1">
+                <Label className="text-xs text-violet-300 flex items-center">
+                  <Ruler className="h-3 w-3 mr-1 text-violet-400" />
+                  Slide Seen
+                </Label>
+                <span className="text-[10px] text-violet-400">ft</span>
+              </div>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  step="0.01"
+                  name="slideSeen"
+                  value={formData.slideSeen}
+                  onChange={handleInputChange}
+                  className="font-mono text-cyan-300"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+              </div>
+            </div>
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-violet-900/10">
+              <div className="flex justify-between items-center mb-1">
+                <Label className="text-xs text-violet-300 flex items-center">
+                  <Ruler className="h-3 w-3 mr-1 text-violet-400" />
+                  Slide Ahead
+                </Label>
+                <span className="text-[10px] text-violet-400">ft</span>
+              </div>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  step="0.01"
+                  name="slideAhead"
+                  value={formData.slideAhead}
+                  onChange={handleInputChange}
+                  className="font-mono text-cyan-300"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/0 via-violet-500 to-violet-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="mt-4 flex justify-end">
+        <div className="mt-5 flex justify-end">
           <Button 
             type="submit" 
-            className="bg-primary hover:bg-blue-600 transition-colors px-4 py-2 rounded-md text-sm font-medium flex items-center"
+            className="bg-gradient-to-r from-violet-600 to-violet-800 hover:from-violet-500 hover:to-violet-700 transition-all px-5 py-2 rounded-md text-sm font-medium flex items-center shadow-lg shadow-violet-900/20"
           >
-            <Download className="h-4 w-4 mr-1" />
+            <Save className="h-4 w-4 mr-2" />
             Save Changes
           </Button>
         </div>
       </form>
 
       <style jsx>{`
-        .futuristic-border {
-          border: 1px solid rgba(52, 152, 219, 0.3);
-          position: relative;
-        }
-        .futuristic-border::before, .futuristic-border::after {
-          content: '';
-          position: absolute;
-          width: 15px;
-          height: 15px;
-          border-color: #3498DB;
-        }
-        .futuristic-border::before {
-          top: -1px;
-          left: -1px;
-          border-top: 2px solid;
-          border-left: 2px solid;
-        }
-        .futuristic-border::after {
-          bottom: -1px;
-          right: -1px;
-          border-bottom: 2px solid;
-          border-right: 2px solid;
+        .glass-container {
+          background-color: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(2px);
+          border-radius: 0.5rem;
+          border: 1px solid rgba(139, 92, 246, 0.1);
         }
       `}</style>
     </div>
