@@ -29,23 +29,26 @@ export default function MwdSurvey() {
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-      {/* Left column (Survey table, Survey form, etc) */}
-      <div className="xl:col-span-8 space-y-6">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-6">
+      {/* Left column (Survey table) */}
+      <div className="xl:col-span-8">
         {/* MWD Survey Table */}
         <SurveyTable
           onAddSurvey={handleAddSurvey}
           onEditSurvey={handleEditSurvey}
         />
-
-        {/* Curve Data Container */}
-        <CurveData />
       </div>
 
-      {/* Right column (Gamma plot, AI Analytics, etc) */}
-      <div className="xl:col-span-4 space-y-6">
+      {/* Right column (Gamma plot) */}
+      <div className="xl:col-span-4">
         {/* Gamma Plot */}
         <GammaPlot />
+      </div>
+
+      {/* Full width Curve Data */}
+      <div className="xl:col-span-12">
+        <CurveData />
+      </div>
 
         {/* AI Analytics */}
         <AIAnalytics />
