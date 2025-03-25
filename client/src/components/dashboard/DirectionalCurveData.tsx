@@ -17,10 +17,10 @@ export default function DirectionalCurveData() {
     slideSeen: '',
     slideAhead: '',
     includeInEmail: true,
-    aboveTarget: 0,
-    belowTarget: 0,
-    leftTarget: 0,
-    rightTarget: 0,
+    aboveTarget: '',
+    belowTarget: '',
+    leftTarget: '',
+    rightTarget: '',
     isAbove: true,
     isRight: true
   });
