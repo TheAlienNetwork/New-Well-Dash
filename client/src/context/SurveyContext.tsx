@@ -107,11 +107,13 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Update curve data with projections if it exists
       if (curveData && wellInfo) {
-        updateCurveData({
+        const curveUpdate: Partial<CurveData> = {
           id: curveData.id,
+          // Make sure we're passing the correct type to match the schema
           projectedInc: projection.projectedInc,
           projectedAz: projection.projectedAz
-        });
+        };
+        updateCurveData(curveUpdate);
       }
     }
   }, [surveys, latestSurvey]);
@@ -296,7 +298,18 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const updateCurveData = async (data: Partial<CurveData>): Promise<CurveData | null> => {
     try {
       const id = data.id || (curveData?.id || 0);
-      const response = await apiRequest('PATCH', `/api/curve-data/${id}`, data);
+      
+      // Convert numeric string values to actual numbers for the API
+      const processedData: Record<string, any> = {};
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== 'id' && key !== 'wellId' && key !== 'includeInEmail' && typeof value === 'string') {
+          processedData[key] = parseFloat(value);
+        } else {
+          processedData[key] = value;
+        }
+      });
+      
+      const response = await apiRequest('PATCH', `/api/curve-data/${id}`, processedData);
       const updatedCurve = await response.json();
       setCurveData(updatedCurve);
       return updatedCurve;

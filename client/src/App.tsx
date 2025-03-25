@@ -8,7 +8,7 @@ import WitsParameters from "@/pages/wits-parameters";
 import DirectionalDrilling from "@/pages/directional-drilling";
 import EmailAutomation from "@/pages/email-automation";
 import WellInfo from "@/pages/well-info";
-import WitsMapping from "@/pages/wits-mapping";
+import WitsMappingPage from "@/pages/wits-mapping";
 import AppHeader from "@/components/layout/AppHeader";
 import AppNav from "@/components/layout/AppNav";
 import { WellProvider } from "@/context/WellContext";
@@ -38,7 +38,7 @@ function Router() {
         <Route path="/directional-drilling" component={DirectionalDrilling} />
         <Route path="/email-automation" component={EmailAutomation} />
         <Route path="/well-info" component={WellInfo} />
-        <Route path="/wits-mapping" component={WitsMapping} />
+        <Route path="/wits-mapping" component={WitsMappingPage} />
         {/* Fallback to 404 */}
         <Route component={NotFound} />
       </Switch>
