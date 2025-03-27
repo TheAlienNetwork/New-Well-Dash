@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Card } from '@/components/ui/card';
-import { AIAnalytics } from '@/components/dashboard/AIAnalytics';
+import { AIAnalyticsContainer } from '@/components/dashboard/AIAnalytics';
 import { SurveyTable } from '@/components/dashboard/SurveyTable';
 import { CurveData } from '@/components/dashboard/CurveData';
 import { TargetPosition } from '@/components/dashboard/TargetPosition';
@@ -56,7 +56,7 @@ export default function MwdSurvey() {
       <div className="grid grid-cols-1 gap-4">
         <Card className="p-4">
           <h2 className="text-lg font-semibold mb-4">AI Analytics</h2>
-          <AIAnalytics />
+          <AIAnalyticsContainer />
         </Card>
 
         <Card className="p-4">
