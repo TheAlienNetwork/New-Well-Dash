@@ -136,7 +136,7 @@ export default function GammaPlot() {
         </div>
       </div>
       
-      <div className="grid grid-cols-3 gap-0 flex-1">
+      <div className="grid grid-cols-4 gap-0 flex-1">
         {/* Side metrics panel */}
         <div className="glass-panel m-3 p-3 rounded-lg flex flex-col justify-between border border-cyan-500/20 bg-navy-950/70">
           <div className="space-y-4">
@@ -169,9 +169,9 @@ export default function GammaPlot() {
         </div>
         
         {/* Vertical Gamma plot */}
-        <div className="col-span-2 p-3 flex-1 flex" style={{ maxHeight: '400px' }}>
+        <div className="col-span-3 p-3 flex-1 flex">
           <div className="chart-container glass-panel rounded-lg p-3 flex-1 border border-cyan-500/20 bg-navy-950/70">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={500}>
               <ComposedChart 
                 data={chartData} 
                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}

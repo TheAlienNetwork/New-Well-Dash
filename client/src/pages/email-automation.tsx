@@ -956,10 +956,24 @@ export default function EmailAutomation() {
 
               <div className="space-y-1">
                 <div className="text-sm text-gray-400">Email Body:</div>
-                <div className="bg-white text-gray-800 rounded-md border border-gray-300 p-3 max-h-[500px] overflow-y-auto" dangerouslySetInnerHTML={{ __html: emailBodyTemplate({
-                  latestSurvey: latestSurvey,
-                  projections: projections
-                }) }}>
+                <div className="bg-white text-gray-800 rounded-md border border-gray-300 p-3 max-h-[500px] overflow-y-auto" dangerouslySetInnerHTML={{ __html: latestSurvey && wellInfo ? emailService.generateHtmlBody({
+                  survey: latestSurvey,
+                  wellName: wellInfo.wellName,
+                  rigName: wellInfo.rigName,
+                  projections: projections || undefined,
+                  aiAnalysis: aiAnalysis || undefined,
+                  curveData: curveData ? {
+                    motorYield: Number(curveData.motorYield),
+                    dogLegNeeded: Number(curveData.dogLegNeeded),
+                    projectedInc: Number(curveData.projectedInc),
+                    projectedAz: Number(curveData.projectedAz),
+                    slideSeen: Number(curveData.slideSeen),
+                    slideAhead: Number(curveData.slideAhead),
+                    includeInEmail: emailSettings.includeCurveData,
+                    includeTargetPosition: emailSettings.includeTargetPosition,
+                    includeGammaPlot: emailSettings.includeGammaPlot
+                  } : undefined
+                }) : "Loading email preview..." }}>
                 </div>
               </div>
             </div>

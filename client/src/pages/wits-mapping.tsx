@@ -3,7 +3,7 @@ import { useWellContext } from '@/context/WellContext';
 import { useWitsContext } from '@/context/WitsContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { WitsMapping as WitsMappingType } from '@shared/schema';
+import { WitsMapping } from '@shared/schema';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Table,
@@ -67,18 +67,23 @@ export default function WitsMappingPage() {
     { value: 'torque', label: 'Torque' }
   ];
 
-  // Sample WITS channel list to display
+  // Sample WITS channel list with standard WITS Level 0 codes
   const sampleWitsChannels = [
     { id: 1, name: 'Bit Depth', unit: 'ft', value: '1559.92' },
-    { id: 2, name: 'Inclination', unit: 'deg', value: '3.85' },
-    { id: 3, name: 'Azimuth', unit: 'deg', value: '177.42' },
-    { id: 4, name: 'Gamma Ray', unit: 'gAPI', value: '74.28' },
-    { id: 5, name: 'ROP', unit: 'ft/hr', value: '54.2' },
-    { id: 10, name: 'Weight on Bit', unit: 'klbs', value: '25.4' },
-    { id: 11, name: 'RPM', unit: 'rpm', value: '120' },
-    { id: 12, name: 'Flow Rate', unit: 'gpm', value: '650' },
-    { id: 13, name: 'Standpipe Pressure', unit: 'psi', value: '2750' },
-    { id: 14, name: 'Torque', unit: 'ft-lbs', value: '8500' }
+    { id: 2, name: 'Hole Depth', unit: 'ft', value: '1564.45' },
+    { id: 8, name: 'Rate of Penetration', unit: 'ft/hr', value: '54.2' },
+    { id: 9, name: 'Weight on Bit', unit: 'klbs', value: '25.4' },
+    { id: 10, name: 'Rotary Table RPM', unit: 'rpm', value: '120' },
+    { id: 12, name: 'Standpipe Pressure', unit: 'psi', value: '2750' },
+    { id: 13, name: 'Rotary Torque', unit: 'ft-lbs', value: '8500' },
+    { id: 14, name: 'Pump SPM 1', unit: 'spm', value: '95' },
+    { id: 15, name: 'Flow Rate', unit: 'gpm', value: '650' },
+    { id: 16, name: 'Mud Pit Volume', unit: 'bbl', value: '325.8' },
+    { id: 17, name: 'Mud Density In', unit: 'ppg', value: '9.5' },
+    { id: 31, name: 'Gamma Ray', unit: 'gAPI', value: '74.28' },
+    { id: 35, name: 'MWD Azimuth', unit: 'deg', value: '177.42' },
+    { id: 36, name: 'MWD Inclination', unit: 'deg', value: '3.85' },
+    { id: 38, name: 'MWD Tool Face', unit: 'deg', value: '45.2' }
   ];
   
   // Load mappings
@@ -541,7 +546,7 @@ export default function WitsMappingPage() {
         </DialogContent>
       </Dialog>
 
-      <style jsx>{`
+      <style>{`
         .pulse {
           animation: pulse 2s infinite;
         }
