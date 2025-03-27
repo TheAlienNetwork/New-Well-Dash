@@ -97,7 +97,7 @@ export default function MwdSurvey() {
               config={{ responsive: true }}
             />
           </CardContent>
-        </Card>>
+        </Card>
 
         <Card>
           <CardHeader>
