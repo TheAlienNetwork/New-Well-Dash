@@ -3,63 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base responsive container */
-.container {
-  width: 100%;
-  padding-right: 1rem;
-  padding-left: 1rem;
-  margin-right: auto;
-  margin-left: auto;
-}
-
-/* Responsive breakpoints */
-@media (min-width: 640px) {
-  .container {
-    max-width: 640px;
-  }
-}
-
-@media (min-width: 768px) {
-  .container {
-    max-width: 768px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    max-width: 1024px;
-  }
-}
-
-/* Responsive grid layouts */
-.grid-layout {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}
-
-/* Make form inputs more touch-friendly on mobile */
-input, select, textarea {
-  min-height: 44px;
-  font-size: 16px;
-}
-
-/* Ensure proper spacing on mobile */
-.glass-panel {
-  margin-bottom: 1rem;
-}
-
-/* Responsive text sizes */
-@media (max-width: 640px) {
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.25rem; }
-  .text-xs { font-size: 0.75rem; }
-}
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @layer base {
   * {
     @apply border-border;
@@ -72,6 +15,40 @@ input, select, textarea {
 }
 
 @layer components {
+  /* Responsive container */
+  .container {
+    width: 100%;
+    padding-right: 1rem;
+    padding-left: 1rem;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      max-width: 640px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .container {
+      max-width: 768px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      max-width: 1024px;
+    }
+  }
+
+  /* Responsive grid layouts */
+  .grid-layout {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
   /* Futuristic input and textarea styling */
   input, textarea, select {
     @apply bg-navy-900 border-cyan-500/30 focus:border-cyan-400 shadow-md;
@@ -113,6 +90,38 @@ input, select, textarea {
     @apply bg-navy-900/80 backdrop-blur-md rounded-lg border border-cyan-500/20 shadow-lg;
   }
   
+  /* Futuristic border styling */
+  .futuristic-border {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.12);
+  }
+  
+  .futuristic-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.8), transparent);
+    animation: border-glow 3s linear infinite;
+  }
+  
+  @keyframes border-glow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  /* Shadow effects */
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+  }
+  
+  .shadow-glow-green {
+    box-shadow: 0 0 20px rgba(5, 150, 105, 0.15);
+  }
+  
   /* Animated pulse effect */
   .pulse-effect {
     animation: pulse 2s infinite;
@@ -123,4 +132,15 @@ input, select, textarea {
     50% { opacity: 1; }
     100% { opacity: 0.7; }
   }
+  
+  /* Animated flicker effect for futuristic displays */
+  .flicker-text {
+    animation: flicker 5s linear infinite;
+  }
+  
+  @keyframes flicker {
+    0%, 19.999%, 22%, 62.999%, 64%, 97.999%, 99.999%, 100% { opacity: 1; }
+    20%, 21.999%, 63%, 63.999%, 98%, 99.998% { opacity: 0.8; }
+  }
+}
 }

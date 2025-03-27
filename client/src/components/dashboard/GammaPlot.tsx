@@ -175,7 +175,7 @@ export default function GammaPlot() {
                 data={chartData} 
                 layout="vertical"
                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-                key={`gamma-chart-${Date.now()}`}
+                key={chartKey}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(6, 182, 212, 0.15)" />
                 <XAxis 
@@ -217,6 +217,7 @@ export default function GammaPlot() {
                   fill="url(#gammaGradient)" 
                   radius={[4, 4, 0, 0]}
                   barSize={8}
+                  isAnimationActive={false}
                 />
                 
                 <Legend 
