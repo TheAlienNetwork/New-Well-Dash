@@ -143,9 +143,14 @@
     20%, 21.999%, 63%, 63.999%, 98%, 99.998% { opacity: 0.8; }
   }
   
-  /* Subtle glow text for data displays */
+  /* Glow text variants for data displays */
   .glow-text-subtle {
     text-shadow: 0 0 5px rgba(6, 182, 212, 0.3);
+  }
+  
+  .glow-text-green {
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+    color: #4ade80;
   }
   
   /* Subtle futuristic border for containers */

@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, ReferenceLine, Legend
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
+  ResponsiveContainer, ReferenceLine, Legend, Area, ComposedChart,
+  AreaChart 
 } from 'recharts';
 import { Activity, BarChart3, Download, Zap, Mail } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -171,19 +172,19 @@ export default function GammaPlot() {
         <div className="col-span-2 p-3 flex-1 flex" style={{ maxHeight: '400px' }}>
           <div className="chart-container glass-panel rounded-lg p-3 flex-1 border border-cyan-500/20 bg-navy-950/70">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart 
+              <ComposedChart 
                 data={chartData} 
-                layout="vertical"
                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
                 key={chartKey}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(6, 182, 212, 0.15)" />
                 <XAxis 
+                  dataKey="gamma"
                   type="number"
                   domain={[0, 'dataMax + 20']}
                   stroke="#06b6d4"
                   tick={{ fill: '#a5f3fc' }}
-                  orientation="top"
+                  label={{ value: 'Gamma (gAPI)', position: 'insideBottom', fill: '#a5f3fc', fontSize: 12, fontFamily: 'monospace', offset: 0 }}
                 />
                 <YAxis 
                   dataKey="depth" 
@@ -209,14 +210,33 @@ export default function GammaPlot() {
                     `${value.toFixed(2)} gAPI`, 
                     'Gamma'
                   ]}
-                  labelFormatter={(label) => `Depth: ${label.toFixed(2)} ft`}
-                  cursor={{ fill: 'rgba(6, 182, 212, 0.15)' }}
+                  labelFormatter={(label, payload) => {
+                    if (payload && payload.length > 0) {
+                      return `Depth: ${(payload[0] as any).payload.depth.toFixed(2)} ft`;
+                    }
+                    return `Depth: unknown`;
+                  }}
+                  cursor={{ stroke: 'rgba(6, 182, 212, 0.4)', strokeWidth: 1 }}
                 />
-                <Bar 
+                
+                {/* Line for gamma values with lime green styling */}
+                <Line 
+                  type="monotone"
                   dataKey="gamma"
+                  stroke="#4ade80" 
+                  strokeWidth={2}
+                  activeDot={{ r: 6, strokeWidth: 1, stroke: '#ffffff', fill: '#4ade80' }}
+                  isAnimationActive={false}
+                  dot={{ stroke: '#4ade80', strokeWidth: 1, r: 3, fill: '#4ade80' }}
+                />
+                
+                {/* Area under the line with gradient */}
+                <Area 
+                  type="monotone"
+                  dataKey="gamma"
+                  stroke="none"
                   fill="url(#gammaGradient)" 
-                  radius={[4, 4, 0, 0]}
-                  barSize={8}
+                  fillOpacity={0.3}
                   isAnimationActive={false}
                 />
                 
@@ -226,19 +246,18 @@ export default function GammaPlot() {
                   formatter={() => 'Gamma Readings (gAPI)'}
                 />
                 
-                {/* Reference lines for significant gamma values */}
-                <ReferenceLine y={0} stroke="rgba(6, 182, 212, 0.4)" strokeDasharray="3 3" />
-                <ReferenceLine x={60} stroke="rgba(16, 185, 129, 0.6)" strokeDasharray="3 3" />
+                {/* Reference line for significant gamma value */}
+                <ReferenceLine x={60} stroke="rgba(77, 255, 77, 0.3)" strokeDasharray="3 3" label={{ value: 'Threshold', fill: '#4ade80', fontSize: 10 }} />
                 
-                {/* Gradient definition */}
+                {/* Gradient definition for area fill */}
                 <defs>
-                  <linearGradient id="gammaGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#0891b2" />
-                    <stop offset="50%" stopColor="#06b6d4" />
-                    <stop offset="100%" stopColor="#22d3ee" />
+                  <linearGradient id="gammaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#4ade80" stopOpacity={0.7} />
+                    <stop offset="50%" stopColor="#4ade80" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#4ade80" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
-              </BarChart>
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
