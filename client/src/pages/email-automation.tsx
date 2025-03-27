@@ -57,70 +57,7 @@ import {
 } from '@/components/ui/dialog';
 import { EmailDistribution, Survey } from '@shared/schema';
 
-function emailBodyTemplate(data: any) {
-  // Check if projections exist in the data and create information based on build rate and turn rate
-  const projections = data.projections;
-  const isAbove = projections && projections.buildRate > 0;
-  const isBelow = projections && projections.buildRate < 0;
-  const isLeft = projections && projections.turnRate < 0;
-  const isRight = projections && projections.turnRate > 0;
-  
-  const targetInfo = projections ? `
-    <div style="margin: 10px 0; padding: 10px; background: #1a1a1a; border-radius: 8px;">
-      <h3 style="color: #a5b4fc; margin: 0 0 10px 0;">Target Position</h3>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div style="padding: 8px; background: #262626; border-radius: 4px;">
-          <div style="color: #a5b4fc; font-size: 12px; margin-bottom: 4px;">VERTICAL POSITION</div>
-          <div style="color: ${isAbove ? '#4ade80' : '#f87171'}">
-            ${isAbove ? 'Above Target' : 'Below Target'}
-          </div>
-        </div>
-        <div style="padding: 8px; background: #262626; border-radius: 4px;">
-          <div style="color: #a5b4fc; font-size: 12px; margin-bottom: 4px;">HORIZONTAL POSITION</div>
-          <div style="color: ${isLeft ? '#60a5fa' : '#fb923c'}">
-            ${isLeft ? 'Left of Target' : 'Right of Target'}
-          </div>
-        </div>
-      </div>
-    </div>` : '';
-
-  return `
-    <div style="font-family: Arial, sans-serif; color: #e5e7eb; background: #111111; padding: 20px; border-radius: 12px;">
-      <h2 style="color: #f3f4f6; margin: 0 0 20px 0;">Survey Data Summary</h2>
-      <div style="display: grid; gap: 10px;">
-        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
-          <span style="color: #9ca3af;">MD</span>
-          <span style="font-family: monospace;">${data.latestSurvey?.md?.toFixed(2)} ft</span>
-        </div>
-        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
-          <span style="color: #9ca3af;">Inc</span>
-          <span style="font-family: monospace;">${data.latestSurvey?.inc?.toFixed(2)}°</span>
-        </div>
-        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
-          <span style="color: #9ca3af;">Azi</span>
-          <span style="font-family: monospace;">${data.latestSurvey?.azi?.toFixed(2)}°</span>
-        </div>
-        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
-          <span style="color: #9ca3af;">TVD</span>
-          <span style="font-family: monospace;">${data.latestSurvey?.tvd?.toFixed(2)} ft</span>
-        </div>
-        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
-          <span style="color: #9ca3af;">NS</span>
-          <span style="font-family: monospace;">${data.latestSurvey?.ns?.toFixed(2)} ft</span>
-        </div>
-        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
-          <span style="color: #9ca3af;">EW</span>
-          <span style="font-family: monospace;">${data.latestSurvey?.ew?.toFixed(2)} ft</span>
-        </div>
-        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
-          <span style="color: #9ca3af;">VSec</span>
-          <span style="font-family: monospace;">${data.latestSurvey?.vsec?.toFixed(2)} ft</span>
-        </div>
-      </div>
-      ${targetInfo}
-    </div>
-  `;
-}
+// Use the EmailService's generateHtmlBody method instead of a local template
 
 export default function EmailAutomation() {
   const { surveys, latestSurvey, curveData, gammaData, aiAnalysis, projections } = useSurveyContext();
@@ -331,9 +268,19 @@ export default function EmailAutomation() {
     }
 
     try {
-      // Create dummy gamma URL for the demo (in a real app, this would be a data URL or server path)
+      // Create gamma plot image URL (in a real app, this would be generated from actual data)
       const gammaImageUrl = emailSettings.includeGammaPlot ? 
         "data:image/png;base64,..." : undefined;
+
+      // Prepare target position data from curve data
+      const targetPosition = emailSettings.includeTargetPosition ? {
+        verticalPosition: Number(curveData?.aboveTarget || 0) - Number(curveData?.belowTarget || 0),
+        horizontalPosition: Number(curveData?.rightTarget || 0) - Number(curveData?.leftTarget || 0),
+        isAbove: Number(curveData?.aboveTarget || 0) > 0 && Number(curveData?.belowTarget || 0) === 0,
+        isBelow: Number(curveData?.belowTarget || 0) > 0 && Number(curveData?.aboveTarget || 0) === 0,
+        isLeft: Number(curveData?.leftTarget || 0) > 0 && Number(curveData?.rightTarget || 0) === 0,
+        isRight: Number(curveData?.rightTarget || 0) > 0 && Number(curveData?.leftTarget || 0) === 0
+      } : undefined;
 
       // Prepare email data
       const emailData: SurveyEmailData = {
@@ -343,6 +290,7 @@ export default function EmailAutomation() {
         gammaImageUrl,
         attachments: attachments,
         additionalNote: emailSettings.additionalNote || undefined,
+        targetPosition,
         aiAnalysis: emailSettings.includeAiAnalysis ? {
           status: aiAnalysis?.status || 'Passed',
           doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey.dls).toFixed(2)}°/100ft (Within limits)`,
@@ -368,8 +316,9 @@ export default function EmailAutomation() {
         } : undefined
       };
 
-      // Generate the email body
-      const emailBody = emailBodyTemplate(emailData);
+      // Generate the email body using the EmailService's generateHtmlBody method 
+      // instead of the local emailBodyTemplate
+      const emailBody = emailService.generateHtmlBody(emailData);
 
       // Send the email with attachments
       emailService.sendSurveyEmail(
@@ -956,13 +905,19 @@ export default function EmailAutomation() {
 
               <div className="space-y-1">
                 <div className="text-sm text-gray-400">Email Body:</div>
-                <div className="bg-white text-gray-800 rounded-md border border-gray-300 p-3 max-h-[500px] overflow-y-auto" dangerouslySetInnerHTML={{ __html: latestSurvey && wellInfo ? emailService.generateHtmlBody({
+                <div className="bg-neutral-950 text-white rounded-md border border-gray-700 p-3 max-h-[500px] overflow-y-auto" dangerouslySetInnerHTML={{ __html: latestSurvey && wellInfo ? emailService.generateHtmlBody({
                   survey: latestSurvey,
                   wellName: wellInfo.wellName,
                   rigName: wellInfo.rigName,
-                  projections: projections || undefined,
-                  aiAnalysis: aiAnalysis || undefined,
-                  curveData: curveData ? {
+                  gammaImageUrl: emailSettings.includeGammaPlot ? 
+                    "data:image/png;base64,..." : undefined,
+                  aiAnalysis: emailSettings.includeAiAnalysis ? {
+                    status: aiAnalysis?.status || 'Passed',
+                    doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey.dls).toFixed(2)}°/100ft (Within limits)`,
+                    trend: aiAnalysis?.trend || 'Consistent with build plan',
+                    recommendation: aiAnalysis?.recommendation || 'Continue as planned'
+                  } : undefined,
+                  curveData: emailSettings.includeCurveData && curveData ? {
                     motorYield: Number(curveData.motorYield),
                     dogLegNeeded: Number(curveData.dogLegNeeded),
                     projectedInc: Number(curveData.projectedInc),
@@ -972,19 +927,105 @@ export default function EmailAutomation() {
                     includeInEmail: emailSettings.includeCurveData,
                     includeTargetPosition: emailSettings.includeTargetPosition,
                     includeGammaPlot: emailSettings.includeGammaPlot
-                  } : undefined
+                  } : undefined,
+                  targetPosition: emailSettings.includeTargetPosition ? {
+                    verticalPosition: Number(curveData?.aboveTarget || 0) - Number(curveData?.belowTarget || 0),
+                    horizontalPosition: Number(curveData?.rightTarget || 0) - Number(curveData?.leftTarget || 0),
+                    isAbove: Number(curveData?.aboveTarget || 0) > 0 && Number(curveData?.belowTarget || 0) === 0,
+                    isBelow: Number(curveData?.belowTarget || 0) > 0 && Number(curveData?.aboveTarget || 0) === 0,
+                    isLeft: Number(curveData?.leftTarget || 0) > 0 && Number(curveData?.rightTarget || 0) === 0,
+                    isRight: Number(curveData?.rightTarget || 0) > 0 && Number(curveData?.leftTarget || 0) === 0
+                  } : undefined,
+                  additionalNote: emailSettings.additionalNote || undefined
                 }) : "Loading email preview..." }}>
                 </div>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setShowEmailPreviewDialog(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowEmailPreviewDialog(false)}
+              className="bg-neutral-background hover:bg-neutral-border"
+            >
               Close Preview
             </Button>
-            <Button type="button" onClick={sendEmail}>
+            <Button 
+              type="button" 
+              onClick={() => {
+                // Create a temporarily hidden div with the HTML content
+                const content = emailService.generateHtmlBody({
+                  survey: latestSurvey!,
+                  wellName: wellInfo!.wellName,
+                  rigName: wellInfo!.rigName,
+                  gammaImageUrl: emailSettings.includeGammaPlot ? "data:image/png;base64,..." : undefined,
+                  aiAnalysis: emailSettings.includeAiAnalysis ? {
+                    status: aiAnalysis?.status || 'Passed',
+                    doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey!.dls).toFixed(2)}°/100ft (Within limits)`,
+                    trend: aiAnalysis?.trend || 'Consistent with build plan',
+                    recommendation: aiAnalysis?.recommendation || 'Continue as planned'
+                  } : undefined,
+                  curveData: emailSettings.includeCurveData && curveData ? {
+                    motorYield: Number(curveData.motorYield),
+                    dogLegNeeded: Number(curveData.dogLegNeeded),
+                    projectedInc: Number(curveData.projectedInc),
+                    projectedAz: Number(curveData.projectedAz),
+                    slideSeen: Number(curveData.slideSeen),
+                    slideAhead: Number(curveData.slideAhead),
+                    includeInEmail: emailSettings.includeCurveData,
+                    includeTargetPosition: emailSettings.includeTargetPosition,
+                    includeGammaPlot: emailSettings.includeGammaPlot
+                  } : undefined,
+                  targetPosition: emailSettings.includeTargetPosition ? {
+                    verticalPosition: Number(curveData?.aboveTarget || 0) - Number(curveData?.belowTarget || 0),
+                    horizontalPosition: Number(curveData?.rightTarget || 0) - Number(curveData?.leftTarget || 0),
+                    isAbove: Number(curveData?.aboveTarget || 0) > 0 && Number(curveData?.belowTarget || 0) === 0,
+                    isBelow: Number(curveData?.belowTarget || 0) > 0 && Number(curveData?.aboveTarget || 0) === 0,
+                    isLeft: Number(curveData?.leftTarget || 0) > 0 && Number(curveData?.rightTarget || 0) === 0,
+                    isRight: Number(curveData?.rightTarget || 0) > 0 && Number(curveData?.leftTarget || 0) === 0
+                  } : undefined,
+                  additionalNote: emailSettings.additionalNote || undefined
+                });
+                
+                const tempDiv = document.createElement('div');
+                tempDiv.style.position = 'fixed';
+                tempDiv.style.left = '-9999px';
+                tempDiv.innerHTML = content;
+                document.body.appendChild(tempDiv);
+                
+                // Create a selection and copy to clipboard
+                const selection = window.getSelection();
+                if (selection) {
+                  selection.removeAllRanges();
+                  const range = document.createRange();
+                  range.selectNodeContents(tempDiv);
+                  selection.addRange(range);
+                  
+                  // Copy the HTML content to clipboard
+                  document.execCommand('copy');
+                  selection.removeAllRanges();
+                }
+                
+                document.body.removeChild(tempDiv);
+                
+                toast({
+                  title: 'Copied!',
+                  description: 'HTML email content copied to clipboard'
+                });
+              }}
+              className="bg-cyan-800 hover:bg-cyan-700"
+            >
+              <ClipboardCopy className="h-4 w-4 mr-2" />
+              Copy to Clipboard
+            </Button>
+            <Button 
+              type="button" 
+              onClick={sendEmail}
+              className="bg-primary hover:bg-blue-600"
+            >
               <Send className="h-4 w-4 mr-2" />
-              Open in Email Client
+              Prepare Email
             </Button>
           </DialogFooter>
         </DialogContent>
