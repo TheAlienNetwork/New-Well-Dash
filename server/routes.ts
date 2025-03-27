@@ -580,7 +580,8 @@ async function sendInitialState(ws: WebSocket) {
       ws.send(JSON.stringify({
         type: 'wits_status',
         connected: true,
-        address: '192.168.1.105:8080'
+        address: 'SIMULATION MODE',
+        isSimulated: true
       }));
     }
   } catch (error) {

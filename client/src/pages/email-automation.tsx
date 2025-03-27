@@ -45,11 +45,69 @@ import {
 } from '@/components/ui/dialog';
 import { EmailDistribution, Survey } from '@shared/schema';
 
+function emailBodyTemplate(data: any) {
+  const targetInfo = data.projections ? `
+    <div style="margin: 10px 0; padding: 10px; background: #1a1a1a; border-radius: 8px;">
+      <h3 style="color: #a5b4fc; margin: 0 0 10px 0;">Target Position</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div style="padding: 8px; background: #262626; border-radius: 4px;">
+          <div style="color: #a5b4fc; font-size: 12px; margin-bottom: 4px;">VERTICAL POSITION</div>
+          <div style="color: ${data.projections.isAbove ? '#4ade80' : '#f87171'}">
+            ${data.projections.isAbove ? 'Above Target' : 'Below Target'}
+          </div>
+        </div>
+        <div style="padding: 8px; background: #262626; border-radius: 4px;">
+          <div style="color: #a5b4fc; font-size: 12px; margin-bottom: 4px;">HORIZONTAL POSITION</div>
+          <div style="color: ${data.projections.isLeft ? '#60a5fa' : '#fb923c'}">
+            ${data.projections.isLeft ? 'Left of Target' : 'Right of Target'}
+          </div>
+        </div>
+      </div>
+    </div>` : '';
+
+  return `
+    <div style="font-family: Arial, sans-serif; color: #e5e7eb; background: #111111; padding: 20px; border-radius: 12px;">
+      <h2 style="color: #f3f4f6; margin: 0 0 20px 0;">Survey Data Summary</h2>
+      <div style="display: grid; gap: 10px;">
+        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
+          <span style="color: #9ca3af;">MD</span>
+          <span style="font-family: monospace;">${data.latestSurvey?.md?.toFixed(2)} ft</span>
+        </div>
+        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
+          <span style="color: #9ca3af;">Inc</span>
+          <span style="font-family: monospace;">${data.latestSurvey?.inc?.toFixed(2)}°</span>
+        </div>
+        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
+          <span style="color: #9ca3af;">Azi</span>
+          <span style="font-family: monospace;">${data.latestSurvey?.azi?.toFixed(2)}°</span>
+        </div>
+        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
+          <span style="color: #9ca3af;">TVD</span>
+          <span style="font-family: monospace;">${data.latestSurvey?.tvd?.toFixed(2)} ft</span>
+        </div>
+        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
+          <span style="color: #9ca3af;">NS</span>
+          <span style="font-family: monospace;">${data.latestSurvey?.ns?.toFixed(2)} ft</span>
+        </div>
+        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
+          <span style="color: #9ca3af;">EW</span>
+          <span style="font-family: monospace;">${data.latestSurvey?.ew?.toFixed(2)} ft</span>
+        </div>
+        <div style="padding: 12px; background: #1a1a1a; border-radius: 8px; display: flex; justify-content: space-between;">
+          <span style="color: #9ca3af;">VSec</span>
+          <span style="font-family: monospace;">${data.latestSurvey?.vsec?.toFixed(2)} ft</span>
+        </div>
+      </div>
+      ${targetInfo}
+    </div>
+  `;
+}
+
 export default function EmailAutomation() {
   const { surveys, latestSurvey, curveData, gammaData, aiAnalysis, projections } = useSurveyContext();
   const { wellInfo } = useWellContext();
   const { toast } = useToast();
-  
+
   const [distributions, setDistributions] = useState<EmailDistribution[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDistroDialog, setShowDistroDialog] = useState(false);
@@ -60,7 +118,7 @@ export default function EmailAutomation() {
     name: '',
     emails: ''
   });
-  
+
   const [emailSettings, setEmailSettings] = useState({
     selectedDistro: 0,
     subject: '',
@@ -94,7 +152,7 @@ export default function EmailAutomation() {
       const response = await apiRequest('GET', `/api/email-distributions/${wellId}`, undefined);
       const data = await response.json();
       setDistributions(data);
-      
+
       // Set the first distribution as selected if available
       if (data.length > 0) {
         setEmailSettings(prev => ({
@@ -175,7 +233,7 @@ export default function EmailAutomation() {
         });
         const newDistro = await response.json();
         setDistributions(prev => [...prev, newDistro]);
-        
+
         toast({
           title: 'Success',
           description: 'Distribution list created successfully'
@@ -183,17 +241,17 @@ export default function EmailAutomation() {
       } else if (emailMode === 'edit' && currentDistro) {
         const response = await apiRequest('PATCH', `/api/email-distributions/${currentDistro.id}`, formData);
         const updatedDistro = await response.json();
-        
+
         setDistributions(prev => 
           prev.map(d => d.id === updatedDistro.id ? updatedDistro : d)
         );
-        
+
         toast({
           title: 'Success',
           description: 'Distribution list updated successfully'
         });
       }
-      
+
       setShowDistroDialog(false);
     } catch (error) {
       console.error('Error saving distribution:', error);
@@ -210,7 +268,7 @@ export default function EmailAutomation() {
     try {
       await apiRequest('DELETE', `/api/email-distributions/${id}`, undefined);
       setDistributions(prev => prev.filter(d => d.id !== id));
-      
+
       toast({
         title: 'Success',
         description: 'Distribution list deleted successfully'
@@ -235,10 +293,10 @@ export default function EmailAutomation() {
       });
       return;
     }
-    
+
     // Find the selected distribution
     const selectedDistro = distributions.find(d => d.id === emailSettings.selectedDistro);
-    
+
     if (!selectedDistro) {
       toast({
         title: 'Error',
@@ -247,37 +305,46 @@ export default function EmailAutomation() {
       });
       return;
     }
-    
+
     try {
       // Create dummy gamma URL for the demo (in a real app, this would be a data URL or server path)
       const gammaImageUrl = emailSettings.includeGammaPlot ? 
         "data:image/png;base64,..." : undefined;
-      
+
       // Prepare email data
+      const emailData = {
+        survey: latestSurvey,
+        wellName: wellInfo.wellName,
+        rigName: wellInfo.rigName,
+        gammaImageUrl,
+        aiAnalysis: emailSettings.includeAiAnalysis ? {
+          status: aiAnalysis?.status || 'Passed',
+          doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey.dls).toFixed(2)}°/100ft (Within limits)`,
+          trend: aiAnalysis?.trend || 'Consistent with build plan',
+          recommendation: aiAnalysis?.recommendation || 'Continue as planned'
+        } : undefined,
+        curveData: emailSettings.includeCurveData && curveData ? {
+          motorYield: Number(curveData.motorYield),
+          dogLegNeeded: Number(curveData.dogLegNeeded),
+          projectedInc: Number(curveData.projectedInc),
+          projectedAz: Number(curveData.projectedAz),
+          slideSeen: Number(curveData.slideSeen),
+          slideAhead: Number(curveData.slideAhead)
+        } : undefined,
+        projections: projections
+      };
+
+      const emailBody = emailBodyTemplate(emailData);
+
+
       emailService.sendSurveyEmail(
         selectedDistro.emails,
         {
-          survey: latestSurvey,
-          wellName: wellInfo.wellName,
-          rigName: wellInfo.rigName,
-          gammaImageUrl,
-          aiAnalysis: emailSettings.includeAiAnalysis ? {
-            status: aiAnalysis?.status || 'Passed',
-            doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey.dls).toFixed(2)}°/100ft (Within limits)`,
-            trend: aiAnalysis?.trend || 'Consistent with build plan',
-            recommendation: aiAnalysis?.recommendation || 'Continue as planned'
-          } : undefined,
-          curveData: emailSettings.includeCurveData && curveData ? {
-            motorYield: Number(curveData.motorYield),
-            dogLegNeeded: Number(curveData.dogLegNeeded),
-            projectedInc: Number(curveData.projectedInc),
-            projectedAz: Number(curveData.projectedAz),
-            slideSeen: Number(curveData.slideSeen),
-            slideAhead: Number(curveData.slideAhead)
-          } : undefined
+          ...emailData,
+          emailBody
         }
       );
-      
+
       toast({
         title: 'Success',
         description: 'Email drafted and ready to send'
@@ -348,7 +415,7 @@ export default function EmailAutomation() {
                   </Button>
                 </div>
               </div>
-              
+
               {/* Subject Line */}
               <div>
                 <Label htmlFor="subject" className="text-sm">Email Subject</Label>
@@ -360,7 +427,7 @@ export default function EmailAutomation() {
                   className="bg-neutral-background border-neutral-border"
                 />
               </div>
-              
+
               {/* Inclusion Options */}
               <div className="space-y-3 border border-neutral-border rounded-md p-3">
                 <h3 className="text-sm font-medium mb-2">Include in Email:</h3>
@@ -401,7 +468,7 @@ export default function EmailAutomation() {
                   </Label>
                 </div>
               </div>
-              
+
               {/* Additional Notes */}
               <div>
                 <Label htmlFor="additionalNote" className="text-sm">Additional Notes</Label>
@@ -487,7 +554,7 @@ export default function EmailAutomation() {
                       {new Date(latestSurvey.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  
+
                   {aiAnalysis && (
                     <div className="p-3 bg-neutral-background/60 rounded-md flex items-center">
                       <div className={`h-3 w-3 rounded-full ${aiAnalysis.status === 'Passed' ? 'bg-accent-green' : aiAnalysis.status === 'Warning' ? 'bg-accent-orange' : 'bg-accent-red'} mr-2`}></div>
@@ -643,131 +710,20 @@ export default function EmailAutomation() {
                 <div className="text-sm text-gray-400">Subject:</div>
                 <div className="text-md font-medium">{emailSettings.subject}</div>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="text-sm text-gray-400">To:</div>
                 <div className="text-sm font-mono">
                   {distributions.find(d => d.id === emailSettings.selectedDistro)?.emails || 'No distribution selected'}
                 </div>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="text-sm text-gray-400">Email Body:</div>
-                <div className="bg-white text-gray-800 rounded-md border border-gray-300 p-3 max-h-[500px] overflow-y-auto">
-                  <div className="p-4 bg-blue-800 text-white rounded-t-md">
-                    <h1 className="text-xl font-bold">MWD Survey Data Report</h1>
-                    <p className="text-sm">
-                      {wellInfo?.wellName || 'Well Name'} | {wellInfo?.rigName || 'Rig Name'} | {new Date().toLocaleString()}
-                    </p>
-                  </div>
-                  
-                  <div className="p-4">
-                    {latestSurvey ? (
-                      <>
-                        <div className="mb-4">
-                          <h2 className="text-lg font-bold text-blue-800 mb-2">Survey #{latestSurvey.index} - MD: {Number(latestSurvey.md).toFixed(2)} ft</h2>
-                          
-                          <div className="grid grid-cols-3 gap-3 mb-4">
-                            <div className="bg-gray-100 p-2 rounded">
-                              <div className="text-xs text-gray-500">Measured Depth (ft)</div>
-                              <div className="font-bold">{Number(latestSurvey.md).toFixed(2)}</div>
-                            </div>
-                            <div className="bg-gray-100 p-2 rounded">
-                              <div className="text-xs text-gray-500">Inclination (°)</div>
-                              <div className="font-bold">{Number(latestSurvey.inc).toFixed(2)}</div>
-                            </div>
-                            <div className="bg-gray-100 p-2 rounded">
-                              <div className="text-xs text-gray-500">Azimuth (°)</div>
-                              <div className="font-bold">{Number(latestSurvey.azi).toFixed(2)}</div>
-                            </div>
-                            <div className="bg-gray-100 p-2 rounded">
-                              <div className="text-xs text-gray-500">TVD (ft)</div>
-                              <div className="font-bold">{Number(latestSurvey.tvd).toFixed(2)}</div>
-                            </div>
-                            <div className="bg-gray-100 p-2 rounded">
-                              <div className="text-xs text-gray-500">N/S</div>
-                              <div className="font-bold">
-                                {Number(latestSurvey.northSouth).toFixed(2)} {latestSurvey.isNorth ? 'N' : 'S'}
-                              </div>
-                            </div>
-                            <div className="bg-gray-100 p-2 rounded">
-                              <div className="text-xs text-gray-500">E/W</div>
-                              <div className="font-bold">
-                                {Number(latestSurvey.eastWest).toFixed(2)} {latestSurvey.isEast ? 'E' : 'W'}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {emailSettings.includeAiAnalysis && (
-                            <div className="bg-blue-50 p-3 rounded-md mb-4">
-                              <h3 className="font-bold text-blue-800 mb-1">AI Survey Analysis</h3>
-                              <div className="text-sm">
-                                <div><strong>Dogleg Severity:</strong> {aiAnalysis?.doglegs || `${Number(latestSurvey.dls).toFixed(2)}°/100ft`}</div>
-                                <div><strong>Survey Trend:</strong> {aiAnalysis?.trend || 'Consistent with build plan'}</div>
-                                <div><strong>Recommendation:</strong> {aiAnalysis?.recommendation || 'Continue as planned'}</div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {emailSettings.includeCurveData && curveData && (
-                            <div className="bg-gray-50 p-3 rounded-md mb-4">
-                              <h3 className="font-bold text-blue-800 mb-1">Curve Data</h3>
-                              <div className="grid grid-cols-3 gap-2 text-sm">
-                                <div>
-                                  <div className="text-xs text-gray-500">Motor Yield (°/100ft)</div>
-                                  <div className="font-medium">{Number(curveData.motorYield).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">Dog Leg Needed (°/100ft)</div>
-                                  <div className="font-medium">{Number(curveData.dogLegNeeded).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">Projected Inc (°)</div>
-                                  <div className="font-medium">{Number(curveData.projectedInc).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">Projected Az (°)</div>
-                                  <div className="font-medium">{Number(curveData.projectedAz).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">Slide Seen (ft)</div>
-                                  <div className="font-medium">{Number(curveData.slideSeen).toFixed(2)}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">Slide Ahead (ft)</div>
-                                  <div className="font-medium">{Number(curveData.slideAhead).toFixed(2)}</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {emailSettings.includeGammaPlot && (
-                            <div className="mb-4">
-                              <h3 className="font-bold text-blue-800 mb-1">Gamma Plot</h3>
-                              <div className="bg-gray-100 p-4 rounded-md text-center">
-                                [Gamma plot image would appear here in the actual email]
-                              </div>
-                            </div>
-                          )}
-                          
-                          {emailSettings.additionalNote && (
-                            <div className="mb-4">
-                              <h3 className="font-bold text-blue-800 mb-1">Additional Notes</h3>
-                              <p className="text-sm">{emailSettings.additionalNote}</p>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-red-500">No survey data available</p>
-                      </div>
-                    )}
-                    
-                    <div className="text-center text-xs text-gray-500 mt-4 pt-4 border-t border-gray-200">
-                      This report was automatically generated by AI-MWD Dashboard on {new Date().toLocaleString()}
-                    </div>
-                  </div>
+                <div className="bg-white text-gray-800 rounded-md border border-gray-300 p-3 max-h-[500px] overflow-y-auto" dangerouslySetInnerHTML={{ __html: emailBodyTemplate({
+                  latestSurvey: latestSurvey,
+                  projections: projections
+                }) }}>
                 </div>
               </div>
             </div>

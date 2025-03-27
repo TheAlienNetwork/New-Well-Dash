@@ -6,6 +6,7 @@ import AIAnalytics from '@/components/dashboard/AIAnalytics';
 import SurveyModal from '@/components/dashboard/SurveyModal';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { Survey } from '@shared/schema';
+import TargetPosition from '@/components/dashboard/TargetPosition'; // Added import
 
 export default function MwdSurvey() {
   const { 
@@ -28,6 +29,9 @@ export default function MwdSurvey() {
     setShowSurveyModal(true);
   };
 
+  // Assuming 'projections' data is available from context or props.  Needs to be added to component.
+  const projections = {}; // Placeholder - needs actual data source
+
   return (
     <div className="flex flex-col gap-4">
       {/* Survey Table Section */}
@@ -40,6 +44,9 @@ export default function MwdSurvey() {
 
       {/* Data Display Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        {/* Target Position */}
+        <TargetPosition projections={projections} /> {/* Added TargetPosition component */}
+
         {/* Curve Data Container */}
         <div className="xl:col-span-2">
           <CurveData />
