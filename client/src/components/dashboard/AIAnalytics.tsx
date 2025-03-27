@@ -1,4 +1,59 @@
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
+
+interface AIAnalyticsProps {
+  analysis: {
+    confidenceScore: number;
+    recommendations: string[];
+    warnings: string[];
+  };
+}
+
+export const AIAnalytics: React.FC<AIAnalyticsProps> = ({ analysis }) => {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium">AI Confidence Score:</div>
+            <div className="text-emerald-500">{analysis.confidenceScore}%</div>
+          </div>
+
+          {analysis.recommendations.length > 0 && (
+            <div>
+              <div className="text-sm font-medium mb-2">Recommendations:</div>
+              <ul className="space-y-2">
+                {analysis.recommendations.map((rec, i) => (
+                  <li key={i} className="flex items-start text-sm">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
+                    {rec}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {analysis.warnings.length > 0 && (
+            <div>
+              <div className="text-sm font-medium mb-2">Warnings:</div>
+              <ul className="space-y-2">
+                {analysis.warnings.map((warning, i) => (
+                  <li key={i} className="flex items-start text-sm">
+                    <AlertCircle className="h-4 w-4 text-amber-400 mr-2 flex-shrink-0 mt-0.5" />
+                    {warning}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+import React from 'react';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { 
   Info, 
@@ -13,6 +68,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { AIAnalytics } from './AIAnalytics';
+
 
 export function AIAnalyticsComponent({ analysis }: { analysis: any }) {
   if (!analysis) return null;
@@ -30,7 +87,7 @@ export function AIAnalyticsComponent({ analysis }: { analysis: any }) {
   );
 }
 
-export default function AIAnalytics() {
+export default function AIAnalyticsContainer() {
   const { 
     latestSurvey, 
     aiAnalysis, 
@@ -51,6 +108,23 @@ export default function AIAnalytics() {
     if (status === 'Failed') return <XCircle className="h-3 w-3 mr-1" />;
     return <AlertCircle className="h-3 w-3 mr-1" />;
   };
+
+  //Transform aiAnalysis for new component
+  const transformedAiAnalysis = {
+    confidenceScore: 94.8, // Replace with actual confidence score
+    recommendations: [
+      latestSurvey && Number(latestSurvey.index) > 1 
+        ? `Inclination trend ${aiAnalysis?.trend === 'Consistent with build plan' 
+            ? 'consistent with previous surveys' 
+            : aiAnalysis?.trend ?? ''}`
+        : 'First survey in this well',
+      'Azimuth within expected range (±2° variation)',
+      `Dogleg severity ${aiAnalysis?.doglegs ?? ''}`,
+      'Magnetic interference check passed (dip angle variance < 0.2°)'
+    ].filter(item => item !== ''), //remove empty strings
+    warnings: [] // Add warnings if necessary.
+  };
+
 
   return (
     <div className="futuristic-container h-full flex flex-col">
@@ -90,32 +164,8 @@ export default function AIAnalytics() {
           </div>
           
           {aiAnalysis && (
-            <div className="pl-11">
-              <ul className="text-xs space-y-2 text-navy-200 font-mono">
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
-                  {latestSurvey && Number(latestSurvey.index) > 1 
-                    ? `Inclination trend ${aiAnalysis.trend === 'Consistent with build plan' 
-                        ? 'consistent with previous surveys' 
-                        : aiAnalysis.trend}`
-                    : 'First survey in this well'}
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
-                  Azimuth within expected range (±2° variation)
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
-                  Dogleg severity {aiAnalysis.doglegs}
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
-                  Magnetic interference check passed (dip angle variance &lt; 0.2°)
-                </li>
-              </ul>
-            </div>
+            <AIAnalytics analysis={transformedAiAnalysis} />
           )}
-          {aiAnalysis && <AIAnalyticsComponent analysis={aiAnalysis} />}
         </div>
 
         {/* Trajectory Prediction */}
