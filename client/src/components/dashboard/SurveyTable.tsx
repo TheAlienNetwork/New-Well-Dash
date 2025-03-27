@@ -1,27 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { DataTable } from '@/components/ui/data-table';
 import { Survey } from '@shared/schema';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash, Plus } from 'lucide-react';
-import { 
-  BarChart4 
-} from 'lucide-react';
+import { Pencil, Trash, Plus, BarChart4 } from 'lucide-react';
 
-interface SurveyTableProps {
-  onAddSurvey: () => void;
-  onEditSurvey: (survey: Survey) => void;
-}
-
-export default function SurveyTable({ onAddSurvey, onEditSurvey }: SurveyTableProps) {
-  const { surveys, deleteSurvey, loading } = useSurveyContext();
-
-  const handleDeleteSurvey = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this survey?')) {
-      await deleteSurvey(id);
-    }
-  };
+export function SurveyTable({ onAddSurvey }: { onAddSurvey: () => void }) {
+  const { surveys, deleteSurvey } = useSurveyContext();
 
   const columns: ColumnDef<Survey>[] = [
     {
@@ -85,13 +71,13 @@ export default function SurveyTable({ onAddSurvey, onEditSurvey }: SurveyTablePr
           <div className="flex space-x-2">
             <button 
               className="text-primary hover:text-white transition-colors"
-              onClick={() => onEditSurvey(row.original)}
+              //onClick={() => onEditSurvey(row.original)}
             >
               <Pencil className="h-5 w-5" />
             </button>
             <button 
               className="text-accent-red hover:text-white transition-colors"
-              onClick={() => handleDeleteSurvey(row.original.id)}
+              //onClick={() => handleDeleteSurvey(row.original.id)}
             >
               <Trash className="h-5 w-5" />
             </button>
@@ -130,7 +116,6 @@ export default function SurveyTable({ onAddSurvey, onEditSurvey }: SurveyTablePr
           data={surveys} 
         />
       </div>
-
       <style jsx>{`
         .futuristic-border {
           border: 1px solid rgba(52, 152, 219, 0.3);

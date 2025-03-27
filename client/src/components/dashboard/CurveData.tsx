@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Save, Mail, ArrowLeftRight, Compass, Ruler, MoveHorizontal, Waypoints } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { CurveData as CurveDataType } from '@shared/schema';
 
 export default function CurveData() {
   const { curveData, updateCurveData, projections } = useSurveyContext();
@@ -77,7 +79,7 @@ export default function CurveData() {
         </h2>
         <div className="flex items-center space-x-2 bg-navy-900/50 px-3 py-1 rounded-full border border-cyan-500/20">
           <span className="text-xs mr-2 text-navy-200 font-mono">INCLUDE IN EMAIL</span>
-          <Switch 
+          <Switch
             checked={formData.includeInEmail}
             onCheckedChange={(checked) => {
               setFormData(prev => ({
@@ -104,13 +106,13 @@ export default function CurveData() {
               <div className="flex justify-between items-center mb-1">
                 <Label className="text-xs text-navy-200 flex items-center font-mono">
                   <MoveHorizontal className="h-3 w-3 mr-1 text-cyan-400" />
-                  MOTOR YIELD 
+                  MOTOR YIELD
                 </Label>
                 <span className="text-[10px] text-cyan-400 font-mono">°/100ft</span>
               </div>
               <div className="relative">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.01"
                   name="motorYield"
                   value={formData.motorYield}
@@ -129,8 +131,8 @@ export default function CurveData() {
                 <span className="text-[10px] text-cyan-400 font-mono">°/100ft</span>
               </div>
               <div className="relative">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.01"
                   name="dogLegNeeded"
                   value={formData.dogLegNeeded}
@@ -151,8 +153,8 @@ export default function CurveData() {
                 <span className="text-[10px] text-cyan-400 font-mono">°</span>
               </div>
               <div className="relative">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.01"
                   name="projectedInc"
                   value={formData.projectedInc}
@@ -171,8 +173,8 @@ export default function CurveData() {
                 <span className="text-[10px] text-cyan-400 font-mono">°</span>
               </div>
               <div className="relative">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.01"
                   name="projectedAz"
                   value={formData.projectedAz}
@@ -193,8 +195,8 @@ export default function CurveData() {
                 <span className="text-[10px] text-cyan-400 font-mono">ft</span>
               </div>
               <div className="relative">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.01"
                   name="slideSeen"
                   value={formData.slideSeen}
@@ -213,8 +215,8 @@ export default function CurveData() {
                 <span className="text-[10px] text-cyan-400 font-mono">ft</span>
               </div>
               <div className="relative">
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   step="0.01"
                   name="slideAhead"
                   value={formData.slideAhead}
@@ -227,8 +229,8 @@ export default function CurveData() {
           </div>
         </div>
         <div className="mt-5 flex justify-end">
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-cyan-400 hover:text-cyan-300 transition-all px-5 py-2 rounded-md text-xs font-mono flex items-center shadow-lg hover:shadow-cyan-900/20"
           >
             <Save className="h-4 w-4 mr-2" />
@@ -247,5 +249,23 @@ export default function CurveData() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function CurveDataReadOnly({ data }: { data: CurveDataType | null }) {
+  return (
+    <Card className="p-4">
+      <h2 className="text-lg font-semibold mb-4">Curve Data</h2>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label>Motor Yield</label>
+          <Input type="number" value={data?.motorYield || ''} readOnly />
+        </div>
+        <div>
+          <label>DLS Required</label>
+          <Input type="number" value={data?.dogLegNeeded || ''} readOnly />
+        </div>
+      </div>
+    </Card>
   );
 }

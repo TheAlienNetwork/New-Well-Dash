@@ -12,6 +12,23 @@ import {
   LineChart,
   AlertCircle
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+
+export function AIAnalyticsComponent({ analysis }: { analysis: any }) {
+  if (!analysis) return null;
+
+  return (
+    <Card className="p-4">
+      <h2 className="text-lg font-semibold mb-4">AI Analysis</h2>
+      <div className="space-y-2">
+        <div>Status: {analysis.status}</div>
+        <div>Doglegs: {analysis.doglegs}</div>
+        <div>Trend: {analysis.trend}</div>
+        <div>Recommendation: {analysis.recommendation}</div>
+      </div>
+    </Card>
+  );
+}
 
 export default function AIAnalytics() {
   const { 
@@ -98,6 +115,7 @@ export default function AIAnalytics() {
               </ul>
             </div>
           )}
+          {aiAnalysis && <AIAnalyticsComponent analysis={aiAnalysis} />}
         </div>
 
         {/* Trajectory Prediction */}
