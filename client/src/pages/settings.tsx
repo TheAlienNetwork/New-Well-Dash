@@ -1,14 +1,54 @@
-The provided changes are incomplete and lack context regarding the overall structure of the application.  It's impossible to create a complete and functional application from this limited information.  The changes only focus on adding a WITS connection section to what appears to be a React settings page. To provide a complete file, significant assumptions and estimations would need to be made, resulting in a potentially incorrect and non-functional application.  A complete application requires a much more extensive code base and a clear understanding of how different components interact.
-
-To illustrate the difficulty, consider that the provided changes only deal with the UI aspect of WITS connection.  Missing are crucial elements such as:
-
-* **WITS data handling:** How the application receives, parses, and uses the WITS data.
-* **Backend integration:** If this is a client-side application, how does it communicate with a WITS server?
-* **State management:**  How is the application's state managed across different components?
-* **Error handling:** How does the application handle connection errors or data corruption?
-* **Data visualization:**  How are the plots created from the WITS data?
-* **Database interaction:** How are survey data stored and retrieved?
-* **Many other components mentioned in the user's request:**  These are not included in the provided code snippets.
+import { useWitsContext } from '@/context/WitsContext';
+import Card from '@/components/Card';
+import CardHeader from '@/components/CardHeader';
+import CardTitle from '@/components/CardTitle';
+import CardDescription from '@/components/CardDescription';
+import CardContent from '@/components/CardContent';
+import Switch from '@/components/Switch';
 
 
-Therefore, I cannot provide a complete, functional code file.  The provided snippets only allow for the creation of a small, incomplete part of the requested application.  To receive a helpful response, please provide a complete or more substantial portion of the original code base and more detailed, complete changes.
+export default function Settings() {
+  const { witsStatus, witsMode, witsData, toggleWitsMode } = useWitsContext();
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-neutral-surface border-neutral-border">
+        <CardHeader>
+          <CardTitle>WITS Connection</CardTitle>
+          <CardDescription>Configure and monitor WITS data feed</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium">WITS Mode</h3>
+                <p className="text-sm text-gray-500">Switch between simulated and real WITS data</p>
+              </div>
+              <Switch 
+                checked={witsMode === 'real'}
+                onCheckedChange={() => toggleWitsMode(witsMode === 'real' ? 'simulated' : 'real')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Connection Status</h3>
+              <div className="flex items-center space-x-2">
+                <div className={`h-2 w-2 rounded-full ${witsStatus ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-sm">{witsStatus ? 'Connected' : 'Disconnected'}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Live WITS Feed</h3>
+              <div className="bg-black/20 rounded-md p-3 font-mono text-xs h-32 overflow-auto">
+                {witsData.map((data, i) => (
+                  <div key={i} className="text-gray-400">{JSON.stringify(data)}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

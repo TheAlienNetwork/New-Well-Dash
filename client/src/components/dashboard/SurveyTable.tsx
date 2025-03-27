@@ -32,7 +32,10 @@ export default function SurveyTable({ onAddSurvey, onEditSurvey }: SurveyTablePr
     {
       accessorKey: 'md',
       header: 'MD (ft)',
-      cell: ({ row }) => <div className="font-mono">{Number(row.getValue('md')).toFixed(2)}</div>
+      cell: ({ row }) => {
+        const value = row.getValue('md');
+        return <div className="font-mono">{value ? Number(value).toFixed(2) : ''}</div>
+      }
     },
     {
       accessorKey: 'inc',

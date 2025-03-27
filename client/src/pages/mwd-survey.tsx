@@ -46,7 +46,11 @@ export default function MwdSurvey() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <TargetPosition projections={projections} /> 
+        <TargetPosition 
+          projections={projections}
+          verticalPosition={curveData?.projectedInc || 0}
+          horizontalPosition={curveData?.projectedAz || 0}
+        /> 
 
         <div className="xl:col-span-2">
           <CurveData />
@@ -57,8 +61,8 @@ export default function MwdSurvey() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Added plots section */}
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-neutral-surface border-neutral-border">
           <CardHeader>
             <CardTitle>Inclination Differences</CardTitle>
           </CardHeader>
@@ -69,19 +73,31 @@ export default function MwdSurvey() {
                 y: surveys.map(s => s.inc),
                 type: 'scatter',
                 mode: 'lines+markers',
+                line: { color: '#3B82F6', width: 3 },
+                marker: { color: '#60A5FA', size: 8 },
                 name: 'Inclination'
               }]}
               layout={{
                 height: 300,
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                xaxis: { title: 'MD (ft)' },
-                yaxis: { title: 'Inclination (°)' }
+                plot_bgcolor: 'rgba(0,0,0,0.02)',
+                xaxis: { 
+                  title: 'MD (ft)',
+                  gridcolor: 'rgba(255,255,255,0.1)',
+                  zerolinecolor: 'rgba(255,255,255,0.2)'
+                },
+                yaxis: { 
+                  title: 'Inclination (°)',
+                  gridcolor: 'rgba(255,255,255,0.1)',
+                  zerolinecolor: 'rgba(255,255,255,0.2)'
+                },
+                font: { color: '#9ca3af' }
               }}
+              config={{ responsive: true }}
             />
           </CardContent>
-        </Card>
+        </Card>>
 
         <Card>
           <CardHeader>

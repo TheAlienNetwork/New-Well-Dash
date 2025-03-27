@@ -155,7 +155,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   router.post('/surveys', async (req: Request, res: Response) => {
     try {
-      const validatedData = insertSurveySchema.parse(req.body);
+      const validatedData = insertSurveySchema.omit({ 
+        id: true, 
+        index: true,
+        tvd: true,
+        northSouth: true,
+        isNorth: true,
+        eastWest: true,
+        isEast: true,
+        vs: true,
+        dls: true,
+        createdAt: true 
+      }).parse(req.body);
       const survey = await storage.createSurvey(validatedData);
       res.status(201).json(survey);
 
