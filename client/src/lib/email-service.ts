@@ -114,12 +114,12 @@ export class EmailService {
         <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #0e7490;">
           <h3 style="color: #22d3ee; margin-top: 0; font-family: monospace;">CURVE DATA</h3>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-family: monospace;">
-            <div><strong style="color: #a5f3fc;">Motor Yield:</strong> <span style="color: #f0f9ff;">${Number(curveData.motorYield).toFixed(2)}°/100ft</span></div>
-            <div><strong style="color: #a5f3fc;">Dog Leg Needed:</strong> <span style="color: #f0f9ff;">${Number(curveData.dogLegNeeded).toFixed(2)}°/100ft</span></div>
-            <div><strong style="color: #a5f3fc;">Projected Inc:</strong> <span style="color: #f0f9ff;">${Number(curveData.projectedInc).toFixed(2)}°</span></div>
-            <div><strong style="color: #a5f3fc;">Projected Az:</strong> <span style="color: #f0f9ff;">${Number(curveData.projectedAz).toFixed(2)}°</span></div>
-            <div><strong style="color: #a5f3fc;">Slide Seen:</strong> <span style="color: #f0f9ff;">${Number(curveData.slideSeen).toFixed(2)} ft</span></div>
-            <div><strong style="color: #a5f3fc;">Slide Ahead:</strong> <span style="color: #f0f9ff;">${Number(curveData.slideAhead).toFixed(2)} ft</span></div>
+            <div><strong style="color: #a5f3fc;">Motor Yield:</strong> <span style="color: #f0f9ff;">${Number(curveData.motorYield || 0).toFixed(2)}°/100ft</span></div>
+            <div><strong style="color: #a5f3fc;">Dog Leg Needed:</strong> <span style="color: #f0f9ff;">${Number(curveData.dogLegNeeded || 0).toFixed(2)}°/100ft</span></div>
+            <div><strong style="color: #a5f3fc;">Projected Inc:</strong> <span style="color: #f0f9ff;">${Number(curveData.projectedInc || 0).toFixed(2)}°</span></div>
+            <div><strong style="color: #a5f3fc;">Projected Az:</strong> <span style="color: #f0f9ff;">${Number(curveData.projectedAz || 0).toFixed(2)}°</span></div>
+            <div><strong style="color: #a5f3fc;">Slide Seen:</strong> <span style="color: #f0f9ff;">${Number(curveData.slideSeen || 0).toFixed(2)} ft</span></div>
+            <div><strong style="color: #a5f3fc;">Slide Ahead:</strong> <span style="color: #f0f9ff;">${Number(curveData.slideAhead || 0).toFixed(2)} ft</span></div>
           </div>
         </div>
         ` : ''}

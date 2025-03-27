@@ -9,14 +9,28 @@ import { Settings2, Mail } from 'lucide-react';
 export default function CurveData() {
   const { curveData, updateCurveData } = useSurveyContext();
   const [formData, setFormData] = useState({
-    motorYield: curveData?.motorYield || 0,
-    dogLegNeeded: curveData?.dogLegNeeded || 0,
-    projectedInc: curveData?.projectedInc || 0,
-    projectedAz: curveData?.projectedAz || 0,
-    slideSeen: curveData?.slideSeen || 0,
-    slideAhead: curveData?.slideAhead || 0,
-    includeInEmail: curveData?.includeInEmail || false
+    motorYield: 0,
+    dogLegNeeded: 0,
+    projectedInc: 0,
+    projectedAz: 0,
+    slideSeen: 0,
+    slideAhead: 0,
+    includeInEmail: false
   });
+  
+  useEffect(() => {
+    if (curveData) {
+      setFormData({
+        motorYield: Number(curveData.motorYield) || 0,
+        dogLegNeeded: Number(curveData.dogLegNeeded) || 0,
+        projectedInc: Number(curveData.projectedInc) || 0,
+        projectedAz: Number(curveData.projectedAz) || 0,
+        slideSeen: Number(curveData.slideSeen) || 0,
+        slideAhead: Number(curveData.slideAhead) || 0,
+        includeInEmail: curveData.includeInEmail || false
+      });
+    }
+  }, [curveData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
