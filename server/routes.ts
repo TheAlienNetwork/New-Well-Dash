@@ -1,4 +1,4 @@
-import express, { type Express, Request, Response } from "express";
+import express, { type Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
@@ -12,20 +12,23 @@ import {
   insertWitsMappingSchema,
   insertDrillingParamSchema
 } from "@shared/schema";
+import { witsManager } from './wits/wits-manager';
 
 // Interval-based data simulator for demo purposes
 let witsSimulationInterval: NodeJS.Timeout | null = null;
 const activeConnections = new Set<WebSocket>();
-
-// Import the WITS manager
-import { witsManager } from './wits/wits-manager';
-
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // WebSocket server for WITS data
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  // Set up the broadcast function in witsManager
+  const broadcastFunction = (message: any) => {
+    broadcastMessage(message);
+  };
+  witsManager.setBroadcastFunction(broadcastFunction);
 
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
@@ -188,22 +191,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   router.post('/surveys', async (req: Request, res: Response) => {
     try {
-      // Modify schema to properly define omitted fields without type conflicts
-      const modifiedSchema = insertSurveySchema.omit({ 
-        id: true, 
-        index: true,
-        tvd: true,
-        northSouth: true,
-        isNorth: true,
-        eastWest: true,
-        isEast: true,
-        vs: true,
-        dls: true,
-        createdAt: true 
-      });
+      // We won't use omit since it's causing type conflicts
+      // Instead validate the required fields directly
+      const validatedData = z.object({
+        md: z.string(),
+        inc: z.string(),
+        azi: z.string(),
+        bitDepth: z.string(),
+        wellId: z.number(),
+        gTotal: z.string().nullable().optional(),
+        bTotal: z.string().nullable().optional(),
+        dipAngle: z.string().nullable().optional(),
+        toolFace: z.string().nullable().optional(),
+        notes: z.string().nullable().optional()
+      }).parse(req.body);
       
-      // Parse with the modified schema
-      const validatedData = modifiedSchema.parse(req.body);
       const survey = await storage.createSurvey(validatedData);
       res.status(201).json(survey);
 
@@ -220,7 +222,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   router.patch('/surveys/:id', async (req: Request, res: Response) => {
     try {
       const surveyId = parseInt(req.params.id);
-      const validatedData = insertSurveySchema.partial().parse(req.body);
+      
+      // Use the same approach as in POST but make all fields optional
+      const validatedData = z.object({
+        md: z.string().optional(),
+        inc: z.string().optional(),
+        azi: z.string().optional(),
+        bitDepth: z.string().optional(),
+        wellId: z.number().optional(),
+        gTotal: z.string().nullable().optional(),
+        bTotal: z.string().nullable().optional(),
+        dipAngle: z.string().nullable().optional(),
+        toolFace: z.string().nullable().optional(),
+        notes: z.string().nullable().optional()
+      }).parse(req.body);
 
       const updated = await storage.updateSurvey(surveyId, validatedData);
 

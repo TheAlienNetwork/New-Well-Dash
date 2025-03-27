@@ -1,9 +1,12 @@
 
 import { WitsClient } from './wits-client';
 import { storage } from '../storage';
-import { broadcastMessage } from '../routes';
+
+// Define a message broadcast type
+type MessageBroadcaster = (message: any) => void;
 
 export class WitsManager {
+  private broadcastFunction: MessageBroadcaster | null = null;
   private witsClient: WitsClient;
   private customChannelMappings: Map<number, string> = new Map();
   private witsStatus = {
@@ -49,21 +52,23 @@ export class WitsManager {
 
       // Process drilling parameters
       const param = await this.processDrillingParam(data);
-      if (param) {
-        broadcastMessage({
+      if (param && this.broadcastFunction) {
+        this.broadcastFunction({
           type: 'drilling_param_update',
           data: param
         });
       }
 
       // Broadcast raw data for custom channels
-      broadcastMessage({
-        type: 'wits_data',
-        data: {
-          ...data,
-          mappedName: this.customChannelMappings.get(data.channelId)
-        }
-      });
+      if (this.broadcastFunction) {
+        this.broadcastFunction({
+          type: 'wits_data',
+          data: {
+            ...data,
+            mappedName: this.customChannelMappings.get(data.channelId)
+          }
+        });
+      }
     } catch (error) {
       console.error('Error processing WITS data:', error);
     }
@@ -77,10 +82,12 @@ export class WitsManager {
       wellId: 1
     };
     const stored = await storage.createGammaData(gammaData);
-    broadcastMessage({
-      type: 'gamma_data_update',
-      data: stored
-    });
+    if (this.broadcastFunction) {
+      this.broadcastFunction({
+        type: 'gamma_data_update',
+        data: stored
+      });
+    }
   }
 
   private async processDrillingParam(data: any) {
@@ -110,11 +117,18 @@ export class WitsManager {
     return this.witsStatus;
   }
 
+  // Set broadcast function from outside
+  setBroadcastFunction(broadcaster: MessageBroadcaster) {
+    this.broadcastFunction = broadcaster;
+  }
+
   private broadcastStatus() {
-    broadcastMessage({
-      type: 'wits_status',
-      data: this.witsStatus
-    });
+    if (this.broadcastFunction) {
+      this.broadcastFunction({
+        type: 'wits_status',
+        data: this.witsStatus
+      });
+    }
   }
 
   connectWits(host: string, port: number) {

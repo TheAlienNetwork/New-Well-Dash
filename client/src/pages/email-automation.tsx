@@ -697,15 +697,6 @@ export default function EmailAutomation() {
                     No attachments selected. Click the buttons above to add files.
                   </div>
                 )}
-                    </div>
-                  </div>
-                )}
-                
-                {attachments.length === 0 && (
-                  <div className="flex items-center justify-center h-16 bg-neutral-background/50 rounded border border-dashed border-neutral-border text-gray-400 text-sm">
-                    No attachments selected
-                  </div>
-                )}
               </div>
 
               {/* Additional Notes */}
