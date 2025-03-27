@@ -43,21 +43,21 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
   useEffect(() => {
     if (survey && mode === 'edit') {
       setFormData({
-        bitDepth: survey.bitDepth,
-        inc: survey.inc,
-        azi: survey.azi,
-        toolFace: survey.toolFace || '',
-        gTotal: survey.gTotal || '0.999',
-        bTotal: survey.bTotal || '1.002',
-        dipAngle: survey.dipAngle || '67.52',
-        md: survey.md,
-        tvd: survey.tvd,
-        northSouth: survey.northSouth,
+        bitDepth: String(survey.bitDepth),
+        inc: String(survey.inc),
+        azi: String(survey.azi),
+        toolFace: survey.toolFace ? String(survey.toolFace) : '',
+        gTotal: survey.gTotal ? String(survey.gTotal) : '0.999',
+        bTotal: survey.bTotal ? String(survey.bTotal) : '1.002',
+        dipAngle: survey.dipAngle ? String(survey.dipAngle) : '67.52',
+        md: String(survey.md),
+        tvd: String(survey.tvd),
+        northSouth: String(survey.northSouth),
         isNorth: survey.isNorth,
-        eastWest: survey.eastWest,
+        eastWest: String(survey.eastWest),
         isEast: survey.isEast,
-        vs: survey.vs,
-        dls: survey.dls
+        vs: String(survey.vs),
+        dls: String(survey.dls)
       });
 
       // Calculate AI analysis for this survey
@@ -67,24 +67,29 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
       // For add mode, set default values
       const lastSurvey = surveys.length > 0 ? surveys[surveys.length - 1] : null;
 
-      const defaultMd = lastSurvey ? parseFloat(lastSurvey.md) + 100 : 1000;
-      const defaultBitDepth = defaultMd + (wellInfo?.sensorOffset || 100);
+      const defaultMd = lastSurvey ? parseFloat(String(lastSurvey.md)) + 100 : 1000;
+      const sensorOffsetValue = wellInfo?.sensorOffset 
+        ? typeof wellInfo.sensorOffset === 'string' 
+          ? parseFloat(wellInfo.sensorOffset) 
+          : wellInfo.sensorOffset 
+        : 100;
+      const defaultBitDepth = defaultMd + sensorOffsetValue;
 
       setFormData({
         bitDepth: defaultBitDepth.toString(),
-        inc: lastSurvey ? lastSurvey.inc : '',
-        azi: lastSurvey ? lastSurvey.azi : '',
-        toolFace: lastSurvey ? lastSurvey.toolFace || '' : '',
+        inc: lastSurvey ? String(lastSurvey.inc) : '',
+        azi: lastSurvey ? String(lastSurvey.azi) : '',
+        toolFace: lastSurvey && lastSurvey.toolFace ? String(lastSurvey.toolFace) : '',
         gTotal: '0.999',
         bTotal: '1.002',
         dipAngle: '67.52',
         md: defaultMd.toString(),
-        tvd: lastSurvey ? lastSurvey.tvd : defaultMd.toString(),
-        northSouth: lastSurvey ? lastSurvey.northSouth : '',
+        tvd: lastSurvey ? String(lastSurvey.tvd) : defaultMd.toString(),
+        northSouth: lastSurvey ? String(lastSurvey.northSouth) : '',
         isNorth: lastSurvey ? lastSurvey.isNorth : true,
-        eastWest: lastSurvey ? lastSurvey.eastWest : '',
+        eastWest: lastSurvey ? String(lastSurvey.eastWest) : '',
         isEast: lastSurvey ? lastSurvey.isEast : true,
-        vs: lastSurvey ? lastSurvey.vs : '',
+        vs: lastSurvey ? String(lastSurvey.vs) : '',
         dls: ''
       });
 
@@ -95,17 +100,23 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    setFormData(prev => ({
-      ...prev,
+    setFormData(prevState => ({
+      ...prevState,
       [name]: value
     }));
 
     // Update MD based on bit depth and sensor offset
     if (name === 'bitDepth' && wellInfo) {
-      const sensorOffset = wellInfo.sensorOffset || 100;
-      const newMd = parseFloat(value) - sensorOffset;
-      setFormData(prev => ({
-        ...prev,
+      const sensorOffsetValue = wellInfo?.sensorOffset 
+        ? typeof wellInfo.sensorOffset === 'string' 
+          ? parseFloat(wellInfo.sensorOffset) 
+          : wellInfo.sensorOffset 
+        : 100;
+        
+      const newMd = parseFloat(value) - sensorOffsetValue;
+      
+      setFormData(prevState => ({
+        ...prevState,
         md: isNaN(newMd) ? '' : newMd.toString()
       }));
 
@@ -113,28 +124,41 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
       const lastSurvey = surveys.length > 0 ? surveys[surveys.length - 1] : null;
 
       if (lastSurvey) {
+        const currentFormData = { ...formData, [name]: value };
+        
         const calculated = calculateSurveyValues(
           {
-            md: isNaN(parseFloat(value)) ? 0 : parseFloat(value) - sensorOffset,
-            inc: parseFloat(prev.inc) || 0,
-            azi: parseFloat(prev.azi) || 0
+            md: isNaN(parseFloat(value)) ? 0 : parseFloat(value) - sensorOffsetValue,
+            inc: parseFloat(currentFormData.inc) || 0,
+            azi: parseFloat(currentFormData.azi) || 0
           },
           {
-            md: parseFloat(lastSurvey.md),
-            inc: parseFloat(lastSurvey.inc),
-            azi: parseFloat(lastSurvey.azi),
-            tvd: parseFloat(lastSurvey.tvd),
-            northSouth: parseFloat(lastSurvey.northSouth),
+            md: parseFloat(String(lastSurvey.md)),
+            inc: parseFloat(String(lastSurvey.inc)),
+            azi: parseFloat(String(lastSurvey.azi)),
+            tvd: parseFloat(String(lastSurvey.tvd)),
+            northSouth: parseFloat(String(lastSurvey.northSouth)),
             isNorth: lastSurvey.isNorth,
-            eastWest: parseFloat(lastSurvey.eastWest),
+            eastWest: parseFloat(String(lastSurvey.eastWest)),
             isEast: lastSurvey.isEast
           },
-          parseFloat(wellInfo.proposedDirection || '0')
+          parseFloat(String(wellInfo.proposedDirection) || '0')
         );
 
-        setFormData(prev => ({
-          ...prev,
-          ...calculated
+        // Convert numeric calculated values to strings
+        const stringCalculated: Record<string, any> = {};
+        
+        Object.entries(calculated).forEach(([key, value]) => {
+          if (typeof value === 'number') {
+            stringCalculated[key] = String(value);
+          } else {
+            stringCalculated[key] = value;
+          }
+        });
+
+        setFormData(prevState => ({
+          ...prevState,
+          ...stringCalculated
         }));
       }
     }
@@ -145,23 +169,17 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
 
     if (!wellInfo) return;
 
+    // Create survey data with only the fields allowed by insertSurveySchema
     const surveyData: InsertSurvey = {
-      md: parseFloat(formData.md) || 0,
-      inc: parseFloat(formData.inc) || 0,
-      azi: parseFloat(formData.azi) || 0,
-      tvd: parseFloat(formData.tvd) || 0,
-      northSouth: parseFloat(formData.northSouth) || 0,
-      isNorth: formData.isNorth,
-      eastWest: parseFloat(formData.eastWest) || 0,
-      isEast: formData.isEast,
-      vs: parseFloat(formData.vs) || 0,
-      dls: parseFloat(formData.dls) || 0,
-      bitDepth: parseFloat(formData.bitDepth) || 0,
-      gTotal: parseFloat(formData.gTotal) || 0,
-      bTotal: parseFloat(formData.bTotal) || 0,
-      dipAngle: parseFloat(formData.dipAngle) || 0,
-      toolFace: parseFloat(formData.toolFace) || 0,
-      wellId: wellInfo.id
+      md: formData.md,
+      inc: formData.inc,
+      azi: formData.azi,
+      bitDepth: formData.bitDepth,
+      gTotal: formData.gTotal || null,
+      bTotal: formData.bTotal || null,
+      dipAngle: formData.dipAngle || null,
+      toolFace: formData.toolFace || null,
+      wellId: wellInfo.id // ID is kept as a number
     };
 
     if (mode === 'add') {
@@ -172,6 +190,13 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
 
     onOpenChange(false);
   };
+
+  // Format sensor offset display value
+  const displaySensorOffset = wellInfo?.sensorOffset 
+    ? typeof wellInfo.sensorOffset === 'string' 
+      ? parseFloat(wellInfo.sensorOffset).toFixed(2)
+      : wellInfo.sensorOffset.toFixed(2)
+    : '0.00';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -213,7 +238,7 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-primary" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
-                    Sensor offset: {wellInfo?.sensorOffset?.toFixed(2) || '0.00'} ft
+                    Sensor offset: {displaySensorOffset} ft
                   </div>
                 </div>
                 <div className="bg-neutral-background rounded-md p-3">

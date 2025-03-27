@@ -232,11 +232,46 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const addSurvey = async (survey: InsertSurvey): Promise<Survey | null> => {
     try {
       setLoading(true);
-      const response = await apiRequest('POST', '/api/surveys', survey);
+      
+      // Process numeric fields to ensure they're all strings
+      const processedSurvey: Record<string, any> = {};
+      
+      // Process the survey data to ensure correct types for the API
+      Object.entries(survey).forEach(([key, value]) => {
+        if (key === 'wellId') {
+          // Keep wellId as a number
+          processedSurvey[key] = typeof value === 'string' ? parseInt(value) : value;
+        } else if (key === 'isNorth' || key === 'isEast') {
+          // Keep boolean values
+          processedSurvey[key] = value;
+        } else if (typeof value === 'number') {
+          // Convert numbers to strings for numeric fields
+          processedSurvey[key] = String(value);
+        } else {
+          // Keep other values as is
+          processedSurvey[key] = value;
+        }
+      });
+      
+      console.log('Sending survey data:', processedSurvey);
+      const response = await apiRequest('POST', '/api/surveys', processedSurvey);
       const newSurvey = await response.json();
+      
+      if (response.status === 400) {
+        console.error('Error adding survey:', newSurvey);
+        toast({
+          title: "Validation Error",
+          description: "Please check the survey data and try again",
+          variant: "destructive"
+        });
+        return null;
+      }
       
       // Update surveys list with the new survey
       setSurveys(prevSurveys => [...prevSurveys, newSurvey]);
+      
+      // Update latest survey
+      setLatestSurvey(newSurvey);
       
       // Set the current survey to the newly added one
       setCurrentSurvey(newSurvey);
@@ -263,8 +298,40 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const updateSurvey = async (id: number, survey: Partial<InsertSurvey>): Promise<Survey | null> => {
     try {
       setLoading(true);
-      const response = await apiRequest('PATCH', `/api/surveys/${id}`, survey);
+      
+      // Process numeric fields to ensure they're all strings
+      const processedSurvey: Record<string, any> = {};
+      
+      // Process the survey data to ensure correct types for the API
+      Object.entries(survey).forEach(([key, value]) => {
+        if (key === 'wellId') {
+          // Keep wellId as a number
+          processedSurvey[key] = typeof value === 'string' ? parseInt(value) : value;
+        } else if (key === 'isNorth' || key === 'isEast') {
+          // Keep boolean values
+          processedSurvey[key] = value;
+        } else if (typeof value === 'number') {
+          // Convert numbers to strings for numeric fields
+          processedSurvey[key] = String(value);
+        } else {
+          // Keep other values as is
+          processedSurvey[key] = value;
+        }
+      });
+      
+      console.log('Sending update survey data:', processedSurvey);
+      const response = await apiRequest('PATCH', `/api/surveys/${id}`, processedSurvey);
       const updatedSurvey = await response.json();
+      
+      if (response.status === 400) {
+        console.error('Error updating survey:', updatedSurvey);
+        toast({
+          title: "Validation Error",
+          description: "Please check the survey data and try again",
+          variant: "destructive"
+        });
+        return null;
+      }
       
       // Update surveys list with the updated survey
       setSurveys(prevSurveys => prevSurveys.map(s => 
@@ -274,6 +341,11 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Update current survey if it's the one being edited
       if (currentSurvey && currentSurvey.id === id) {
         setCurrentSurvey(updatedSurvey);
+      }
+      
+      // Update latest survey if it's the one being edited
+      if (latestSurvey && latestSurvey.id === id) {
+        setLatestSurvey(updatedSurvey);
       }
       
       toast({
