@@ -11,7 +11,13 @@ interface TargetPositionProps {
     isBelow?: boolean;
     isLeft?: boolean;
     isRight?: boolean;
-  };
+    projectedInc?: number;
+    projectedAz?: number;
+    buildRate?: number;
+    turnRate?: number;
+    verticalPosition?: number;
+    horizontalPosition?: number;
+  } | null;
   verticalPosition?: number;
   horizontalPosition?: number;
 }

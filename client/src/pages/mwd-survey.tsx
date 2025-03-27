@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SurveyTable from '@/components/dashboard/SurveyTable';
 import CurveData from '@/components/dashboard/CurveData';
 import GammaPlot from '@/components/dashboard/GammaPlot';
@@ -17,9 +17,49 @@ export default function MwdSurvey() {
     modalSurvey, 
     setModalSurvey,
     surveys,
-    curveData // Added curveData from context
+    curveData, // Added curveData from context
+    projections: contextProjections // Get projections from context instead of calculating locally
   } = useSurveyContext();
+  
+  // Create a local projections object that's derived from curve data if needed
+  const [localProjections, setLocalProjections] = useState<any>({
+    isAbove: false,
+    isBelow: false,
+    isLeft: false,
+    isRight: false
+  });
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [verticalPosition, setVerticalPosition] = useState<number>(0);
+  const [horizontalPosition, setHorizontalPosition] = useState<number>(0);
+
+  // Calculate vertical and horizontal positions from curve data
+  useEffect(() => {
+    if (curveData) {
+      // If we have above target value, use it, otherwise use below target value (negative)
+      const verticalOffset = Number(curveData.aboveTarget || 0) > 0 
+        ? Number(curveData.aboveTarget) 
+        : -Number(curveData.belowTarget || 0);
+      
+      // If we have right target value, use it, otherwise use left target value (negative)
+      const horizontalOffset = Number(curveData.rightTarget || 0) > 0 
+        ? Number(curveData.rightTarget) 
+        : -Number(curveData.leftTarget || 0);
+      
+      // Update positions
+      setVerticalPosition(verticalOffset);
+      setHorizontalPosition(horizontalOffset);
+      
+      // Update local projections based on the value
+      setLocalProjections({
+        isAbove: Number(curveData.aboveTarget || 0) > 0,
+        isBelow: Number(curveData.belowTarget || 0) > 0,
+        isLeft: Number(curveData.leftTarget || 0) > 0,
+        isRight: Number(curveData.rightTarget || 0) > 0,
+        projectedInc: Number(curveData.projectedInc || 0),
+        projectedAz: Number(curveData.projectedAz || 0)
+      });
+    }
+  }, [curveData]);
 
   const handleAddSurvey = () => {
     setModalSurvey(null);
@@ -33,14 +73,6 @@ export default function MwdSurvey() {
     setShowSurveyModal(true);
   };
 
-  // Calculate projections based on curve data
-  const projections = {
-    isAbove: Number(curveData?.projectedInc || 0) > 2.5,
-    isBelow: Number(curveData?.projectedInc || 0) < 1.5,
-    isLeft: Number(curveData?.projectedAz || 0) < 175,
-    isRight: Number(curveData?.projectedAz || 0) > 185
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <div className="w-full">
@@ -52,9 +84,9 @@ export default function MwdSurvey() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <TargetPosition 
-          projections={projections}
-          verticalPosition={Number(curveData?.projectedInc || 0)}
-          horizontalPosition={Number(curveData?.projectedAz || 0)}
+          projections={localProjections}
+          verticalPosition={verticalPosition}
+          horizontalPosition={horizontalPosition}
         /> 
 
         <div className="xl:col-span-2">

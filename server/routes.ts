@@ -915,11 +915,11 @@ function startWitsSimulation() {
       storage.createSurvey(surveyData)
         .then(survey => {
           broadcastSurveyUpdate('created', survey);
-          // Show survey modal to all connected clients
-          broadcastMessage({
-            type: 'show_survey_modal',
-            data: survey
-          });
+          // Disabled automatic modal popup as per user request
+          // broadcastMessage({
+          //   type: 'show_survey_modal',
+          //   data: survey
+          // });
         })
         .catch(console.error);
     }
