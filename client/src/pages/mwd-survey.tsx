@@ -1,72 +1,71 @@
 import React, { useState } from 'react';
-import Plot from 'react-plotly.js';
-import { Card } from '@/components/ui/card';
-import { AIAnalyticsContainer } from '@/components/dashboard/AIAnalytics';
-import { SurveyTable } from '../components/dashboard/SurveyTable';
-import { CurveData } from '@/components/dashboard/CurveData';
-import { TargetPosition } from '@/components/dashboard/TargetPosition';
-import { useWellContext } from '@/context/WellContext';
-import { useWitsContext } from '@/context/WitsContext';
+import SurveyTable from '@/components/dashboard/SurveyTable';
+import CurveData from '@/components/dashboard/CurveData';
+import GammaPlot from '@/components/dashboard/GammaPlot';
+import AIAnalytics from '@/components/dashboard/AIAnalytics';
+import SurveyModal from '@/components/dashboard/SurveyModal';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { Survey } from '@shared/schema';
-
+import TargetPosition from '@/components/dashboard/TargetPosition'; // Added import
 
 export default function MwdSurvey() {
-  const { currentWell } = useWellContext();
-  const { witsData, gammaData } = useWitsContext();
-  const {showSurveyModal, setShowSurveyModal, modalSurvey, setModalSurvey} = useSurveyContext();
+  const { 
+    showSurveyModal, 
+    setShowSurveyModal, 
+    modalSurvey, 
+    setModalSurvey 
+  } = useSurveyContext();
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
-  const [surveys, setSurveys] = useState<Survey[]>([]); 
-  const [curveData, setCurveData] = useState<any>(null); 
 
+  const handleAddSurvey = () => {
+    setModalSurvey(null);
+    setModalMode('add');
+    setShowSurveyModal(true);
+  };
+
+  const handleEditSurvey = (survey: Survey) => {
+    setModalSurvey(survey);
+    setModalMode('edit');
+    setShowSurveyModal(true);
+  };
+
+  // Assuming 'projections' data is available from context or props.  Needs to be added to component.
+  const projections = {}; // Placeholder - needs actual data source
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Target Position</h2>
-          <TargetPosition />
-        </Card>
-
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Gamma Plot</h2>
-          <Plot
-            data={[
-              {
-                x: gammaData?.map(d => d.timestamp) || [],
-                y: gammaData?.map(d => d.value) || [],
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Gamma'
-              }
-            ]}
-            layout={{
-              autosize: true,
-              margin: { t: 20, r: 20, b: 30, l: 40 },
-              showlegend: true,
-              xaxis: { title: 'Time' },
-              yaxis: { title: 'Gamma (API)' }
-            }}
-            style={{ width: '100%', height: '300px' }}
-            useResizeHandler={true}
-          />
-        </Card>
+    <div className="flex flex-col gap-4">
+      {/* Survey Table Section */}
+      <div className="w-full">
+        <SurveyTable
+          onAddSurvey={handleAddSurvey}
+          onEditSurvey={handleEditSurvey}
+        />
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-4">AI Analytics</h2>
-          <AIAnalyticsContainer />
-        </Card>
+      {/* Data Display Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        {/* Target Position */}
+        <TargetPosition projections={projections} /> {/* Added TargetPosition component */}
 
-        <Card className="p-4">
-          <SurveyTable onAddSurvey={()=>{}} onEditSurvey={()=>{}} surveys={surveys} setSurveys={setSurveys}/>
-        </Card>
-
-        <Card className="p-4">
+        {/* Curve Data Container */}
+        <div className="xl:col-span-2">
           <CurveData />
-        </Card>
+        </div>
+
+        {/* Gamma Plot Container */}
+        <div className="xl:col-span-1">
+          <GammaPlot />
+        </div>
       </div>
+
+        {/* AI Analytics */}
+        <AIAnalytics />
+        <SurveyModal
+          open={showSurveyModal}
+          onOpenChange={setShowSurveyModal}
+          survey={modalSurvey}
+          mode={modalMode}
+        />
     </div>
   );
 }
