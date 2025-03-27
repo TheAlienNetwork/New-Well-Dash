@@ -467,6 +467,15 @@ export default function EmailAutomation() {
                     <span className="text-lg font-mono font-medium">{Number(latestSurvey.azi).toFixed(2)}°</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-neutral-background rounded-md">
+                    <span className="text-sm text-gray-400">Direction</span>
+                    <span className="text-sm font-mono space-x-2">
+                      {projections?.isAbove && <span className="text-accent-green">Above</span>}
+                      {projections?.isBelow && <span className="text-accent-red">Below</span>}
+                      {projections?.isLeft && <span className="text-accent-blue">Left</span>}
+                      {projections?.isRight && <span className="text-accent-orange">Right</span>}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-neutral-background rounded-md">
                     <span className="text-sm text-gray-400">Timestamp</span>
                     <span className="text-sm font-mono">
                       {new Date(latestSurvey.createdAt).toLocaleString()}

@@ -251,6 +251,10 @@ export function projectValues(surveys: any[], projectionDistance: number = 100):
   projectedAz: number;
   buildRate: number;
   turnRate: number;
+  isAbove: boolean;
+  isBelow: boolean;
+  isLeft: boolean; 
+  isRight: boolean;
 } {
   if (surveys.length < 2) {
     return {
@@ -299,11 +303,27 @@ export function projectValues(surveys: any[], projectionDistance: number = 100):
   if (projectedAz >= 360) projectedAz -= 360;
   if (projectedAz < 0) projectedAz += 360;
   
+  // Calculate directional positioning
+  const isAbove = projectedInc > lastSurvey.inc;
+  const isBelow = projectedInc < lastSurvey.inc;
+  
+  // Calculate left/right based on azimuth change
+  let azimuthDiff = projectedAz - lastSurvey.azi;
+  if (azimuthDiff > 180) azimuthDiff -= 360;
+  if (azimuthDiff < -180) azimuthDiff += 360;
+  
+  const isLeft = azimuthDiff < 0;
+  const isRight = azimuthDiff > 0;
+
   return {
     projectedInc,
     projectedAz,
     buildRate,
-    turnRate
+    turnRate,
+    isAbove,
+    isBelow,
+    isLeft,
+    isRight
   };
 }
 

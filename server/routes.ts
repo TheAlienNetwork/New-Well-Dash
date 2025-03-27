@@ -262,6 +262,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Broadcast update to all connected clients
       broadcastCurveDataUpdate(updated);
+      
+      // Get latest survey and broadcast direction info
+      const surveys = await storage.getSurveysByWellId(updated.wellId);
+      const latestSurvey = surveys[surveys.length - 1];
+      
+      if (latestSurvey) {
+        broadcastMessage({
+          type: 'directional_update',
+          data: {
+            projectedInc: updated.projectedInc,
+            projectedAz: updated.projectedAz,
+            currentInc: latestSurvey.inc,
+            currentAz: latestSurvey.azi
+          }
+        });
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
