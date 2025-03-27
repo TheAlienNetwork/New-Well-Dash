@@ -17,6 +17,19 @@ import {
 let witsSimulationInterval: NodeJS.Timeout | null = null;
 const activeConnections = new Set<WebSocket>();
 
+// Placeholder for WITS manager - needs implementation
+const witsManager = {
+  connectWits: (host: string, port: number) => {
+    console.log(`Connecting to WITS server at ${host}:${port}`);
+    // Implement actual WITS connection logic here
+  },
+  connectWitsml: (url: string, username: string, password: string) => {
+    console.log(`Connecting to WITSML server at ${url}`);
+    // Implement actual WITSML connection logic here
+  }
+};
+
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
@@ -475,6 +488,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: error.errors });
       }
       res.status(500).json({ error: 'Failed to update drilling parameter' });
+    }
+  });
+
+  router.delete('/drilling-params/:id', async (req: Request, res: Response) => {
+    try {
+      const paramId = parseInt(req.params.id);
+      const deleted = await storage.deleteDrillingParam(paramId);
+
+      if (!deleted) {
+        return res.status(404).json({ error: 'Drilling parameter not found' });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete drilling parameter' });
+    }
+  });
+
+  // WITS Routes
+  router.post('/wits/connect', async (req: Request, res: Response) => {
+    try {
+      const { host, port } = req.body;
+      witsManager.connectWits(host, port);
+      res.json({ message: 'WITS connection initiated' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to connect to WITS server' });
+    }
+  });
+
+  router.post('/witsml/connect', async (req: Request, res: Response) => {
+    try {
+      const { url, username, password } = req.body;
+      witsManager.connectWitsml(url, username, password);
+      res.json({ message: 'WITSML connection initiated' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to connect to WITSML server' });
     }
   });
 
