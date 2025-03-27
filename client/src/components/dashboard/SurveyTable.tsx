@@ -9,7 +9,7 @@ interface SurveyTableProps {
   onEditSurvey?: (survey: Survey) => void;
 }
 
-export const SurveyTable: React.FC<SurveyTableProps> = ({ surveys, onAddSurvey, onEditSurvey }) => {
+const SurveyTable: React.FC<SurveyTableProps> = ({ surveys, onAddSurvey, onEditSurvey }) => {
   return (
     <Table>
       <TableHeader>
@@ -41,3 +41,5 @@ export const SurveyTable: React.FC<SurveyTableProps> = ({ surveys, onAddSurvey, 
     </Table>
   );
 };
+
+export default SurveyTable;
