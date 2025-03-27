@@ -9,11 +9,13 @@ import DirectionalDrilling from "@/pages/directional-drilling";
 import EmailAutomation from "@/pages/email-automation";
 import WellInfo from "@/pages/well-info";
 import WitsMappingPage from "@/pages/wits-mapping";
+import AIOptimization from "@/pages/ai-optimization";
 import AppHeader from "@/components/layout/AppHeader";
 import AppNav from "@/components/layout/AppNav";
 import { WellProvider } from "@/context/WellContext";
 import { WitsProvider } from "@/context/WitsContext";
 import { SurveyProvider } from "@/context/SurveyContext";
+import { AIPredictionProvider } from "@/context/AIPredictionContext";
 import { useEffect, useState } from "react";
 import { witsClient } from "./lib/wits-client";
 
@@ -39,6 +41,7 @@ function Router() {
         <Route path="/email-automation" component={EmailAutomation} />
         <Route path="/well-info" component={WellInfo} />
         <Route path="/wits-mapping" component={WitsMappingPage} />
+        <Route path="/ai-optimization" component={AIOptimization} />
         {/* Fallback to 404 */}
         <Route component={NotFound} />
       </Switch>
@@ -70,8 +73,10 @@ function App() {
       <WellProvider>
         <WitsProvider>
           <SurveyProvider>
-            <Router />
-            <Toaster />
+            <AIPredictionProvider>
+              <Router />
+              <Toaster />
+            </AIPredictionProvider>
           </SurveyProvider>
         </WitsProvider>
       </WellProvider>

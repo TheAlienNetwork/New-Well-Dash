@@ -6,7 +6,8 @@ import {
   Sliders, 
   Mail, 
   User, 
-  Settings 
+  Settings,
+  BrainCircuit
 } from 'lucide-react';
 
 export default function AppNav() {
@@ -63,6 +64,12 @@ export default function AppNav() {
             path="/wits-mapping" 
             icon={<Settings className="h-5 w-5 mr-2" />} 
             label="WITS MAPPING" 
+          />
+          
+          <NavItem 
+            path="/ai-optimization" 
+            icon={<BrainCircuit className="h-5 w-5 mr-2" />} 
+            label="AI OPTIMIZATION" 
           />
         </div>
       </div>
