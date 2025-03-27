@@ -5,11 +5,14 @@ import { broadcastMessage } from '../routes';
 
 export class WitsManager {
   private witsClient: WitsClient;
+  private isSimulated: boolean = false;
   private customChannelMappings: Map<number, string> = new Map();
   private witsStatus = {
     connected: false,
     address: '',
-    lastData: null as Date | null
+    lastData: null as Date | null,
+    isSimulated: false,
+    lastRawData: ''
   };
 
   constructor() {
@@ -21,6 +24,7 @@ export class WitsManager {
     this.witsClient.on('connected', ({host, port}) => {
       this.witsStatus.connected = true;
       this.witsStatus.address = `${host}:${port}`;
+      this.witsStatus.isSimulated = false;
       this.broadcastStatus();
     });
 
@@ -31,8 +35,9 @@ export class WitsManager {
 
     this.witsClient.on('witsData', async (data) => {
       this.witsStatus.lastData = new Date();
+      this.witsStatus.lastRawData = data.raw;
       
-      // Store and broadcast raw data
+      // Process and store data
       await this.processWitsData(data);
       
       // Update status
@@ -42,7 +47,7 @@ export class WitsManager {
 
   private async processWitsData(data: any) {
     try {
-      // Process gamma data
+      // Process gamma data if it's the gamma channel
       if (data.channelId === this.getChannelByName('gamma')) {
         await this.processGammaData(data);
       }
@@ -56,7 +61,7 @@ export class WitsManager {
         });
       }
 
-      // Broadcast raw data for custom channels
+      // Broadcast raw data
       broadcastMessage({
         type: 'wits_data',
         data: {
@@ -117,7 +122,8 @@ export class WitsManager {
     });
   }
 
-  connectWits(host: string, port: number) {
+  async connectWits(host: string, port: number) {
+    this.isSimulated = false;
     return this.witsClient.connect(host, port);
   }
 
@@ -126,19 +132,23 @@ export class WitsManager {
   }
 
   private getChannelByName(name: string): number {
-    // Default gamma channel
+    // Default channels
     if (name === 'gamma') return 11;
+    if (name === 'rop') return 2;
+    if (name === 'wob') return 3;
+    if (name === 'flow') return 4;
+    if (name === 'spp') return 5;
     return -1;
   }
 
   private getUnitForChannel(channelId: number): string {
     const unitMap: Record<number, string> = {
-      1: 'ft',
-      2: 'klbs',
-      3: 'ft/hr',
-      4: 'psi',
-      5: 'gpm',
-      11: 'API'
+      1: 'ft',  // Depth
+      2: 'ft/hr', // ROP 
+      3: 'klbs', // WOB
+      4: 'gpm',  // Flow
+      5: 'psi',  // SPP
+      11: 'API'  // Gamma
     };
     return unitMap[channelId] || '';
   }

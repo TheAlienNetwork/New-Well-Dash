@@ -1,22 +1,26 @@
 
+import { Socket } from 'net';
 import { EventEmitter } from 'events';
-import * as net from 'net';
 
 export class WitsClient extends EventEmitter {
-  private socket: net.Socket | null = null;
-  private buffer: string = '';
-  private reconnectTimer: NodeJS.Timeout | null = null;
-  private readonly reconnectInterval: number = 5000;
+  private socket: Socket | null = null;
   private isConnected: boolean = false;
+  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectInterval: number = 5000;
+  private buffer: string = '';
 
-  async connect(host: string, port: number): Promise<void> {
-    if (this.socket) {
-      this.socket.destroy();
-    }
+  constructor() {
+    super();
+  }
 
+  connect(host: string, port: number): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.socket = new net.Socket();
+      if (this.socket) {
+        this.socket.destroy();
+      }
 
+      this.socket = new Socket();
+      
       this.socket.on('connect', () => {
         this.isConnected = true;
         this.emit('connected', { host, port });
@@ -25,13 +29,19 @@ export class WitsClient extends EventEmitter {
 
       this.socket.on('data', (data) => {
         this.buffer += data.toString();
-        this.processBuffer();
+        
+        // Process complete WITS records
+        let endIndex;
+        while ((endIndex = this.buffer.indexOf('||')) !== -1) {
+          const record = this.buffer.substring(0, endIndex + 2);
+          this.buffer = this.buffer.substring(endIndex + 2);
+          this.processWitsRecord(record);
+        }
       });
 
       this.socket.on('error', (error) => {
-        this.isConnected = false;
+        console.error('WITS socket error:', error);
         this.emit('error', error);
-        this.setupReconnect(host, port);
         reject(error);
       });
 
@@ -45,17 +55,6 @@ export class WitsClient extends EventEmitter {
     });
   }
 
-  private processBuffer() {
-    const records = this.buffer.split('||');
-    this.buffer = records.pop() || '';
-
-    records.forEach(record => {
-      if (record.startsWith('&&')) {
-        this.processWitsRecord(record + '||');
-      }
-    });
-  }
-
   private processWitsRecord(record: string) {
     try {
       const match = record.match(/&&(\d+),(\d+),([^|]+)\|\|/);
@@ -65,7 +64,8 @@ export class WitsClient extends EventEmitter {
           recordId: parseInt(recordId),
           channelId: parseInt(channelId),
           value: parseFloat(value),
-          timestamp: new Date()
+          timestamp: new Date(),
+          raw: record
         });
       }
     } catch (error) {
