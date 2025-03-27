@@ -174,16 +174,46 @@ export class EmailService {
   openEmailClient(options: EmailOptions): void {
     try {
       const { to, subject, body, attachments } = options;
-      const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       
-      // Open email client with properly formatted HTML content
-      const newWindow = window.open(mailtoLink);
+      // Check if the body is HTML content
+      const isHtmlContent = body.trim().startsWith('<') && body.includes('</');
       
-      if (newWindow) {
-        // Alert user about copying HTML content if needed
+      // Generate a blob URL for copying HTML to clipboard
+      if (isHtmlContent) {
+        // Create a temporarily hidden textarea with the HTML content
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'fixed';
+        tempDiv.style.left = '-9999px';
+        tempDiv.innerHTML = body;
+        document.body.appendChild(tempDiv);
+        
+        // Create a selection and copy to clipboard
+        const selection = window.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+          const range = document.createRange();
+          range.selectNodeContents(tempDiv);
+          selection.addRange(range);
+          
+          // Copy the HTML content to clipboard
+          document.execCommand('copy');
+          selection.removeAllRanges();
+        }
+        
+        document.body.removeChild(tempDiv);
+        
+        // Now open email client with only the subject and recipients
+        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`;
+        window.open(mailtoLink);
+        
+        // Show a help message
         setTimeout(() => {
-          window.alert("For best results, please copy the HTML content and paste as HTML in your email client.");
+          window.alert("HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\nFor best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.");
         }, 1000);
+      } else {
+        // For plain text emails, use standard mailto
+        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.open(mailtoLink);
       }
     } catch (error) {
       console.error('Error opening email client:', error);

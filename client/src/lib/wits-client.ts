@@ -17,6 +17,7 @@ export interface WitsData {
 export interface WitsStatus {
   connected: boolean;
   address: string;
+  lastData?: Date | null;
 }
 
 export interface WitsConfig {

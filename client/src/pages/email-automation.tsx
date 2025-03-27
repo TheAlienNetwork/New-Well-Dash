@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { useWellContext } from '@/context/WellContext';
 import { emailService, type SurveyEmailData } from '@/lib/email-service';
@@ -24,6 +24,13 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from '@/hooks/use-toast';
 import { 
   Mail, 
@@ -34,7 +41,12 @@ import {
   Send, 
   PenTool,
   MailCheck,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FolderOpen,
+  FolderSync,
+  AlertCircle,
+  ClipboardCopy,
+  Copy
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -509,41 +521,105 @@ export default function EmailAutomation() {
               </div>
               
               {/* File Attachments */}
-              <div className="space-y-3 border border-neutral-border rounded-md p-3 bg-neutral-background/40">
+              <div className="space-y-3 border border-neutral-border rounded-md p-3 bg-gradient-to-b from-neutral-background/60 to-neutral-background/20">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-medium">File Attachments:</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium flex items-center">
+                      <FileSpreadsheet className="h-4 w-4 mr-2 text-blue-400" />
+                      File Attachments
+                    </h3>
+                    {emailSettings.attachmentFolder && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge className="bg-blue-900/30 text-blue-300 hover:bg-blue-800/40 px-2 py-0">
+                              <FolderSync className="h-3 w-3 mr-1" />
+                              <span className="text-xs">{emailSettings.attachmentFolder}</span>
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p className="text-xs">Files from this folder will be included</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                   <div className="flex gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        // Create a file input element
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.multiple = true;
-                        input.accept = '.pdf,.xls,.xlsx,.doc,.docx,.png,.jpg,.jpeg';
-                        input.onchange = (e) => {
-                          const files = (e.target as HTMLInputElement).files;
-                          if (files && files.length > 0) {
-                            setAttachments(prev => [...prev, ...Array.from(files)]);
-                          }
-                        };
-                        input.click();
-                      }} 
-                      className="text-xs h-8 px-2"
-                    >
-                      Select Files
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        document.getElementById('folder-input')?.click();
-                      }} 
-                      className="text-xs h-8 px-2 bg-blue-950/50 hover:bg-blue-800/30"
-                    >
-                      Select Folder
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              // Create a file input element
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.multiple = true;
+                              input.accept = '.pdf,.xls,.xlsx,.doc,.docx,.png,.jpg,.jpeg';
+                              input.onchange = (e) => {
+                                const files = (e.target as HTMLInputElement).files;
+                                if (files && files.length > 0) {
+                                  setAttachments(prev => [...prev, ...Array.from(files)]);
+                                  toast({
+                                    title: "Files Added",
+                                    description: `${files.length} file(s) added to attachments`
+                                  });
+                                }
+                              };
+                              input.click();
+                            }} 
+                            className="h-8 w-8 p-0 bg-neutral-background hover:bg-neutral-border border-neutral-border"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Select individual files</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              document.getElementById('folder-input')?.click();
+                            }} 
+                            className="h-8 w-8 p-0 bg-blue-950/50 hover:bg-blue-800/30 border-blue-800/50"
+                          >
+                            <FolderOpen className="h-4 w-4 text-blue-400" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Select an entire folder</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    {attachments.length > 0 && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setAttachments([])} 
+                              className="h-8 w-8 p-0 bg-red-950/30 hover:bg-red-900/30 border-red-900/50"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-400" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p className="text-xs">Clear all attachments</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    
                     <input 
                       id="folder-input"
                       type="file"
@@ -566,7 +642,7 @@ export default function EmailAutomation() {
                           
                           toast({
                             title: "Folder Selected",
-                            description: `All files from "${folderPath}" will be included in future emails`
+                            description: `${files.length} files from "${folderPath}" will be included`
                           });
                         }
                       }}
@@ -575,27 +651,52 @@ export default function EmailAutomation() {
                 </div>
                 
                 {/* Attachment List */}
-                {attachments.length > 0 && (
-                  <div className="mt-3 max-h-32 overflow-y-auto">
+                {attachments.length > 0 ? (
+                  <div className="mt-3 max-h-32 overflow-y-auto custom-scrollbar pr-1">
                     <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between bg-navy-800/50 text-xs p-2 rounded">
-                          <div className="flex items-center">
-                            <FileSpreadsheet className="h-3 w-3 mr-2 text-cyan-400" />
-                            <span className="truncate max-w-[200px]">{file.name}</span>
+                      {attachments.map((file, index) => {
+                        // Determine file type icon based on extension
+                        const ext = file.name.split('.').pop()?.toLowerCase();
+                        let fileIcon = <FileSpreadsheet className="h-3 w-3 mr-2 text-cyan-400" />;
+                        
+                        if (ext === 'pdf') {
+                          fileIcon = <FileSpreadsheet className="h-3 w-3 mr-2 text-red-400" />;
+                        } else if (['xls', 'xlsx'].includes(ext || '')) {
+                          fileIcon = <FileSpreadsheet className="h-3 w-3 mr-2 text-green-400" />;
+                        } else if (['doc', 'docx'].includes(ext || '')) {
+                          fileIcon = <FileSpreadsheet className="h-3 w-3 mr-2 text-blue-400" />;
+                        } else if (['jpg', 'jpeg', 'png'].includes(ext || '')) {
+                          fileIcon = <FileSpreadsheet className="h-3 w-3 mr-2 text-purple-400" />;
+                        }
+                        
+                        return (
+                          <div key={index} className="flex items-center justify-between bg-navy-800/50 text-xs p-2 rounded group hover:bg-navy-700/70 transition-colors">
+                            <div className="flex items-center">
+                              {fileIcon}
+                              <span className="truncate max-w-[200px]">{file.name}</span>
+                              <span className="text-gray-500 ml-1">({(file.size / 1024).toFixed(0)} KB)</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setAttachments(prev => prev.filter((_, i) => i !== index));
+                              }}
+                              className="h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-900/30 transition-opacity"
+                            >
+                              <Trash2 className="h-3 w-3 text-red-400" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setAttachments(prev => prev.filter((_, i) => i !== index));
-                            }}
-                            className="h-5 w-5 p-0 rounded-full hover:bg-red-900/30"
-                          >
-                            <Trash2 className="h-3 w-3 text-red-400" />
-                          </Button>
-                        </div>
-                      ))}
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-3 text-gray-500 text-xs">
+                    <AlertCircle className="h-3 w-3 mr-2" />
+                    No attachments selected. Click the buttons above to add files.
+                  </div>
+                )}
                     </div>
                   </div>
                 )}

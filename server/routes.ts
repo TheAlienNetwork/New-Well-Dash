@@ -17,17 +17,8 @@ import {
 let witsSimulationInterval: NodeJS.Timeout | null = null;
 const activeConnections = new Set<WebSocket>();
 
-// Placeholder for WITS manager - needs implementation
-const witsManager = {
-  connectWits: (host: string, port: number) => {
-    console.log(`Connecting to WITS server at ${host}:${port}`);
-    // Implement actual WITS connection logic here
-  },
-  connectWitsml: (url: string, username: string, password: string) => {
-    console.log(`Connecting to WITSML server at ${url}`);
-    // Implement actual WITSML connection logic here
-  }
-};
+// Import the WITS manager
+import { witsManager } from './wits/wits-manager';
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -50,13 +41,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const data = JSON.parse(message.toString());
 
         if (data.type === 'wits_config') {
-          // Handle WITS configuration
-          // This would be used to configure the WITS server connection in a real app
-          ws.send(JSON.stringify({
-            type: 'wits_config_response',
-            status: 'success',
-            message: 'WITS configuration received'
-          }));
+          console.log('WITS configuration received:', data);
+          
+          // Extract configuration from the message
+          const config = data.data?.config;
+          if (config) {
+            try {
+              const { host, port } = config;
+              // Connect to WITS server
+              await witsManager.connectWits(host, port);
+              
+              // Send success response
+              ws.send(JSON.stringify({
+                type: 'wits_config_response',
+                status: 'success',
+                message: `Connected to WITS server at ${host}:${port}`
+              }));
+            } catch (err) {
+              console.error('Failed to connect to WITS server:', err);
+              ws.send(JSON.stringify({
+                type: 'wits_config_response',
+                status: 'error',
+                message: 'Failed to connect to WITS server'
+              }));
+            }
+          }
+        }
+        
+        if (data.type === 'wits_simulation_toggle') {
+          const isSimulated = data.data?.isSimulated;
+          if (isSimulated === true) {
+            if (!witsSimulationInterval) {
+              startWitsSimulation();
+            }
+            ws.send(JSON.stringify({
+              type: 'wits_simulation_toggle_response',
+              status: 'success',
+              message: 'WITS simulation started'
+            }));
+          } else if (isSimulated === false) {
+            if (witsSimulationInterval) {
+              clearInterval(witsSimulationInterval);
+              witsSimulationInterval = null;
+            }
+            ws.send(JSON.stringify({
+              type: 'wits_simulation_toggle_response',
+              status: 'success',
+              message: 'WITS simulation stopped'
+            }));
+          }
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
@@ -155,7 +188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   router.post('/surveys', async (req: Request, res: Response) => {
     try {
-      const validatedData = insertSurveySchema.omit({ 
+      // Modify schema to properly define omitted fields without type conflicts
+      const modifiedSchema = insertSurveySchema.omit({ 
         id: true, 
         index: true,
         tvd: true,
@@ -166,7 +200,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         vs: true,
         dls: true,
         createdAt: true 
-      }).parse(req.body);
+      });
+      
+      // Parse with the modified schema
+      const validatedData = modifiedSchema.parse(req.body);
       const survey = await storage.createSurvey(validatedData);
       res.status(201).json(survey);
 
@@ -531,10 +568,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   router.post('/witsml/connect', async (req: Request, res: Response) => {
     try {
       const { url, username, password } = req.body;
-      witsManager.connectWitsml(url, username, password);
-      res.json({ message: 'WITSML connection initiated' });
+      // Currently the manager doesn't support WITSML connections directly
+      // Send an informative response to the client
+      res.json({ 
+        message: 'WITSML connection not implemented in current version',
+        info: 'Please use WITS connection instead'
+      });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to connect to WITSML server' });
+      res.status(500).json({ error: 'Failed to process WITSML connection request' });
     }
   });
 
@@ -654,5 +695,195 @@ function broadcastDrillingParamUpdate(param: any) {
 
 // Simulate WITS data for demo purposes
 function startWitsSimulation() {
-  //Removed simulated data
+  if (witsSimulationInterval) {
+    clearInterval(witsSimulationInterval);
+  }
+  
+  console.log('Starting WITS simulation');
+  
+  interface ChannelConfig {
+    name: string;
+    min: number;
+    max: number;
+    unit: string;
+    increment: number;
+  }
+  
+  const channelMap: Record<string, ChannelConfig> = {
+    '1': { name: 'Bit Depth', min: 8500, max: 12000, unit: 'ft', increment: 0.1 },
+    '2': { name: 'Weight on Bit', min: 10, max: 35, unit: 'klbs', increment: 0.5 },
+    '3': { name: 'Rate of Penetration', min: 15, max: 75, unit: 'ft/hr', increment: 5 },
+    '4': { name: 'Standpipe Pressure', min: 1800, max: 3200, unit: 'psi', increment: 50 },
+    '5': { name: 'Flow Rate', min: 400, max: 650, unit: 'gpm', increment: 10 },
+    '6': { name: 'Rotary Speed', min: 40, max: 120, unit: 'rpm', increment: 5 },
+    '7': { name: 'Torque', min: 5, max: 15, unit: 'kft-lbs', increment: 0.5 },
+    '8': { name: 'Hook Load', min: 250, max: 350, unit: 'klbs', increment: 5 },
+    '9': { name: 'Temperature', min: 120, max: 180, unit: '°F', increment: 2 },
+    '10': { name: 'MWD Inclination', min: 0, max: 90, unit: '°', increment: 0.5 },
+    '11': { name: 'Gamma', min: 20, max: 150, unit: 'API', increment: 5 },
+    '12': { name: 'MWD Azimuth', min: 0, max: 359, unit: '°', increment: 2 }
+  };
+  
+  // Store the current simulated values
+  const currentValues: Record<number, number> = {};
+  
+  // Initialize with random values within range
+  Object.keys(channelMap).forEach(key => {
+    const channel = parseInt(key);
+    const config = channelMap[key];
+    currentValues[channel] = config.min + Math.random() * (config.max - config.min);
+  });
+  
+  // Send initial values
+  Object.keys(currentValues).forEach(key => {
+    const channelStr = key.toString();
+    const channel = parseInt(channelStr);
+    const channelConfig = channelMap[channel.toString()];
+    broadcastMessage({
+      type: 'wits_data',
+      data: {
+        recordId: 1,
+        channelId: channel,
+        value: currentValues[channel],
+        timestamp: new Date(),
+        mappedName: channelConfig.name,
+        unit: channelConfig.unit
+      }
+    });
+  });
+  
+  // Broadcast a fake status message
+  broadcastMessage({
+    type: 'wits_status',
+    data: {
+      connected: true,
+      address: 'simulated-server:8080',
+      lastData: new Date()
+    }
+  });
+  
+  // Update the values and broadcast at a regular interval
+  witsSimulationInterval = setInterval(() => {
+    // Generate random channels to update (not all at once)
+    const channelsToUpdate = Math.floor(Math.random() * 4) + 1; // 1-4 channels
+    const channelsArr = Object.keys(channelMap).map(k => parseInt(k));
+    
+    // Shuffle and take a subset
+    const shuffled = channelsArr.sort(() => 0.5 - Math.random());
+    const selectedChannels = shuffled.slice(0, channelsToUpdate);
+    
+    // Update each selected channel
+    selectedChannels.forEach(channel => {
+      const channelStr = channel.toString();
+      const config = channelMap[channelStr];
+      
+      if (!config) {
+        console.error(`Invalid channel config for channel ${channel}`);
+        return; // Skip this channel
+      }
+      
+      // Add some randomness to the change direction with bias toward the middle of the range
+      const mean = (config.max + config.min) / 2;
+      const deviation = (config.max - config.min) / 4;
+      const target = mean + ((Math.random() * 2 - 1) * deviation);
+      
+      // Move current value toward the target
+      const currentValue = currentValues[channel];
+      let newValue;
+      
+      if (Math.abs(target - currentValue) < config.increment) {
+        newValue = target;
+      } else if (target > currentValue) {
+        newValue = currentValue + config.increment;
+      } else {
+        newValue = currentValue - config.increment;
+      }
+      
+      // Ensure within range
+      newValue = Math.max(config.min, Math.min(config.max, newValue));
+      
+      // Update the stored value
+      currentValues[channel] = newValue;
+      
+      // Send the update
+      broadcastMessage({
+        type: 'wits_data',
+        data: {
+          recordId: Math.floor(Math.random() * 1000) + 1,
+          channelId: channel,
+          value: newValue,
+          timestamp: new Date(),
+          mappedName: config.name,
+          unit: config.unit
+        }
+      });
+      
+      // Special processing for key channels
+      if (channel === 11) { // Gamma
+        const gammaData = {
+          wellId: 1,
+          depth: currentValues[1]?.toString() || '0', // Use bit depth if available
+          value: newValue.toString(),
+          timestamp: new Date()
+        };
+        storage.createGammaData(gammaData)
+          .then(stored => {
+            broadcastGammaDataUpdate(stored);
+          })
+          .catch(console.error);
+      }
+      
+      // Create a drilling parameter for each channel
+      const param = {
+        name: config.name,
+        value: newValue.toString(),
+        unit: config.unit,
+        timestamp: new Date(),
+        wellId: 1
+      };
+      
+      storage.createDrillingParam(param)
+        .then(stored => {
+          broadcastDrillingParamUpdate(stored);
+        })
+        .catch(console.error);
+    });
+    
+    // Periodic survey generation (roughly every 5 minutes in real time, but every 30 seconds in simulation)
+    if (Math.random() < 0.01) { // ~1% chance each interval
+      const incValue = currentValues[10] || 45; // Use MWD inclination if available
+      const aziValue = currentValues[12] || 180; // Use MWD azimuth if available
+      const mdValue = currentValues[1] || 10000; // Use bit depth if available
+      
+      const surveyData = {
+        wellId: 1,
+        md: mdValue.toFixed(2),
+        inc: incValue.toFixed(2),
+        azi: aziValue.toFixed(2),
+        bitDepth: mdValue.toFixed(2),
+        timestamp: new Date()
+      };
+      
+      storage.createSurvey(surveyData)
+        .then(survey => {
+          broadcastSurveyUpdate('created', survey);
+          // Show survey modal to all connected clients
+          broadcastMessage({
+            type: 'show_survey_modal',
+            data: survey
+          });
+        })
+        .catch(console.error);
+    }
+    
+    // Update status timestamp
+    broadcastMessage({
+      type: 'wits_status',
+      data: {
+        connected: true,
+        address: 'simulated-server:8080',
+        lastData: new Date()
+      }
+    });
+  }, 2000); // Update every 2 seconds
 }
