@@ -4,7 +4,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, ReferenceLine, Legend
 } from 'recharts';
-import { Activity, BarChart3, Download, Zap } from 'lucide-react';
+import { Activity, BarChart3, Download, Zap, Mail } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -15,17 +17,44 @@ interface GammaPoint {
 }
 
 export default function GammaPlot() {
-  const { gammaData } = useSurveyContext();
+  const { gammaData, curveData, updateCurveData } = useSurveyContext();
   const [currentGamma, setCurrentGamma] = useState<number | null>(null);
   const [avgGamma, setAvgGamma] = useState<number | null>(null);
   const [depthRange, setDepthRange] = useState<string>('');
   const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [includeInEmail, setIncludeInEmail] = useState<boolean>(curveData?.includeGammaPlot || false);
+  
+  useEffect(() => {
+    if (curveData) {
+      setIncludeInEmail(curveData.includeGammaPlot || false);
+    }
+  }, [curveData]);
+  
+  const handleToggleEmail = (checked: boolean) => {
+    setIncludeInEmail(checked);
+    
+    if (updateCurveData && curveData) {
+      updateCurveData({
+        id: curveData.id,
+        wellId: curveData.wellId,
+        motorYield: curveData.motorYield,
+        dogLegNeeded: curveData.dogLegNeeded,
+        projectedInc: curveData.projectedInc,
+        projectedAz: curveData.projectedAz,
+        slideSeen: curveData.slideSeen,
+        slideAhead: curveData.slideAhead,
+        includeInEmail: curveData.includeInEmail,
+        includeTargetPosition: curveData.includeTargetPosition,
+        includeGammaPlot: checked
+      });
+    }
+  };
 
   const handleExportPDF = () => {
     const doc = new jsPDF();
     const tableData = gammaData
-      .sort((a, b) => a.depth - b.depth)
-      .map(point => [point.depth.toFixed(2), point.value.toFixed(2)]);
+      .sort((a, b) => Number(a.depth) - Number(b.depth))
+      .map(point => [String(Number(point.depth).toFixed(2)), String(Number(point.value).toFixed(2))]);
     
     doc.setFontSize(16);
     doc.text('Gamma Data Report', 14, 15);
@@ -57,7 +86,7 @@ export default function GammaPlot() {
       const depths = gammaData.map(point => Number(point.depth));
       const minDepth = Math.min(...depths);
       const maxDepth = Math.max(...depths);
-      setDepthRange(`${minDepth.toFixed(0)}-${maxDepth.toFixed(0)}`);
+      setDepthRange(`${Math.floor(minDepth)}-${Math.ceil(maxDepth)}`);
       
       // Set last update time
       setLastUpdate(new Date().toLocaleTimeString());
@@ -212,8 +241,21 @@ export default function GammaPlot() {
           <Zap className="h-4 w-4 text-cyan-400 mr-1" />
           <span className="text-xs text-navy-200 font-mono">REAL-TIME GAMMA ANALYSIS</span>
         </div>
-        <div className="text-xs text-cyan-400/70 font-mono">
-          SAMPLES: {chartData.length}
+        <div className="flex items-center space-x-4">
+          {/* Email toggle */}
+          <div className="flex items-center space-x-2">
+            <Mail className="h-4 w-4 text-cyan-400" />
+            <Label htmlFor="include-gamma-email" className="text-xs text-cyan-200">Email</Label>
+            <Switch
+              id="include-gamma-email"
+              checked={includeInEmail}
+              onCheckedChange={handleToggleEmail}
+              className="data-[state=checked]:bg-cyan-500"
+            />
+          </div>
+          <div className="text-xs text-cyan-400/70 font-mono">
+            SAMPLES: {chartData.length}
+          </div>
         </div>
       </div>
     </div>

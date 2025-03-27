@@ -86,6 +86,8 @@ export const curveData = pgTable("curve_data", {
   slideSeen: numeric("slide_seen").notNull(),
   slideAhead: numeric("slide_ahead").notNull(),
   includeInEmail: boolean("include_in_email").default(true).notNull(),
+  includeTargetPosition: boolean("include_target_position").default(true).notNull(),
+  includeGammaPlot: boolean("include_gamma_plot").default(true).notNull(),
   wellId: integer("well_id").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { ArrowUpDown, ArrowLeftRight } from 'lucide-react';
+import { ArrowUpDown, ArrowLeftRight, Mail } from 'lucide-react';
+import { useSurveyContext } from '@/context/SurveyContext';
 
 interface TargetPositionProps {
   projections: {
@@ -16,6 +17,31 @@ interface TargetPositionProps {
 }
 
 export default function TargetPosition({ projections, verticalPosition, horizontalPosition }: TargetPositionProps) {
+  const { curveData, updateCurveData } = useSurveyContext();
+  const [includeInEmail, setIncludeInEmail] = useState(curveData?.includeTargetPosition || false);
+  
+  useEffect(() => {
+    setIncludeInEmail(curveData?.includeTargetPosition || false);
+  }, [curveData]);
+  
+  const handleSwitchChange = (checked: boolean) => {
+    setIncludeInEmail(checked);
+    
+    if (updateCurveData && curveData) {
+      updateCurveData({
+        id: curveData.id,
+        wellId: curveData.wellId,
+        motorYield: curveData.motorYield,
+        dogLegNeeded: curveData.dogLegNeeded,
+        projectedInc: curveData.projectedInc,
+        projectedAz: curveData.projectedAz,
+        slideSeen: curveData.slideSeen,
+        slideAhead: curveData.slideAhead,
+        includeInEmail: curveData.includeInEmail,
+        includeTargetPosition: checked
+      });
+    }
+  };
   return (
     <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
       <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
@@ -23,6 +49,16 @@ export default function TargetPosition({ projections, verticalPosition, horizont
           <ArrowUpDown className="h-5 w-5 mr-2 text-cyan-400" />
           TARGET POSITION
         </h2>
+        <div className="flex items-center space-x-2">
+          <Mail className="h-4 w-4 text-cyan-400" />
+          <Label htmlFor="include-target-email" className="text-xs text-cyan-200">Email</Label>
+          <Switch
+            id="include-target-email"
+            checked={includeInEmail}
+            onCheckedChange={handleSwitchChange}
+            className="data-[state=checked]:bg-cyan-500"
+          />
+        </div>
       </div>
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

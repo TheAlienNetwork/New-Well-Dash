@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useSurveyContext } from '@/context/SurveyContext';
-import { Settings2 } from 'lucide-react';
+import { Settings2, Mail } from 'lucide-react';
 
 export default function CurveData() {
   const { curveData, updateCurveData } = useSurveyContext();
@@ -13,7 +14,8 @@ export default function CurveData() {
     projectedInc: curveData?.projectedInc || 0,
     projectedAz: curveData?.projectedAz || 0,
     slideSeen: curveData?.slideSeen || 0,
-    slideAhead: curveData?.slideAhead || 0
+    slideAhead: curveData?.slideAhead || 0,
+    includeInEmail: curveData?.includeInEmail || false
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,12 +26,40 @@ export default function CurveData() {
     }));
   };
 
+  const handleSwitchChange = (checked: boolean) => {
+    const newFormData = {
+      ...formData,
+      includeInEmail: checked
+    };
+    setFormData(newFormData);
+    
+    if (updateCurveData) {
+      updateCurveData({
+        id: curveData?.id || 1,
+        wellId: curveData?.wellId || 1,
+        motorYield: String(newFormData.motorYield),
+        dogLegNeeded: String(newFormData.dogLegNeeded),
+        projectedInc: String(newFormData.projectedInc),
+        projectedAz: String(newFormData.projectedAz),
+        slideSeen: String(newFormData.slideSeen),
+        slideAhead: String(newFormData.slideAhead),
+        includeInEmail: newFormData.includeInEmail
+      });
+    }
+  };
+
   const handleBlur = () => {
     if (updateCurveData) {
       updateCurveData({
         id: curveData?.id || 1,
         wellId: curveData?.wellId || 1,
-        ...formData
+        motorYield: String(formData.motorYield),
+        dogLegNeeded: String(formData.dogLegNeeded),
+        projectedInc: String(formData.projectedInc),
+        projectedAz: String(formData.projectedAz),
+        slideSeen: String(formData.slideSeen),
+        slideAhead: String(formData.slideAhead),
+        includeInEmail: formData.includeInEmail
       });
     }
   };
@@ -120,6 +150,18 @@ export default function CurveData() {
                 className="bg-neutral-background border-neutral-border"
               />
             </div>
+          </div>
+          
+          {/* Include in Email Toggle */}
+          <div className="flex items-center space-x-2 mt-4 bg-neutral-background p-3 rounded-md border border-primary/20">
+            <Mail className="h-4 w-4 text-primary" />
+            <Label htmlFor="include-in-email" className="flex-1">Include curve data in emails</Label>
+            <Switch
+              id="include-in-email"
+              checked={formData.includeInEmail}
+              onCheckedChange={handleSwitchChange}
+              className="data-[state=checked]:bg-primary"
+            />
           </div>
         </form>
       </CardContent>

@@ -24,73 +24,121 @@ interface SurveyEmailData {
     projectedAz: number;
     slideSeen: number;
     slideAhead: number;
+    includeInEmail: boolean;
+    includeTargetPosition: boolean;
+    includeGammaPlot: boolean;
+  };
+  targetPosition?: {
+    verticalPosition: number;
+    horizontalPosition: number;
+    isAbove?: boolean;
+    isBelow?: boolean;
+    isLeft?: boolean;
+    isRight?: boolean;
   };
 }
 
 export class EmailService {
   generateHtmlBody(data: SurveyEmailData): string {
-    const { survey, wellName, rigName, gammaImageUrl, aiAnalysis, curveData } = data;
+    const { survey, wellName, rigName, gammaImageUrl, aiAnalysis, curveData, targetPosition } = data;
     const northSouthDir = survey.isNorth ? 'N' : 'S';
     const eastWestDir = survey.isEast ? 'E' : 'W';
 
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #2563eb; margin-bottom: 20px;">Survey Data Report</h2>
+    // Check if certain sections should be included
+    const includeCurveData = curveData && curveData.includeInEmail;
+    const includeTargetPosition = curveData?.includeTargetPosition && targetPosition;
+    const includeGammaPlot = curveData?.includeGammaPlot && gammaImageUrl;
 
-        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-          <h3 style="color: #1e40af; margin-top: 0;">Well Information</h3>
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #0f172a; color: #e2e8f0; border-radius: 10px;">
+        <h2 style="color: #06b6d4; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 10px; font-family: monospace;">NEW WELL TECHNOLOGIES</h2>
+        <h3 style="color: #a5f3fc; margin-bottom: 20px;">Survey Data Report</h3>
+
+        <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #0e7490;">
+          <h3 style="color: #22d3ee; margin-top: 0; font-family: monospace;">WELL INFORMATION</h3>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-            <div><strong>Well Name:</strong> ${wellName}</div>
-            <div><strong>Rig Name:</strong> ${rigName}</div>
+            <div><strong style="color: #a5f3fc;">Well Name:</strong> ${wellName}</div>
+            <div><strong style="color: #a5f3fc;">Rig Name:</strong> ${rigName}</div>
           </div>
         </div>
 
-        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-          <h3 style="color: #1e40af; margin-top: 0;">Survey Details</h3>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-            <div><strong>Survey Index:</strong> ${survey.index}</div>
-            <div><strong>MD:</strong> ${survey.md.toFixed(2)}ft</div>
-            <div><strong>Inc:</strong> ${survey.inc.toFixed(2)}°</div>
-            <div><strong>Azi:</strong> ${survey.azi.toFixed(2)}°</div>
-            <div><strong>TVD:</strong> ${survey.tvd.toFixed(2)}ft</div>
-            <div><strong>VS:</strong> ${survey.vs.toFixed(2)}ft</div>
-            <div><strong>N/S:</strong> ${survey.northSouth.toFixed(2)}ft ${northSouthDir}</div>
-            <div><strong>E/W:</strong> ${survey.eastWest.toFixed(2)}ft ${eastWestDir}</div>
-            <div><strong>DLS:</strong> ${survey.dls.toFixed(2)}°/100ft</div>
-            <div><strong>Build Rate:</strong> ${(survey.dls * Math.cos(survey.toolFace * Math.PI / 180)).toFixed(2)}°/100ft</div>
-            <div><strong>Turn Rate:</strong> ${(survey.dls * Math.sin(survey.toolFace * Math.PI / 180)).toFixed(2)}°/100ft</div>
-            <div><strong>Tool Face:</strong> ${survey.toolFace.toFixed(2)}°</div>
+        <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #0e7490;">
+          <h3 style="color: #22d3ee; margin-top: 0; font-family: monospace;">SURVEY DETAILS</h3>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-family: monospace;">
+            <div><strong style="color: #a5f3fc;">Survey Index:</strong> <span style="color: #f0f9ff;">${survey.index}</span></div>
+            <div><strong style="color: #a5f3fc;">MD:</strong> <span style="color: #f0f9ff;">${Number(survey.md).toFixed(2)} ft</span></div>
+            <div><strong style="color: #a5f3fc;">Inc:</strong> <span style="color: #f0f9ff;">${Number(survey.inc).toFixed(2)}°</span></div>
+            <div><strong style="color: #a5f3fc;">Azi:</strong> <span style="color: #f0f9ff;">${Number(survey.azi).toFixed(2)}°</span></div>
+            <div><strong style="color: #a5f3fc;">TVD:</strong> <span style="color: #f0f9ff;">${Number(survey.tvd).toFixed(2)} ft</span></div>
+            <div><strong style="color: #a5f3fc;">VS:</strong> <span style="color: #f0f9ff;">${Number(survey.vs).toFixed(2)} ft</span></div>
+            <div><strong style="color: #a5f3fc;">N/S:</strong> <span style="color: #f0f9ff;">${Number(survey.northSouth).toFixed(2)} ft ${northSouthDir}</span></div>
+            <div><strong style="color: #a5f3fc;">E/W:</strong> <span style="color: #f0f9ff;">${Number(survey.eastWest).toFixed(2)} ft ${eastWestDir}</span></div>
+            <div><strong style="color: #a5f3fc;">DLS:</strong> <span style="color: #f0f9ff;">${Number(survey.dls).toFixed(2)}°/100ft</span></div>
+            <div><strong style="color: #a5f3fc;">Build Rate:</strong> <span style="color: #f0f9ff;">${(Number(survey.dls) * Math.cos(Number(survey.toolFace || 0) * Math.PI / 180)).toFixed(2)}°/100ft</span></div>
+            <div><strong style="color: #a5f3fc;">Turn Rate:</strong> <span style="color: #f0f9ff;">${(Number(survey.dls) * Math.sin(Number(survey.toolFace || 0) * Math.PI / 180)).toFixed(2)}°/100ft</span></div>
+            <div><strong style="color: #a5f3fc;">Tool Face:</strong> <span style="color: #f0f9ff;">${Number(survey.toolFace || 0).toFixed(2)}°</span></div>
           </div>
         </div>
 
         ${aiAnalysis ? `
-        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-          <h3 style="color: #1e40af; margin-top: 0;">AI Analysis</h3>
-          <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
-            <div><strong>Status:</strong> ${aiAnalysis.status}</div>
-            <div><strong>Dogleg Severity:</strong> ${aiAnalysis.doglegs}</div>
-            <div><strong>Survey Trend:</strong> ${aiAnalysis.trend}</div>
-            <div><strong>Recommendation:</strong> ${aiAnalysis.recommendation}</div>
+        <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #0e7490;">
+          <h3 style="color: #22d3ee; margin-top: 0; font-family: monospace;">AI ANALYSIS</h3>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px; font-family: monospace;">
+            <div><strong style="color: #a5f3fc;">Status:</strong> <span style="color: #f0f9ff;">${aiAnalysis.status}</span></div>
+            <div><strong style="color: #a5f3fc;">Dogleg Severity:</strong> <span style="color: #f0f9ff;">${aiAnalysis.doglegs}</span></div>
+            <div><strong style="color: #a5f3fc;">Survey Trend:</strong> <span style="color: #f0f9ff;">${aiAnalysis.trend}</span></div>
+            <div><strong style="color: #a5f3fc;">Recommendation:</strong> <span style="color: #f0f9ff;">${aiAnalysis.recommendation}</span></div>
           </div>
         </div>
         ` : ''}
 
-        ${curveData ? `
-        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-          <h3 style="color: #1e40af; margin-top: 0;">Curve Data</h3>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-            <div><strong>Motor Yield:</strong> ${curveData.motorYield.toFixed(2)}°/100ft</div>
-            <div><strong>Dog Leg Needed:</strong> ${curveData.dogLegNeeded.toFixed(2)}°/100ft</div>
-            <div><strong>Projected Inc:</strong> ${curveData.projectedInc.toFixed(2)}°</div>
-            <div><strong>Projected Az:</strong> ${curveData.projectedAz.toFixed(2)}°</div>
-            <div><strong>Slide Seen:</strong> ${curveData.slideSeen.toFixed(2)} ft</div>
-            <div><strong>Slide Ahead:</strong> ${curveData.slideAhead.toFixed(2)} ft</div>
+        ${includeCurveData ? `
+        <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #0e7490;">
+          <h3 style="color: #22d3ee; margin-top: 0; font-family: monospace;">CURVE DATA</h3>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-family: monospace;">
+            <div><strong style="color: #a5f3fc;">Motor Yield:</strong> <span style="color: #f0f9ff;">${Number(curveData.motorYield).toFixed(2)}°/100ft</span></div>
+            <div><strong style="color: #a5f3fc;">Dog Leg Needed:</strong> <span style="color: #f0f9ff;">${Number(curveData.dogLegNeeded).toFixed(2)}°/100ft</span></div>
+            <div><strong style="color: #a5f3fc;">Projected Inc:</strong> <span style="color: #f0f9ff;">${Number(curveData.projectedInc).toFixed(2)}°</span></div>
+            <div><strong style="color: #a5f3fc;">Projected Az:</strong> <span style="color: #f0f9ff;">${Number(curveData.projectedAz).toFixed(2)}°</span></div>
+            <div><strong style="color: #a5f3fc;">Slide Seen:</strong> <span style="color: #f0f9ff;">${Number(curveData.slideSeen).toFixed(2)} ft</span></div>
+            <div><strong style="color: #a5f3fc;">Slide Ahead:</strong> <span style="color: #f0f9ff;">${Number(curveData.slideAhead).toFixed(2)} ft</span></div>
           </div>
         </div>
         ` : ''}
 
-        <div style="color: #64748b; font-size: 12px; margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
-          Generated by AI-MWD Dashboard on ${new Date().toLocaleString()}
+        ${includeTargetPosition ? `
+        <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #0e7490;">
+          <h3 style="color: #22d3ee; margin-top: 0; font-family: monospace;">TARGET POSITION</h3>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-family: monospace;">
+            <div>
+              <strong style="color: #a5f3fc;">Vertical Position:</strong> 
+              <span style="color: #f0f9ff;">${Number(targetPosition.verticalPosition).toFixed(2)}°</span>
+              ${targetPosition.isAbove ? '<span style="color: #10b981;"> ABOVE TARGET</span>' : 
+               targetPosition.isBelow ? '<span style="color: #ef4444;"> BELOW TARGET</span>' : 
+               '<span style="color: #06b6d4;"> ON TARGET</span>'}
+            </div>
+            <div>
+              <strong style="color: #a5f3fc;">Horizontal Position:</strong> 
+              <span style="color: #f0f9ff;">${Number(targetPosition.horizontalPosition).toFixed(2)}°</span>
+              ${targetPosition.isLeft ? '<span style="color: #3b82f6;"> LEFT OF TARGET</span>' : 
+               targetPosition.isRight ? '<span style="color: #f59e0b;"> RIGHT OF TARGET</span>' : 
+               '<span style="color: #06b6d4;"> ON TARGET</span>'}
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        ${includeGammaPlot && gammaImageUrl ? `
+        <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #0e7490;">
+          <h3 style="color: #22d3ee; margin-top: 0; font-family: monospace;">GAMMA PLOT</h3>
+          <div style="text-align: center; margin-top: 10px;">
+            <img src="${gammaImageUrl}" alt="Gamma Plot" style="max-width: 100%; border-radius: 4px; border: 1px solid #0e7490;" />
+          </div>
+        </div>
+        ` : ''}
+
+        <div style="color: #64748b; font-size: 12px; margin-top: 30px; padding-top: 10px; border-top: 1px solid #1e293b; font-family: monospace;">
+          Generated by New Well Technologies AI-MWD Dashboard on ${new Date().toLocaleString()}
         </div>
       </div>
     `;
@@ -108,7 +156,7 @@ export class EmailService {
   }
 
   sendSurveyEmail(emailAddresses: string, data: SurveyEmailData): void {
-    const subject = `MWD Survey #${data.survey.index} - ${data.wellName} - MD ${data.survey.md.toFixed(2)}ft`;
+    const subject = `MWD Survey #${data.survey.index} - ${data.wellName} - MD ${Number(data.survey.md).toFixed(2)}ft`;
     const body = this.generateHtmlBody(data);
 
     this.openEmailClient({
