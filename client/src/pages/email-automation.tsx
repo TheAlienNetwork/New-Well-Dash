@@ -46,7 +46,7 @@ import {
 import { EmailDistribution, Survey } from '@shared/schema';
 
 export default function EmailAutomation() {
-  const { surveys, latestSurvey, curveData, gammaData, aiAnalysis } = useSurveyContext();
+  const { surveys, latestSurvey, curveData, gammaData, aiAnalysis, projections } = useSurveyContext();
   const { wellInfo } = useWellContext();
   const { toast } = useToast();
   
