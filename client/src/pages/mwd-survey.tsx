@@ -116,6 +116,7 @@ export default function MwdSurvey() {
               }]}
               layout={{
                 height: 300,
+                width: 750, // Increased width to prevent content cutoff
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
                 plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
@@ -157,6 +158,7 @@ export default function MwdSurvey() {
               }]}
               layout={{
                 height: 300,
+                width: 750, // Increased width to prevent content cutoff
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
                 plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
@@ -198,6 +200,7 @@ export default function MwdSurvey() {
               }]}
               layout={{
                 height: 300,
+                width: 750, // Increased width to prevent content cutoff
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
                 plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
@@ -239,6 +242,7 @@ export default function MwdSurvey() {
               }]}
               layout={{
                 height: 300,
+                width: 750, // Increased width to prevent content cutoff
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
                 plot_bgcolor: 'rgba(3, 22, 56, 0.3)',

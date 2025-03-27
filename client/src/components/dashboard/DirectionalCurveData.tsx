@@ -10,17 +10,17 @@ export default function DirectionalCurveData() {
   const { curveData, updateCurveData } = useSurveyContext();
 
   const [formData, setFormData] = useState({
-    motorYield: '',
-    dogLegNeeded: '',
-    projectedInc: '',
-    projectedAz: '',
-    slideSeen: '',
-    slideAhead: '',
+    motorYield: '' as string | number,
+    dogLegNeeded: '' as string | number,
+    projectedInc: '' as string | number,
+    projectedAz: '' as string | number,
+    slideSeen: '' as string | number,
+    slideAhead: '' as string | number,
     includeInEmail: true,
-    aboveTarget: '',
-    belowTarget: '',
-    leftTarget: '',
-    rightTarget: '',
+    aboveTarget: '' as string | number,
+    belowTarget: '' as string | number,
+    leftTarget: '' as string | number,
+    rightTarget: '' as string | number,
     isAbove: true,
     isRight: true
   });
@@ -99,8 +99,8 @@ export default function DirectionalCurveData() {
                       setFormData(prev => ({
                         ...prev,
                         isAbove: checked,
-                        aboveTarget: checked ? Math.abs(prev.belowTarget || 0) : 0,
-                        belowTarget: !checked ? Math.abs(prev.aboveTarget || 0) : 0
+                        aboveTarget: checked ? Math.abs(Number(prev.belowTarget) || 0) : 0,
+                        belowTarget: !checked ? Math.abs(Number(prev.aboveTarget) || 0) : 0
                       }));
                     }}
                   />
@@ -114,9 +114,12 @@ export default function DirectionalCurveData() {
                   type="number"
                   step="0.01"
                   name={formData.isAbove ? "aboveTarget" : "belowTarget"}
-                  value={formData.isAbove ? formData.aboveTarget : formData.belowTarget}
+                  value={formData.isAbove ? 
+                    (Number(formData.aboveTarget) === 0 ? '' : formData.aboveTarget) : 
+                    (Number(formData.belowTarget) === 0 ? '' : formData.belowTarget)}
                   onChange={handleInputChange}
                   className="font-mono text-cyan-300"
+                  placeholder="0.00"
                 />
                 <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400">ft</span>
               </div>
@@ -135,8 +138,8 @@ export default function DirectionalCurveData() {
                       setFormData(prev => ({
                         ...prev,
                         isRight: checked,
-                        rightTarget: checked ? Math.abs(prev.leftTarget || 0) : 0,
-                        leftTarget: !checked ? Math.abs(prev.rightTarget || 0) : 0
+                        rightTarget: checked ? Math.abs(Number(prev.leftTarget) || 0) : 0,
+                        leftTarget: !checked ? Math.abs(Number(prev.rightTarget) || 0) : 0
                       }));
                     }}
                   />
@@ -150,9 +153,12 @@ export default function DirectionalCurveData() {
                   type="number"
                   step="0.01"
                   name={formData.isRight ? "rightTarget" : "leftTarget"}
-                  value={formData.isRight ? formData.rightTarget : formData.leftTarget}
+                  value={formData.isRight ? 
+                    (Number(formData.rightTarget) === 0 ? '' : formData.rightTarget) : 
+                    (Number(formData.leftTarget) === 0 ? '' : formData.leftTarget)}
                   onChange={handleInputChange}
                   className="font-mono text-cyan-300"
+                  placeholder="0.00"
                 />
                 <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400">ft</span>
               </div>

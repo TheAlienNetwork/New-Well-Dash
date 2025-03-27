@@ -105,6 +105,14 @@ export default function EmailAutomation() {
       }));
     }
   }, [latestSurvey, wellInfo]);
+  
+  // Make gamma data available globally for the email image generation
+  useEffect(() => {
+    if (gammaData && gammaData.length > 0) {
+      // @ts-ignore - Adding gammaData to window for email image generation
+      window.gammaData = gammaData;
+    }
+  }, [gammaData]);
 
   // Fetch email distributions
   const fetchDistributions = async (wellId: number) => {
