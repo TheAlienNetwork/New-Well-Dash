@@ -73,20 +73,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (data.type === 'wits_simulation_toggle') {
           const isSimulated = data.data?.isSimulated;
+          console.log('WITS simulation toggle:', isSimulated ? 'SIMULATED' : 'REAL');
+          
           if (isSimulated === true) {
+            // Enable simulation mode
             if (!witsSimulationInterval) {
               startWitsSimulation();
             }
+            
+            // Tell WITS client to use simulation mode
+            witsManager.witsClient.setSimulationMode(true);
+            
+            // Update status for all clients
+            broadcastMessage({
+              type: 'wits_status',
+              data: {
+                connected: true,
+                address: 'SIMULATION MODE',
+                lastData: new Date(),
+                isSimulated: true
+              }
+            });
+            
             ws.send(JSON.stringify({
               type: 'wits_simulation_toggle_response',
               status: 'success',
               message: 'WITS simulation started'
             }));
           } else if (isSimulated === false) {
+            // Disable simulation
             if (witsSimulationInterval) {
               clearInterval(witsSimulationInterval);
               witsSimulationInterval = null;
             }
+            
+            // Tell WITS client to use real mode
+            witsManager.witsClient.setSimulationMode(false);
+            
+            // Update status for all clients
+            const status = witsManager.getStatus();
+            broadcastMessage({
+              type: 'wits_status',
+              data: {
+                ...status,
+                isSimulated: false
+              }
+            });
+            
             ws.send(JSON.stringify({
               type: 'wits_simulation_toggle_response',
               status: 'success',

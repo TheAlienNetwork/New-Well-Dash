@@ -133,15 +133,15 @@ export default function WitsParameters() {
           <div className="grid grid-cols-3 gap-4">
             <div className="p-3 bg-navy-850/50 rounded-lg border border-cyan-600/20 hover:border-cyan-500/30 transition-all">
               <p className="text-xs text-navy-200 font-mono uppercase tracking-wider">BIT DEPTH</p>
-              <p className="text-xl font-mono font-bold glow-text">{witsData?.bitDepth.toFixed(2) || '0.00'}<span className="text-xs text-cyan-400/70 ml-1">ft</span></p>
+              <p className="text-xl font-mono font-bold glow-text">{witsData?.bitDepth ? witsData.bitDepth.toFixed(2) : '0.00'}<span className="text-xs text-cyan-400/70 ml-1">ft</span></p>
             </div>
             <div className="p-3 bg-navy-850/50 rounded-lg border border-cyan-600/20 hover:border-cyan-500/30 transition-all">
               <p className="text-xs text-navy-200 font-mono uppercase tracking-wider">INCLINATION</p>
-              <p className="text-xl font-mono font-bold glow-text">{witsData?.inc.toFixed(2) || '0.00'}<span className="text-xs text-cyan-400/70 ml-1">°</span></p>
+              <p className="text-xl font-mono font-bold glow-text">{witsData?.inc ? witsData.inc.toFixed(2) : '0.00'}<span className="text-xs text-cyan-400/70 ml-1">°</span></p>
             </div>
             <div className="p-3 bg-navy-850/50 rounded-lg border border-cyan-600/20 hover:border-cyan-500/30 transition-all">
               <p className="text-xs text-navy-200 font-mono uppercase tracking-wider">AZIMUTH</p>
-              <p className="text-xl font-mono font-bold glow-text">{witsData?.azi.toFixed(2) || '0.00'}<span className="text-xs text-cyan-400/70 ml-1">°</span></p>
+              <p className="text-xl font-mono font-bold glow-text">{witsData?.azi ? witsData.azi.toFixed(2) : '0.00'}<span className="text-xs text-cyan-400/70 ml-1">°</span></p>
             </div>
           </div>
         </div>

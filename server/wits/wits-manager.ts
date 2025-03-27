@@ -7,7 +7,7 @@ type MessageBroadcaster = (message: any) => void;
 
 export class WitsManager {
   private broadcastFunction: MessageBroadcaster | null = null;
-  private witsClient: WitsClient;
+  public witsClient: WitsClient; // Make public so it can be accessed from routes
   private customChannelMappings: Map<number, string> = new Map();
   private witsStatus = {
     connected: false,

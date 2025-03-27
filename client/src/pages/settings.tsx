@@ -122,57 +122,69 @@ export default function Settings() {
             </div>
             
             {/* Connection Form */}
-            {witsMode === 'real' && (
-              <div className="p-4 rounded-md bg-navy-800 border border-navy-700">
-                <h3 className="text-sm font-medium text-slate-200 mb-3">Server Connection</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label htmlFor="host" className="text-xs text-slate-400 block mb-1">Host / IP Address</label>
-                    <Input
-                      id="host"
-                      value={host}
-                      onChange={(e) => setHost(e.target.value)}
-                      placeholder="e.g. 192.168.1.100"
-                      className="bg-navy-950 border-navy-600 text-slate-200 placeholder:text-slate-600"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="port" className="text-xs text-slate-400 block mb-1">Port</label>
-                    <Input
-                      id="port"
-                      value={port}
-                      onChange={(e) => setPort(e.target.value.replace(/[^0-9]/g, ''))}
-                      placeholder="e.g. 8080"
-                      className="bg-navy-950 border-navy-600 text-slate-200 placeholder:text-slate-600"
-                    />
-                  </div>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    onClick={handleConnect}
-                    disabled={isConnecting}
-                    className={`${witsStatus.connected ? 'bg-red-600 hover:bg-red-700' : 'bg-cyan-600 hover:bg-cyan-700'} text-white`}
-                  >
-                    {isConnecting ? (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : witsStatus.connected ? (
-                      <>
-                        <Power className="mr-2 h-4 w-4" />
-                        Disconnect
-                      </>
-                    ) : (
-                      <>
-                        <Wifi className="mr-2 h-4 w-4" />
-                        Connect
-                      </>
-                    )}
-                  </Button>
+            <div className={`p-4 rounded-md ${witsMode === 'real' ? 'bg-navy-800 border border-cyan-800/50' : 'bg-navy-800/50 border border-navy-700'}`}>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className={`text-sm font-medium ${witsMode === 'real' ? 'text-cyan-200' : 'text-slate-200'}`}>
+                  WITS Server Connection
+                </h3>
+                <div className={`px-2 py-1 text-xs rounded-md font-mono ${witsMode === 'real' ? 'bg-cyan-950/70 border border-cyan-800/50 text-cyan-400' : 'bg-yellow-950/40 border border-yellow-800/30 text-yellow-500'}`}>
+                  {witsMode === 'real' ? 'LIVE MODE' : 'SIMULATION MODE'}
                 </div>
               </div>
-            )}
+
+              <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${witsMode !== 'real' ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className="col-span-2">
+                  <label htmlFor="host" className="text-xs text-slate-400 block mb-1">Host / IP Address</label>
+                  <Input
+                    id="host"
+                    value={host}
+                    onChange={(e) => setHost(e.target.value)}
+                    placeholder="e.g. 192.168.1.100"
+                    className="bg-navy-950 border-navy-600 text-slate-200 placeholder:text-slate-600"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="port" className="text-xs text-slate-400 block mb-1">Port</label>
+                  <Input
+                    id="port"
+                    value={port}
+                    onChange={(e) => setPort(e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="e.g. 8080"
+                    className="bg-navy-950 border-navy-600 text-slate-200 placeholder:text-slate-600"
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-xs text-slate-500">
+                  {witsMode !== 'real' && "Switch to real mode to connect to a WITS server"}
+                  {witsMode === 'real' && witsStatus.connected && <span className="text-green-500">Connected to {witsStatus.address}</span>}
+                </div>
+                
+                <Button
+                  onClick={handleConnect}
+                  disabled={isConnecting || witsMode !== 'real'}
+                  className={`${witsStatus.connected && witsMode === 'real' ? 'bg-red-600 hover:bg-red-700' : 'bg-cyan-600 hover:bg-cyan-700'} text-white ${witsMode !== 'real' ? 'opacity-50' : ''}`}
+                >
+                  {isConnecting ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : witsStatus.connected && witsMode === 'real' ? (
+                    <>
+                      <Power className="mr-2 h-4 w-4" />
+                      Disconnect
+                    </>
+                  ) : (
+                    <>
+                      <Wifi className="mr-2 h-4 w-4" />
+                      Connect
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
             
             {/* Connection Status */}
             <div className="p-4 rounded-md bg-navy-800 border border-navy-700">
@@ -237,28 +249,61 @@ export default function Settings() {
                 </div>
               </div>
               
-              <div className="bg-navy-950 border border-navy-800 rounded-md p-4 font-mono text-xs h-64 overflow-auto">
+              <div className="bg-navy-950/90 border-2 border-navy-800/80 rounded-md p-4 font-mono text-xs h-64 overflow-auto shadow-inner futuristic-border-subtle">
                 {witsRawData.length > 0 ? (
-                  <div className="space-y-2">
-                    {witsRawData.map((entry, i) => (
-                      <div key={i} className="border-b border-navy-800 pb-2">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Terminal className="h-3 w-3 text-cyan-500" />
-                          <span className="text-slate-500">{new Date(entry.recordTime).toLocaleTimeString()}</span>
+                  <div className="space-y-3">
+                    {witsRawData.map((entry, i) => {
+                      // Extract readable values from the data
+                      const data = entry.data;
+                      const formattedData = typeof data === 'object' ? data : { value: data };
+                      
+                      return (
+                        <div key={i} className="border-b border-navy-800/70 pb-3 hover:bg-navy-900/30 transition-all p-2 rounded">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse"></div>
+                            <Terminal className="h-3 w-3 text-cyan-500" />
+                            <span className="text-slate-400 font-mono text-[10px]">{new Date(entry.recordTime).toLocaleTimeString()}</span>
+                            {formattedData.channelId && (
+                              <span className="ml-auto px-1.5 py-0.5 bg-navy-800 text-[10px] rounded text-cyan-400 border border-cyan-800/50">
+                                CH {formattedData.channelId}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="ml-5 grid gap-1">
+                            {/* Format the data in a more readable way */}
+                            {Object.entries(formattedData).map(([key, value]) => (
+                              <div key={key} className="grid grid-cols-5 gap-2 items-center">
+                                <span className="text-slate-500 col-span-2 truncate">{key}:</span>
+                                <span className="text-cyan-300 col-span-3 break-all glow-text-subtle">
+                                  {typeof value === 'number' 
+                                    ? value.toFixed(2) 
+                                    : typeof value === 'boolean'
+                                      ? (value ? 'true' : 'false')
+                                      : typeof value === 'object'
+                                        ? JSON.stringify(value)
+                                        : String(value)
+                                  }
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <div className="text-cyan-300 ml-5 break-all">
-                          {JSON.stringify(entry.data)}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full text-slate-500">
                     <div className="text-center">
-                      <Database className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                      <p>No WITS data received</p>
-                      <p className="text-xs mt-1 text-slate-600">
-                        {witsMode === 'real' ? 'Connect to a WITS server to see live data' : 'Enable simulation mode to see test data'}
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-full border-2 border-navy-700 flex items-center justify-center">
+                        <Database className="h-6 w-6 opacity-30 text-cyan-700" />
+                      </div>
+                      <p className="text-cyan-300/70">No WITS data received</p>
+                      <p className="text-xs mt-2 text-slate-600 max-w-xs">
+                        {witsMode === 'real' 
+                          ? 'Connect to a WITS server to see live data transmission' 
+                          : 'Enable simulation mode to generate test WITS data'
+                        }
                       </p>
                     </div>
                   </div>
