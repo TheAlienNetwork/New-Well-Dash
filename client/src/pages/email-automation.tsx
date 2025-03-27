@@ -467,13 +467,19 @@ export default function EmailAutomation() {
                     <span className="text-lg font-mono font-medium">{Number(latestSurvey.azi).toFixed(2)}°</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-neutral-background rounded-md">
-                    <span className="text-sm text-gray-400">Direction</span>
-                    <span className="text-sm font-mono space-x-2">
-                      {projections?.isAbove && <span className="text-accent-green">Above</span>}
-                      {projections?.isBelow && <span className="text-accent-red">Below</span>}
-                      {projections?.isLeft && <span className="text-accent-blue">Left</span>}
-                      {projections?.isRight && <span className="text-accent-orange">Right</span>}
-                    </span>
+                    <span className="text-sm text-gray-400">Target Position</span>
+                    <div className="text-right">
+                      <div className="text-sm font-mono mb-1">
+                        <span className="text-gray-400">Vertical: </span>
+                        {projections?.isAbove && <span className="text-accent-green">Above Target</span>}
+                        {projections?.isBelow && <span className="text-accent-red">Below Target</span>}
+                      </div>
+                      <div className="text-sm font-mono">
+                        <span className="text-gray-400">Horizontal: </span>
+                        {projections?.isLeft && <span className="text-accent-blue">Left of Target</span>}
+                        {projections?.isRight && <span className="text-accent-orange">Right of Target</span>}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-neutral-background rounded-md">
                     <span className="text-sm text-gray-400">Timestamp</span>
