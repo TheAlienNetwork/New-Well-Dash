@@ -41,11 +41,19 @@ export const WitsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [witsRawData, setWitsRawData] = useState<any[]>([]);
 
   useEffect(() => {
-    // Connect to websocket on initial load
-    witsClient.connect().catch(console.error);
+    // Connect to websocket on initial load once
+    const connectWS = async () => {
+      try {
+        await witsClient.connect();
+      } catch (error) {
+        console.error('Failed to connect to WebSocket:', error);
+      }
+    };
+    
+    connectWS();
 
     // Listen for WITS data updates
-    witsClient.onWitsData((data) => {
+    const witsDataHandler = (data: WitsData) => {
       setWitsData(data);
       // Add raw data to the list with timestamp
       setWitsRawData(prev => {
@@ -59,7 +67,9 @@ export const WitsProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Keep only the most recent items to avoid memory issues
         return newData.slice(0, MAX_RAW_DATA_ITEMS);
       });
-    });
+    };
+    
+    witsClient.onWitsData(witsDataHandler);
 
     // Listen for WITS connection status
     witsClient.onWitsStatus((status) => {

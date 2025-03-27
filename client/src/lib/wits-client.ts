@@ -61,7 +61,20 @@ export class WitsClient {
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        // If already connected, disconnect first
+        // If already connected and socket is open, just resolve
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+          resolve();
+          return;
+        }
+        
+        // If socket exists but is in connecting state, wait for it
+        if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+          this.socket.addEventListener('open', () => resolve());
+          this.socket.addEventListener('error', reject);
+          return;
+        }
+
+        // If socket is closing or closed, wait for it to close before making a new connection
         if (this.socket) {
           this.disconnect();
         }
@@ -74,23 +87,27 @@ export class WitsClient {
 
         this.socket.onopen = () => {
           console.log('WebSocket connection established');
+          this.witsStatus.connected = true;
           this.reconnectAttempts = 0;
           resolve();
         };
 
         this.socket.onclose = (event) => {
-          console.log('WebSocket connection closed', event);
-          this.witsStatus = {
-            connected: false,
-            address: ''
-          };
-          this.notifyHandlers('wits_status', this.witsStatus);
-          
-          if (this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectTimeout = setTimeout(() => {
-              this.reconnectAttempts++;
-              this.connect().catch(console.error);
-            }, 2000 * Math.pow(2, this.reconnectAttempts));
+          // Only attempt to reconnect if this wasn't an intentional close
+          if (!event.wasClean && this.socket) {
+            console.log('WebSocket connection closed unexpectedly', event);
+            this.witsStatus = {
+              connected: false,
+              address: ''
+            };
+            this.notifyHandlers('wits_status', this.witsStatus);
+            
+            if (this.reconnectAttempts < this.maxReconnectAttempts) {
+              this.reconnectTimeout = setTimeout(() => {
+                this.reconnectAttempts++;
+                this.connect().catch(console.error);
+              }, 2000 * Math.pow(2, this.reconnectAttempts));
+            }
           }
         };
 

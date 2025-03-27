@@ -23,6 +23,12 @@ export default function GammaPlot() {
   const [depthRange, setDepthRange] = useState<string>('');
   const [lastUpdate, setLastUpdate] = useState<string>('');
   const [includeInEmail, setIncludeInEmail] = useState<boolean>(curveData?.includeGammaPlot || false);
+  const [chartKey, setChartKey] = useState(() => `gamma-chart-${Date.now()}`);
+  
+  // Force regenerate chart key on gammaData changes
+  useEffect(() => {
+    setChartKey(`gamma-chart-${Date.now()}`);
+  }, [gammaData]);
   
   useEffect(() => {
     if (curveData) {
@@ -97,7 +103,9 @@ export default function GammaPlot() {
   const chartData = gammaData
     .map(point => ({
       depth: Number(point.depth),
-      gamma: Number(point.value)
+      gamma: Number(point.value),
+      // Adding a unique key to each point to avoid React key conflicts
+      id: `gamma-${point.id}-${point.depth}`
     }))
     .sort((a, b) => a.depth - b.depth)
     .filter(point => {
@@ -167,6 +175,7 @@ export default function GammaPlot() {
                 data={chartData} 
                 layout="vertical"
                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                key={`gamma-chart-${Date.now()}`}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(6, 182, 212, 0.15)" />
                 <XAxis 
@@ -197,25 +206,23 @@ export default function GammaPlot() {
                     boxShadow: '0 0 15px rgba(6, 182, 212, 0.2)'
                   }}
                   formatter={(value: number) => [
-                    <span className="glow-text">{value.toFixed(2)} gAPI</span>, 
-                    <span className="text-cyan-200">Gamma</span>
+                    `${value.toFixed(2)} gAPI`, 
+                    'Gamma'
                   ]}
                   labelFormatter={(label) => `Depth: ${label.toFixed(2)} ft`}
                   cursor={{ fill: 'rgba(6, 182, 212, 0.15)' }}
                 />
                 <Bar 
-                  dataKey="gamma" 
+                  dataKey="gamma"
                   fill="url(#gammaGradient)" 
                   radius={[4, 4, 0, 0]}
                   barSize={8}
-                  animationDuration={500}
-                  animationEasing="ease-out"
                 />
                 
                 <Legend 
                   verticalAlign="bottom" 
-                  wrapperStyle={{ paddingTop: '10px', fontFamily: 'monospace' }}
-                  formatter={() => <span className="text-cyan-200">Gamma Readings (gAPI)</span>}
+                  wrapperStyle={{ paddingTop: '10px', fontFamily: 'monospace', color: '#a5f3fc' }}
+                  formatter={() => 'Gamma Readings (gAPI)'}
                 />
                 
                 {/* Reference lines for significant gamma values */}
