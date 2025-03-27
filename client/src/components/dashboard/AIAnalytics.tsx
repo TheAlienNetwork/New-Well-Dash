@@ -117,30 +117,53 @@ export default function AIAnalytics() {
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10">
                     <p className="text-navy-200 font-mono">Projected Inc @ {latestSurvey ? (Number(latestSurvey.md) + 100).toFixed(0) : ''}ft</p>
-                    <p className="glow-text text-lg">{projections.projectedInc.toFixed(2)}°</p>
+                    <p className="glow-text text-lg">
+                      {typeof projections.projectedInc === 'number' 
+                        ? projections.projectedInc.toFixed(2) 
+                        : (parseFloat(String(projections.projectedInc) || '0')).toFixed(2)}°
+                    </p>
                   </div>
                   <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10">
                     <p className="text-navy-200 font-mono">Projected Az @ {latestSurvey ? (Number(latestSurvey.md) + 100).toFixed(0) : ''}ft</p>
-                    <p className="glow-text text-lg">{projections.projectedAz.toFixed(2)}°</p>
+                    <p className="glow-text text-lg">
+                      {typeof projections.projectedAz === 'number' 
+                        ? projections.projectedAz.toFixed(2) 
+                        : (parseFloat(String(projections.projectedAz) || '0')).toFixed(2)}°
+                    </p>
                   </div>
                   <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10">
                     <p className="text-navy-200 font-mono">Est. Build Rate</p>
-                    <p className="glow-text text-lg">{projections.buildRate.toFixed(2)}°/100ft</p>
+                    <p className="glow-text text-lg">
+                      {typeof projections.buildRate === 'number' 
+                        ? projections.buildRate.toFixed(2) 
+                        : (parseFloat(String(projections.buildRate) || '0')).toFixed(2)}°/100ft
+                    </p>
                   </div>
                   <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10">
                     <p className="text-navy-200 font-mono">Est. Turn Rate</p>
-                    <p className="glow-text text-lg">{projections.turnRate.toFixed(2)}°/100ft</p>
+                    <p className="glow-text text-lg">
+                      {typeof projections.turnRate === 'number' 
+                        ? projections.turnRate.toFixed(2) 
+                        : (parseFloat(String(projections.turnRate) || '0')).toFixed(2)}°/100ft
+                    </p>
                   </div>
                 </div>
                 
-                {Math.abs(projections.buildRate) > 1.35 && (
-                  <div className="mt-3 bg-amber-500/10 p-2 rounded border border-amber-500/20">
-                    <p className="text-amber-400 flex items-center font-mono">
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      Build rate {projections.buildRate > 0 ? 'exceeds' : 'is below'} target (1.35°/100ft)
-                    </p>
-                  </div>
-                )}
+                {(() => {
+                  // Safely extract build rate as a number
+                  const buildRate = typeof projections.buildRate === 'number'
+                    ? projections.buildRate
+                    : parseFloat(String(projections.buildRate) || '0');
+                  
+                  return Math.abs(buildRate) > 1.35 && (
+                    <div className="mt-3 bg-amber-500/10 p-2 rounded border border-amber-500/20">
+                      <p className="text-amber-400 flex items-center font-mono">
+                        <AlertTriangle className="h-4 w-4 mr-2" />
+                        Build rate {buildRate > 0 ? 'exceeds' : 'is below'} target (1.35°/100ft)
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

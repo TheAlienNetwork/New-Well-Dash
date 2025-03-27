@@ -130,10 +130,14 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (curveData && wellInfo) {
             // Create the update payload manually with safe type handling
             // The numeric type in the schema expects a string, not a number
+            // Make sure we're not concatenating numbers - convert to strings separately
+            const projInc = typeof projection.projectedInc === 'number' ? projection.projectedInc : 0;
+            const projAz = typeof projection.projectedAz === 'number' ? projection.projectedAz : 0;
+            
             const curveUpdateData = {
               id: curveData.id,
-              projectedInc: String(projection.projectedInc || 0),
-              projectedAz: String(projection.projectedAz || 0)
+              projectedInc: String(projInc),
+              projectedAz: String(projAz)
             };
             
             updateCurveData(curveUpdateData);
