@@ -56,7 +56,17 @@ export class WitsClient extends EventEmitter {
     });
   }
 
-  private processWitsRecord(record: string) {
+  private isSimulated = true;
+private rawDataBuffer: string[] = [];
+
+setSimulationMode(simulated: boolean) {
+  this.isSimulated = simulated;
+  if (!simulated) {
+    this.stopSimulation();
+  }
+}
+
+private processWitsRecord(record: string) {
     try {
       const match = record.match(/&&(\d+),(\d+),([^|]+)\|\|/);
       if (match) {

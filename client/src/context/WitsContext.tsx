@@ -11,7 +11,10 @@ interface WitsContextType {
 
 const defaultWitsStatus: WitsStatus = {
   connected: false,
-  address: ''
+  address: null,
+  lastPing: null,
+  isSimulated: true,
+  rawFeed: [] as string[]
 };
 
 const WitsContext = createContext<WitsContextType>({
