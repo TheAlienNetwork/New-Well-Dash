@@ -1,27 +1,15 @@
 
 import { WitsClient } from './wits-client';
-import { WitsmlClient } from './witsml-client';
 import { storage } from '../storage';
 import { broadcastMessage } from '../routes';
 
 export class WitsManager {
   private witsClient: WitsClient;
-  private witsmlClient: WitsmlClient | null = null;
-  private readonly standardMappings: Record<number, string> = {
-    1: 'bitDepth',
-    2: 'hookLoad',
-    3: 'blockPosition',
-    4: 'ropAvg',
-    5: 'ropInst',
-    6: 'wob',
-    7: 'surfaceTorque',
-    8: 'surfaceRpm',
-    9: 'standpipePressure',
-    10: 'flowRateIn',
-    11: 'totalGas',
-    12: 'temperature',
-    13: 'mudDensityIn',
-    14: 'mudDensityOut'
+  private customChannelMappings: Map<number, string> = new Map();
+  private witsStatus = {
+    connected: false,
+    address: '',
+    lastData: null as Date | null
   };
 
   constructor() {
@@ -30,77 +18,129 @@ export class WitsManager {
   }
 
   private setupWitsListeners() {
+    this.witsClient.on('connected', ({host, port}) => {
+      this.witsStatus.connected = true;
+      this.witsStatus.address = `${host}:${port}`;
+      this.broadcastStatus();
+    });
+
+    this.witsClient.on('disconnected', () => {
+      this.witsStatus.connected = false;
+      this.broadcastStatus();
+    });
+
     this.witsClient.on('witsData', async (data) => {
-      try {
-        // Store raw WITS data
-        await this.storeRawWitsData(data);
-
-        // Map and store drilling parameters
-        if (this.standardMappings[data.channelId]) {
-          const param = {
-            name: this.standardMappings[data.channelId],
-            value: data.value,
-            unit: this.getUnitForChannel(data.channelId),
-            witsId: data.channelId,
-            wellId: 1 // Replace with actual well ID
-          };
-          const storedParam = await storage.createDrillingParam(param);
-          broadcastMessage({
-            type: 'drilling_param_update',
-            data: storedParam
-          });
-        }
-
-        // Broadcast raw WITS data
-        broadcastMessage({
-          type: 'raw_wits_data',
-          data
-        });
-      } catch (error) {
-        console.error('Error processing WITS data:', error);
-      }
+      this.witsStatus.lastData = new Date();
+      
+      // Store and broadcast raw data
+      await this.processWitsData(data);
+      
+      // Update status
+      this.broadcastStatus();
     });
   }
 
-  private async storeRawWitsData(data: any) {
-    // Store in memory or database
-    console.log('Raw WITS Data:', data);
+  private async processWitsData(data: any) {
+    try {
+      // Process gamma data
+      if (data.channelId === this.getChannelByName('gamma')) {
+        await this.processGammaData(data);
+      }
+
+      // Process drilling parameters
+      const param = await this.processDrillingParam(data);
+      if (param) {
+        broadcastMessage({
+          type: 'drilling_param_update',
+          data: param
+        });
+      }
+
+      // Broadcast raw data for custom channels
+      broadcastMessage({
+        type: 'wits_data',
+        data: {
+          ...data,
+          mappedName: this.customChannelMappings.get(data.channelId)
+        }
+      });
+    } catch (error) {
+      console.error('Error processing WITS data:', error);
+    }
+  }
+
+  private async processGammaData(data: any) {
+    const gammaData = {
+      depth: data.value,
+      value: data.value,
+      timestamp: new Date(),
+      wellId: 1
+    };
+    const stored = await storage.createGammaData(gammaData);
+    broadcastMessage({
+      type: 'gamma_data_update',
+      data: stored
+    });
+  }
+
+  private async processDrillingParam(data: any) {
+    const mappedName = this.customChannelMappings.get(data.channelId);
+    if (mappedName) {
+      const param = {
+        name: mappedName,
+        value: data.value,
+        unit: this.getUnitForChannel(data.channelId),
+        timestamp: new Date(),
+        wellId: 1
+      };
+      return await storage.createDrillingParam(param);
+    }
+    return null;
+  }
+
+  addChannelMapping(channelId: number, name: string) {
+    this.customChannelMappings.set(channelId, name);
+  }
+
+  removeChannelMapping(channelId: number) {
+    this.customChannelMappings.delete(channelId);
+  }
+
+  getStatus() {
+    return this.witsStatus;
+  }
+
+  private broadcastStatus() {
+    broadcastMessage({
+      type: 'wits_status',
+      data: this.witsStatus
+    });
+  }
+
+  connectWits(host: string, port: number) {
+    return this.witsClient.connect(host, port);
+  }
+
+  disconnect() {
+    this.witsClient.disconnect();
+  }
+
+  private getChannelByName(name: string): number {
+    // Default gamma channel
+    if (name === 'gamma') return 11;
+    return -1;
   }
 
   private getUnitForChannel(channelId: number): string {
     const unitMap: Record<number, string> = {
       1: 'ft',
       2: 'klbs',
-      3: 'ft',
-      4: 'ft/hr',
-      5: 'ft/hr',
-      6: 'klbs',
-      7: 'ft-lbs',
-      8: 'rpm',
-      9: 'psi',
-      10: 'gpm',
-      11: '%',
-      12: '°F',
-      13: 'ppg',
-      14: 'ppg'
+      3: 'ft/hr',
+      4: 'psi',
+      5: 'gpm',
+      11: 'API'
     };
     return unitMap[channelId] || '';
-  }
-
-  connectWits(host: string, port: number) {
-    this.witsClient.connect(host, port);
-  }
-
-  connectWitsml(url: string, username: string, password: string) {
-    this.witsmlClient = new WitsmlClient(url, username, password);
-    this.witsmlClient.connect();
-  }
-
-  disconnect() {
-    this.witsClient.disconnect();
-    if (this.witsmlClient) {
-      this.witsmlClient.disconnect();
-    }
   }
 }
 
