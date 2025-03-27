@@ -198,10 +198,14 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
     }
     
     if (typeof wellInfo.sensorOffset === 'string') {
-      return parseFloat(wellInfo.sensorOffset).toFixed(2);
+      return parseFloat(wellInfo.sensorOffset || '0').toFixed(2);
     }
     
-    return wellInfo.sensorOffset.toFixed(2);
+    if (typeof wellInfo.sensorOffset === 'number') {
+      return wellInfo.sensorOffset.toFixed(2);
+    }
+    
+    return '0.00';
   };
 
   return (
@@ -244,15 +248,7 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-primary" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
-                    Sensor offset: {
-                      wellInfo && wellInfo.sensorOffset !== undefined && wellInfo.sensorOffset !== null 
-                        ? (typeof wellInfo.sensorOffset === 'string' 
-                            ? parseFloat(wellInfo.sensorOffset || '0').toFixed(2) 
-                            : (typeof wellInfo.sensorOffset === 'number' 
-                                ? wellInfo.sensorOffset.toFixed(2) 
-                                : '0.00'))
-                        : '0.00'
-                    } ft
+                    Sensor offset: {displaySensorOffset()} ft
                   </div>
                 </div>
                 <div className="bg-neutral-background rounded-md p-3">
@@ -369,7 +365,22 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Dogleg Severity:</span>
-                      <span className="font-medium">{aiAnalysis?.doglegs || (formData.dls ? (typeof formData.dls === 'string' ? parseFloat(formData.dls || '0') : (typeof formData.dls === 'number' ? formData.dls : 0)).toFixed(2) + '°/100ft' : 'Analyzing...')}</span>
+                      <span className="font-medium">
+                        {aiAnalysis?.doglegs || 
+                          (formData.dls ? 
+                            (() => {
+                              let dlsValue = 0;
+                              if (typeof formData.dls === 'string') {
+                                dlsValue = parseFloat(formData.dls || '0');
+                              } else if (typeof formData.dls === 'number') {
+                                dlsValue = formData.dls;
+                              }
+                              return dlsValue.toFixed(2) + '°/100ft';
+                            })() 
+                            : 'Analyzing...'
+                          )
+                        }
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Survey Trend:</span>

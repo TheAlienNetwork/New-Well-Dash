@@ -102,8 +102,20 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     // Calculate AI analysis
     if (latestSurvey) {
-      const analysis = generateSurveyAnalysis(latestSurvey, surveys.filter(s => s.id !== latestSurvey.id));
-      setAiAnalysis(analysis);
+      try {
+        const analysis = generateSurveyAnalysis(latestSurvey, surveys.filter(s => s.id !== latestSurvey.id));
+        setAiAnalysis(analysis);
+      } catch (err) {
+        console.error('Error generating AI analysis:', err);
+        // Set a default analysis if generation fails
+        setAiAnalysis({
+          isValid: true,
+          status: 'Unknown',
+          doglegs: 'N/A',
+          trend: 'N/A',
+          recommendation: 'Continue as planned'
+        });
+      }
     }
 
     // Calculate projections

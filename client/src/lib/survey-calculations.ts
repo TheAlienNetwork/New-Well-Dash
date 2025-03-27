@@ -229,9 +229,15 @@ export function generateSurveyAnalysis(survey: any, previousSurveys: any[]): {
   }
   
   // DLS status
-  let doglegs = `${survey.dls.toFixed(2)}°/100ft (Within limits)`;
-  if (survey.dls > 2) {
-    doglegs = `${survey.dls.toFixed(2)}°/100ft (High)`;
+  const dlsValue = (typeof survey.dls === 'number') 
+    ? survey.dls 
+    : (typeof survey.dls === 'string' 
+        ? parseFloat(survey.dls || '0') 
+        : 0);
+  
+  let doglegs = `${dlsValue.toFixed(2)}°/100ft (Within limits)`;
+  if (dlsValue > 2) {
+    doglegs = `${dlsValue.toFixed(2)}°/100ft (High)`;
   }
   
   return {
@@ -261,7 +267,11 @@ export function projectValues(surveys: any[], projectionDistance: number = 100):
       projectedInc: surveys.length ? surveys[0].inc : 0,
       projectedAz: surveys.length ? surveys[0].azi : 0,
       buildRate: 0,
-      turnRate: 0
+      turnRate: 0,
+      isAbove: false,
+      isBelow: false,
+      isLeft: false,
+      isRight: false
     };
   }
   
