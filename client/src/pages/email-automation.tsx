@@ -268,9 +268,9 @@ export default function EmailAutomation() {
     }
 
     try {
-      // Create gamma plot image URL (in a real app, this would be generated from actual data)
+      // Generate gamma plot image from the emailService
       const gammaImageUrl = emailSettings.includeGammaPlot ? 
-        "data:image/png;base64,..." : undefined;
+        emailService.generateGammaPlotImage() : undefined;
 
       // Prepare target position data from curve data
       const targetPosition = emailSettings.includeTargetPosition ? {
@@ -910,7 +910,7 @@ export default function EmailAutomation() {
                   wellName: wellInfo.wellName,
                   rigName: wellInfo.rigName,
                   gammaImageUrl: emailSettings.includeGammaPlot ? 
-                    "data:image/png;base64,..." : undefined,
+                    emailService.generateGammaPlotImage() : undefined,
                   aiAnalysis: emailSettings.includeAiAnalysis ? {
                     status: aiAnalysis?.status || 'Passed',
                     doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey.dls).toFixed(2)}°/100ft (Within limits)`,
@@ -959,7 +959,7 @@ export default function EmailAutomation() {
                   survey: latestSurvey!,
                   wellName: wellInfo!.wellName,
                   rigName: wellInfo!.rigName,
-                  gammaImageUrl: emailSettings.includeGammaPlot ? "data:image/png;base64,..." : undefined,
+                  gammaImageUrl: emailSettings.includeGammaPlot ? emailService.generateGammaPlotImage() : undefined,
                   aiAnalysis: emailSettings.includeAiAnalysis ? {
                     status: aiAnalysis?.status || 'Passed',
                     doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey!.dls).toFixed(2)}°/100ft (Within limits)`,
