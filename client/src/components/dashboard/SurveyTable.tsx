@@ -134,7 +134,7 @@ export default function SurveyTable({ onAddSurvey, onEditSurvey }: SurveyTablePr
         />
       </div>
 
-      <style jsx>{`
+      <style>{`
         .futuristic-border {
           border: 1px solid rgba(52, 152, 219, 0.3);
           position: relative;

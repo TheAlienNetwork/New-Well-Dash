@@ -108,20 +108,27 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Calculate projections
     if (surveys.length > 0) {
-      const projection = projectValues(surveys);
-      setProjections(projection);
-
-      // Update curve data with projections if it exists
-      if (curveData && wellInfo) {
-        // Create the update payload manually
-        // The numeric type in the schema expects a string, not a number
-        const curveUpdateData = {
-          id: curveData.id,
-          projectedInc: String(projection.projectedInc),
-          projectedAz: String(projection.projectedAz)
-        };
+      try {
+        const projection = projectValues(surveys);
         
-        updateCurveData(curveUpdateData);
+        if (projection) {
+          setProjections(projection);
+
+          // Update curve data with projections if it exists
+          if (curveData && wellInfo) {
+            // Create the update payload manually with safe type handling
+            // The numeric type in the schema expects a string, not a number
+            const curveUpdateData = {
+              id: curveData.id,
+              projectedInc: String(projection.projectedInc || 0),
+              projectedAz: String(projection.projectedAz || 0)
+            };
+            
+            updateCurveData(curveUpdateData);
+          }
+        }
+      } catch (err) {
+        console.error('Error calculating projections:', err);
       }
     }
   }, [surveys, latestSurvey]);
