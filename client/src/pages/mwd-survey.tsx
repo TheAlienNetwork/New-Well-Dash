@@ -16,7 +16,8 @@ export default function MwdSurvey() {
     setShowSurveyModal, 
     modalSurvey, 
     setModalSurvey,
-    surveys // Assuming surveys data is available from context
+    surveys,
+    curveData // Added curveData from context
   } = useSurveyContext();
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
 
@@ -32,9 +33,13 @@ export default function MwdSurvey() {
     setShowSurveyModal(true);
   };
 
-  // Placeholder - needs actual data source and proper integration with WITS data
-  const projections = {};
-
+  // Calculate projections based on curve data
+  const projections = {
+    isAbove: Number(curveData?.projectedInc || 0) > 2.5,
+    isBelow: Number(curveData?.projectedInc || 0) < 1.5,
+    isLeft: Number(curveData?.projectedAz || 0) < 175,
+    isRight: Number(curveData?.projectedAz || 0) > 185
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -48,8 +53,8 @@ export default function MwdSurvey() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <TargetPosition 
           projections={projections}
-          verticalPosition={curveData?.projectedInc || 0}
-          horizontalPosition={curveData?.projectedAz || 0}
+          verticalPosition={Number(curveData?.projectedInc || 0)}
+          horizontalPosition={Number(curveData?.projectedAz || 0)}
         /> 
 
         <div className="xl:col-span-2">
@@ -62,117 +67,169 @@ export default function MwdSurvey() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-neutral-surface border-neutral-border">
-          <CardHeader>
-            <CardTitle>Inclination Differences</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
+          <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
+            <h2 className="text-lg font-semibold flex items-center text-cyan-100 font-mono">INCLINATION DIFFERENCES</h2>
+          </div>
+          <div className="p-4">
             <Plot
               data={[{
                 x: surveys.map(s => s.md),
                 y: surveys.map(s => s.inc),
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#3B82F6', width: 3 },
-                marker: { color: '#60A5FA', size: 8 },
+                line: { color: '#06b6d4', width: 2 },
+                marker: { color: '#22d3ee', size: 6 },
                 name: 'Inclination'
               }]}
               layout={{
                 height: 300,
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'rgba(0,0,0,0.02)',
+                plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
                 xaxis: { 
                   title: 'MD (ft)',
-                  gridcolor: 'rgba(255,255,255,0.1)',
-                  zerolinecolor: 'rgba(255,255,255,0.2)'
+                  gridcolor: 'rgba(6, 182, 212, 0.1)',
+                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
+                  titlefont: { color: '#94a3b8' },
+                  tickfont: { color: '#94a3b8' }
                 },
                 yaxis: { 
                   title: 'Inclination (°)',
-                  gridcolor: 'rgba(255,255,255,0.1)',
-                  zerolinecolor: 'rgba(255,255,255,0.2)'
+                  gridcolor: 'rgba(6, 182, 212, 0.1)',
+                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
+                  titlefont: { color: '#94a3b8' },
+                  tickfont: { color: '#94a3b8' }
                 },
-                font: { color: '#9ca3af' }
+                font: { color: '#94a3b8' }
               }}
               config={{ responsive: true }}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Azimuth Differences</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
+          <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
+            <h2 className="text-lg font-semibold flex items-center text-cyan-100 font-mono">AZIMUTH DIFFERENCES</h2>
+          </div>
+          <div className="p-4">
             <Plot
               data={[{
                 x: surveys.map(s => s.md),
                 y: surveys.map(s => s.azi),
                 type: 'scatter',
                 mode: 'lines+markers',
+                line: { color: '#0ea5e9', width: 2 },
+                marker: { color: '#38bdf8', size: 6 },
                 name: 'Azimuth'
               }]}
               layout={{
                 height: 300,
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                xaxis: { title: 'MD (ft)' },
-                yaxis: { title: 'Azimuth (°)' }
+                plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
+                xaxis: { 
+                  title: 'MD (ft)',
+                  gridcolor: 'rgba(6, 182, 212, 0.1)',
+                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
+                  titlefont: { color: '#94a3b8' },
+                  tickfont: { color: '#94a3b8' }
+                },
+                yaxis: { 
+                  title: 'Azimuth (°)',
+                  gridcolor: 'rgba(6, 182, 212, 0.1)',
+                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
+                  titlefont: { color: '#94a3b8' },
+                  tickfont: { color: '#94a3b8' }
+                },
+                font: { color: '#94a3b8' }
               }}
+              config={{ responsive: true }}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Magnetometer</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
+          <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
+            <h2 className="text-lg font-semibold flex items-center text-cyan-100 font-mono">TOTAL MAGNETOMETER</h2>
+          </div>
+          <div className="p-4">
             <Plot
               data={[{
                 x: surveys.map(s => s.md),
                 y: surveys.map(s => s.gTotal),
                 type: 'scatter',
                 mode: 'lines+markers',
+                line: { color: '#8b5cf6', width: 2 },
+                marker: { color: '#a78bfa', size: 6 },
                 name: 'G Total'
               }]}
               layout={{
                 height: 300,
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                xaxis: { title: 'MD (ft)' },
-                yaxis: { title: 'G Total' }
+                plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
+                xaxis: { 
+                  title: 'MD (ft)',
+                  gridcolor: 'rgba(6, 182, 212, 0.1)',
+                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
+                  titlefont: { color: '#94a3b8' },
+                  tickfont: { color: '#94a3b8' }
+                },
+                yaxis: { 
+                  title: 'G Total',
+                  gridcolor: 'rgba(6, 182, 212, 0.1)',
+                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
+                  titlefont: { color: '#94a3b8' },
+                  tickfont: { color: '#94a3b8' }
+                },
+                font: { color: '#94a3b8' }
               }}
+              config={{ responsive: true }}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Accelerometer</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
+          <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
+            <h2 className="text-lg font-semibold flex items-center text-cyan-100 font-mono">TOTAL ACCELEROMETER</h2>
+          </div>
+          <div className="p-4">
             <Plot
               data={[{
                 x: surveys.map(s => s.md),
                 y: surveys.map(s => s.bTotal),
                 type: 'scatter',
                 mode: 'lines+markers',
+                line: { color: '#ec4899', width: 2 },
+                marker: { color: '#f472b6', size: 6 },
                 name: 'B Total'
               }]}
               layout={{
                 height: 300,
                 margin: { t: 20, r: 20, b: 40, l: 40 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                xaxis: { title: 'MD (ft)' },
-                yaxis: { title: 'B Total' }
+                plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
+                xaxis: { 
+                  title: 'MD (ft)',
+                  gridcolor: 'rgba(6, 182, 212, 0.1)',
+                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
+                  titlefont: { color: '#94a3b8' },
+                  tickfont: { color: '#94a3b8' }
+                },
+                yaxis: { 
+                  title: 'B Total',
+                  gridcolor: 'rgba(6, 182, 212, 0.1)',
+                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
+                  titlefont: { color: '#94a3b8' },
+                  tickfont: { color: '#94a3b8' }
+                },
+                font: { color: '#94a3b8' }
               }}
+              config={{ responsive: true }}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <AIAnalytics />
