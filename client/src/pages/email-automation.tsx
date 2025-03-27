@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { useWellContext } from '@/context/WellContext';
-import { emailService } from '@/lib/email-service';
+import { emailService, type SurveyEmailData } from '@/lib/email-service';
 import { apiRequest } from '@/lib/queryClient';
 import { 
   Card, 
@@ -46,20 +46,27 @@ import {
 import { EmailDistribution, Survey } from '@shared/schema';
 
 function emailBodyTemplate(data: any) {
-  const targetInfo = data.projections ? `
+  // Check if projections exist in the data and create information based on build rate and turn rate
+  const projections = data.projections;
+  const isAbove = projections && projections.buildRate > 0;
+  const isBelow = projections && projections.buildRate < 0;
+  const isLeft = projections && projections.turnRate < 0;
+  const isRight = projections && projections.turnRate > 0;
+  
+  const targetInfo = projections ? `
     <div style="margin: 10px 0; padding: 10px; background: #1a1a1a; border-radius: 8px;">
       <h3 style="color: #a5b4fc; margin: 0 0 10px 0;">Target Position</h3>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <div style="padding: 8px; background: #262626; border-radius: 4px;">
           <div style="color: #a5b4fc; font-size: 12px; margin-bottom: 4px;">VERTICAL POSITION</div>
-          <div style="color: ${data.projections.isAbove ? '#4ade80' : '#f87171'}">
-            ${data.projections.isAbove ? 'Above Target' : 'Below Target'}
+          <div style="color: ${isAbove ? '#4ade80' : '#f87171'}">
+            ${isAbove ? 'Above Target' : 'Below Target'}
           </div>
         </div>
         <div style="padding: 8px; background: #262626; border-radius: 4px;">
           <div style="color: #a5b4fc; font-size: 12px; margin-bottom: 4px;">HORIZONTAL POSITION</div>
-          <div style="color: ${data.projections.isLeft ? '#60a5fa' : '#fb923c'}">
-            ${data.projections.isLeft ? 'Left of Target' : 'Right of Target'}
+          <div style="color: ${isLeft ? '#60a5fa' : '#fb923c'}">
+            ${isLeft ? 'Left of Target' : 'Right of Target'}
           </div>
         </div>
       </div>
@@ -125,8 +132,13 @@ export default function EmailAutomation() {
     includeCurveData: true,
     includeGammaPlot: true,
     includeAiAnalysis: true,
-    additionalNote: ''
+    includeTargetPosition: true,
+    additionalNote: '',
+    attachmentFolder: ''
   });
+  
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [showAttachmentDialog, setShowAttachmentDialog] = useState(false);
 
   // Load distributions
   useEffect(() => {
@@ -312,11 +324,13 @@ export default function EmailAutomation() {
         "data:image/png;base64,..." : undefined;
 
       // Prepare email data
-      const emailData = {
+      const emailData: SurveyEmailData = {
         survey: latestSurvey,
         wellName: wellInfo.wellName,
         rigName: wellInfo.rigName,
         gammaImageUrl,
+        attachments: attachments,
+        additionalNote: emailSettings.additionalNote || undefined,
         aiAnalysis: emailSettings.includeAiAnalysis ? {
           status: aiAnalysis?.status || 'Passed',
           doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey.dls).toFixed(2)}°/100ft (Within limits)`,
@@ -329,14 +343,23 @@ export default function EmailAutomation() {
           projectedInc: Number(curveData.projectedInc),
           projectedAz: Number(curveData.projectedAz),
           slideSeen: Number(curveData.slideSeen),
-          slideAhead: Number(curveData.slideAhead)
+          slideAhead: Number(curveData.slideAhead),
+          includeInEmail: emailSettings.includeCurveData,
+          includeTargetPosition: emailSettings.includeTargetPosition,
+          includeGammaPlot: emailSettings.includeGammaPlot
         } : undefined,
-        projections: projections
+        projections: projections && emailSettings.includeTargetPosition ? {
+          projectedInc: projections.projectedInc,
+          projectedAz: projections.projectedAz,
+          buildRate: projections.buildRate,
+          turnRate: projections.turnRate
+        } : undefined
       };
 
+      // Generate the email body
       const emailBody = emailBodyTemplate(emailData);
 
-
+      // Send the email with attachments
       emailService.sendSurveyEmail(
         selectedDistro.emails,
         {
@@ -347,7 +370,9 @@ export default function EmailAutomation() {
 
       toast({
         title: 'Success',
-        description: 'Email drafted and ready to send'
+        description: attachments.length > 0 
+          ? `Email drafted with ${attachments.length} attachment(s)` 
+          : 'Email drafted and ready to send'
       });
     } catch (error) {
       console.error('Error sending email:', error);
@@ -389,14 +414,14 @@ export default function EmailAutomation() {
                     name="selectedDistro"
                     className="flex h-10 w-full rounded-md border border-neutral-border bg-neutral-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     value={emailSettings.selectedDistro}
-                    onChange={(e) => handleEmailSettingsChange({
-                      ...e,
-                      target: {
-                        ...e.target,
-                        name: e.target.name,
-                        value: parseInt(e.target.value)
-                      }
-                    })}
+                    onChange={(e) => {
+                      // Parse the string value to a number before setting it in the state
+                      const numValue = parseInt(e.target.value, 10);
+                      setEmailSettings(prev => ({
+                        ...prev,
+                        selectedDistro: numValue
+                      }));
+                    }}
                   >
                     {distributions.map(distro => (
                       <option key={distro.id} value={distro.id}>{distro.name}</option>
@@ -429,44 +454,157 @@ export default function EmailAutomation() {
               </div>
 
               {/* Inclusion Options */}
-              <div className="space-y-3 border border-neutral-border rounded-md p-3">
-                <h3 className="text-sm font-medium mb-2">Include in Email:</h3>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="includeCurveData" 
-                    checked={emailSettings.includeCurveData}
-                    onCheckedChange={(checked) => 
-                      handleCheckboxChange('includeCurveData', checked as boolean)
-                    }
-                  />
-                  <Label htmlFor="includeCurveData" className="cursor-pointer">
-                    Curve Data
-                  </Label>
+              <div className="space-y-3 border border-neutral-border rounded-md p-3 bg-neutral-background/40">
+                <h3 className="text-sm font-medium mb-2">Include in Email Body:</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeCurveData" 
+                      checked={emailSettings.includeCurveData}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange('includeCurveData', checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="includeCurveData" className="cursor-pointer">
+                      Curve Data
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeGammaPlot" 
+                      checked={emailSettings.includeGammaPlot}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange('includeGammaPlot', checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="includeGammaPlot" className="cursor-pointer">
+                      Gamma Plot
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeAiAnalysis" 
+                      checked={emailSettings.includeAiAnalysis}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange('includeAiAnalysis', checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="includeAiAnalysis" className="cursor-pointer">
+                      AI Analysis
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeTargetPosition" 
+                      checked={emailSettings.includeTargetPosition}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange('includeTargetPosition', checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="includeTargetPosition" className="cursor-pointer">
+                      Target Position
+                    </Label>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="includeGammaPlot" 
-                    checked={emailSettings.includeGammaPlot}
-                    onCheckedChange={(checked) => 
-                      handleCheckboxChange('includeGammaPlot', checked as boolean)
-                    }
-                  />
-                  <Label htmlFor="includeGammaPlot" className="cursor-pointer">
-                    Gamma Plot
-                  </Label>
+              </div>
+              
+              {/* File Attachments */}
+              <div className="space-y-3 border border-neutral-border rounded-md p-3 bg-neutral-background/40">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-medium">File Attachments:</h3>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        // Create a file input element
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.multiple = true;
+                        input.accept = '.pdf,.xls,.xlsx,.doc,.docx,.png,.jpg,.jpeg';
+                        input.onchange = (e) => {
+                          const files = (e.target as HTMLInputElement).files;
+                          if (files && files.length > 0) {
+                            setAttachments(prev => [...prev, ...Array.from(files)]);
+                          }
+                        };
+                        input.click();
+                      }} 
+                      className="text-xs h-8 px-2"
+                    >
+                      Select Files
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        document.getElementById('folder-input')?.click();
+                      }} 
+                      className="text-xs h-8 px-2 bg-blue-950/50 hover:bg-blue-800/30"
+                    >
+                      Select Folder
+                    </Button>
+                    <input 
+                      id="folder-input"
+                      type="file"
+                      // @ts-ignore - webkitdirectory attribute is not in standard HTML attributes but works in modern browsers
+                      webkitdirectory="true"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                          // Store the folder path
+                          const folderPath = (files[0] as any).webkitRelativePath.split('/')[0];
+                          setEmailSettings(prev => ({
+                            ...prev,
+                            attachmentFolder: folderPath
+                          }));
+                          
+                          // Add files to attachment list
+                          setAttachments(prev => [...prev, ...Array.from(files)]);
+                          
+                          toast({
+                            title: "Folder Selected",
+                            description: `All files from "${folderPath}" will be included in future emails`
+                          });
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="includeAiAnalysis" 
-                    checked={emailSettings.includeAiAnalysis}
-                    onCheckedChange={(checked) => 
-                      handleCheckboxChange('includeAiAnalysis', checked as boolean)
-                    }
-                  />
-                  <Label htmlFor="includeAiAnalysis" className="cursor-pointer">
-                    AI Analysis
-                  </Label>
-                </div>
+                
+                {/* Attachment List */}
+                {attachments.length > 0 && (
+                  <div className="mt-3 max-h-32 overflow-y-auto">
+                    <div className="space-y-2">
+                      {attachments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-navy-800/50 text-xs p-2 rounded">
+                          <div className="flex items-center">
+                            <FileSpreadsheet className="h-3 w-3 mr-2 text-cyan-400" />
+                            <span className="truncate max-w-[200px]">{file.name}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setAttachments(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            className="h-5 w-5 p-0 rounded-full hover:bg-red-900/30"
+                          >
+                            <Trash2 className="h-3 w-3 text-red-400" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {attachments.length === 0 && (
+                  <div className="flex items-center justify-center h-16 bg-neutral-background/50 rounded border border-dashed border-neutral-border text-gray-400 text-sm">
+                    No attachments selected
+                  </div>
+                )}
               </div>
 
               {/* Additional Notes */}
@@ -538,13 +676,19 @@ export default function EmailAutomation() {
                     <div className="text-right">
                       <div className="text-sm font-mono mb-1">
                         <span className="text-gray-400">Vertical: </span>
-                        {projections?.isAbove && <span className="text-accent-green">Above Target</span>}
-                        {projections?.isBelow && <span className="text-accent-red">Below Target</span>}
+                        {projections?.buildRate !== undefined && (
+                          projections.buildRate > 0 ? 
+                            <span className="text-accent-green">Above Target</span> : 
+                            <span className="text-accent-red">Below Target</span>
+                        )}
                       </div>
                       <div className="text-sm font-mono">
                         <span className="text-gray-400">Horizontal: </span>
-                        {projections?.isLeft && <span className="text-accent-blue">Left of Target</span>}
-                        {projections?.isRight && <span className="text-accent-orange">Right of Target</span>}
+                        {projections?.turnRate !== undefined && (
+                          projections.turnRate < 0 ? 
+                            <span className="text-accent-blue">Left of Target</span> : 
+                            <span className="text-accent-orange">Right of Target</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -740,7 +884,7 @@ export default function EmailAutomation() {
         </DialogContent>
       </Dialog>
 
-      <style jsx>{`
+      <style>{`
         .pulse {
           animation: pulse 2s infinite;
         }

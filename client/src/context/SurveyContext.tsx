@@ -35,6 +35,12 @@ interface SurveyContextType {
     projectedAz: number;
     buildRate: number;
     turnRate: number;
+    isAbove?: boolean;
+    isBelow?: boolean;
+    isLeft?: boolean;
+    isRight?: boolean;
+    verticalPosition?: number;
+    horizontalPosition?: number;
   } | null;
 }
 
@@ -229,6 +235,12 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const response = await apiRequest('POST', '/api/surveys', survey);
       const newSurvey = await response.json();
       
+      // Update surveys list with the new survey
+      setSurveys(prevSurveys => [...prevSurveys, newSurvey]);
+      
+      // Set the current survey to the newly added one
+      setCurrentSurvey(newSurvey);
+      
       toast({
         title: "Success",
         description: "Survey added successfully",
@@ -254,6 +266,16 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const response = await apiRequest('PATCH', `/api/surveys/${id}`, survey);
       const updatedSurvey = await response.json();
       
+      // Update surveys list with the updated survey
+      setSurveys(prevSurveys => prevSurveys.map(s => 
+        s.id === id ? updatedSurvey : s
+      ));
+      
+      // Update current survey if it's the one being edited
+      if (currentSurvey && currentSurvey.id === id) {
+        setCurrentSurvey(updatedSurvey);
+      }
+      
       toast({
         title: "Success",
         description: "Survey updated successfully",
@@ -277,6 +299,14 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       setLoading(true);
       await apiRequest('DELETE', `/api/surveys/${id}`, undefined);
+      
+      // Remove survey from surveys list
+      setSurveys(prevSurveys => prevSurveys.filter(s => s.id !== id));
+      
+      // If current survey is the one being deleted, set it to null
+      if (currentSurvey && currentSurvey.id === id) {
+        setCurrentSurvey(null);
+      }
       
       toast({
         title: "Success",
