@@ -191,12 +191,18 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
     onOpenChange(false);
   };
 
-  // Format sensor offset display value
-  const displaySensorOffset = wellInfo?.sensorOffset 
-    ? typeof wellInfo.sensorOffset === 'string' 
-      ? parseFloat(wellInfo.sensorOffset).toFixed(2)
-      : wellInfo.sensorOffset.toFixed(2)
-    : '0.00';
+  // Format sensor offset display value safely
+  const displaySensorOffset = () => {
+    if (!wellInfo || wellInfo.sensorOffset === undefined || wellInfo.sensorOffset === null) {
+      return '0.00';
+    }
+    
+    if (typeof wellInfo.sensorOffset === 'string') {
+      return parseFloat(wellInfo.sensorOffset).toFixed(2);
+    }
+    
+    return wellInfo.sensorOffset.toFixed(2);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -238,7 +244,7 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-primary" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
-                    Sensor offset: {displaySensorOffset} ft
+                    Sensor offset: {wellInfo?.sensorOffset ? (typeof wellInfo.sensorOffset === 'string' ? parseFloat(wellInfo.sensorOffset).toFixed(2) : Number(wellInfo.sensorOffset).toFixed(2)) : '0.00'} ft
                   </div>
                 </div>
                 <div className="bg-neutral-background rounded-md p-3">
