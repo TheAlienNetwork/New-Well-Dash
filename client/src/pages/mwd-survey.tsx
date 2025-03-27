@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Card } from '@/components/ui/card';
 import { AIAnalyticsContainer } from '@/components/dashboard/AIAnalytics';
-import { SurveyTable } from '@/components/dashboard/SurveyTable';
+import { SurveyTable } from '../components/dashboard/SurveyTable';
 import { CurveData } from '@/components/dashboard/CurveData';
 import { TargetPosition } from '@/components/dashboard/TargetPosition';
 import { useWellContext } from '@/context/WellContext';
