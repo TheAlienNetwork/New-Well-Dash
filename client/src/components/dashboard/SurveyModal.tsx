@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useSurveyContext } from '@/context/SurveyContext';
+import { useWellContext } from '@/context/WellContext'; // Added import for useWellContext
 import { Survey } from '@shared/schema';
 import { Activity, Ruler, Compass, ArrowUpCircle, Crosshair, Save, XCircle } from 'lucide-react';
 
@@ -16,8 +17,9 @@ interface SurveyModalProps {
 
 export default function SurveyModal({ open, onOpenChange, survey, mode }: SurveyModalProps) {
   const { addSurvey, updateSurvey } = useSurveyContext();
+  const { wellInfo } = useWellContext(); // Added to access wellInfo
 
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = useState({
     md: '',
     inc: '',
     azi: '',
@@ -28,7 +30,7 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
     toolFace: ''
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (survey && mode === 'edit') {
       setFormData({
         md: survey.md?.toString() || '',
@@ -53,6 +55,17 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
       });
     }
   }, [survey, mode]);
+
+  useEffect(() => {
+    // Calculate survey depth when bit depth changes
+    if (formData.bitDepth && wellInfo?.sensorOffset) {
+      const calculatedDepth = Number(formData.bitDepth) - Number(wellInfo.sensorOffset);
+      setFormData(prev => ({
+        ...prev,
+        md: calculatedDepth.toFixed(2)
+      }));
+    }
+  }, [formData.bitDepth, wellInfo?.sensorOffset]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,16 +100,6 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="md" className="text-xs text-gray-400">Measured Depth (ft)</Label>
-                <Input
-                  id="md"
-                  value={formData.md}
-                  onChange={(e) => setFormData(prev => ({ ...prev, md: e.target.value }))}
-                  className="bg-neutral-background border-neutral-border"
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="bitDepth" className="text-xs text-gray-400">Bit Depth (ft)</Label>
                 <Input
                   id="bitDepth"
@@ -105,6 +108,20 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
                   className="bg-neutral-background border-neutral-border"
                   placeholder="0.00"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="md" className="text-xs text-gray-400">Measured Depth (ft)</Label>
+                <Input
+                  id="md"
+                  value={formData.md}
+                  onChange={(e) => setFormData(prev => ({ ...prev, md: e.target.value }))}
+                  className="bg-neutral-background border-neutral-border"
+                  placeholder="0.00"
+                  disabled
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Calculated from Bit Depth - Sensor Offset ({wellInfo?.sensorOffset || 0} ft)
+                </p>
               </div>
             </div>
           </div>
