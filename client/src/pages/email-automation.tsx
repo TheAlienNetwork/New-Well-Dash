@@ -276,21 +276,6 @@ export default function EmailAutomation() {
     }
 
     try {
-      // Log attachments status
-      console.log(`Processing ${attachments.length} attachments for email`);
-      
-      // Process attachments to ensure they can be handled properly
-      const processedAttachments = attachments.map(file => {
-        console.log(`Processing attachment: ${file.name} (${file.size} bytes, type: ${file.type})`);
-        return {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          // For email services that accept data URLs
-          dataUrl: URL.createObjectURL(file)
-        };
-      });
-      
       // Generate gamma plot image from the emailService
       const gammaImageUrl = emailSettings.includeGammaPlot ? 
         emailService.generateGammaPlotImage() : undefined;
@@ -311,7 +296,7 @@ export default function EmailAutomation() {
         wellName: wellInfo.wellName,
         rigName: wellInfo.rigName,
         gammaImageUrl,
-        attachments: processedAttachments,
+        attachments: attachments,
         additionalNote: emailSettings.additionalNote || undefined,
         targetPosition,
         aiAnalysis: emailSettings.includeAiAnalysis ? {
@@ -351,33 +336,6 @@ export default function EmailAutomation() {
           emailBody
         }
       );
-      
-      // Generate a mailto link as a fallback/alternative method
-      if (attachments.length > 0) {
-        try {
-          // Create a mailto link (note: attachments can't be included in mailto directly)
-          // This is just to give users a starting point for their email
-          setTimeout(() => {
-            const mailtoLink = `mailto:${encodeURIComponent(selectedDistro.emails)}?subject=${encodeURIComponent(`Survey Report - ${latestSurvey.index} @ ${parseFloat(latestSurvey.md).toFixed(2)}ft`)}&body=${encodeURIComponent("Survey report with attachments. Please see the HTML email preview for complete content.")}`;
-            
-            // Create and click a temporary link
-            const tempLink = document.createElement('a');
-            tempLink.href = mailtoLink;
-            tempLink.style.display = 'none';
-            document.body.appendChild(tempLink);
-            tempLink.click();
-            
-            // Cleanup temporary elements
-            setTimeout(() => {
-              if (document.body.contains(tempLink)) {
-                document.body.removeChild(tempLink);
-              }
-            }, 100);
-          }, 500);
-        } catch (err) {
-          console.error("Failed to create mailto link:", err);
-        }
-      }
 
       toast({
         title: 'Success',
@@ -555,36 +513,17 @@ export default function EmailAutomation() {
                               const input = document.createElement('input');
                               input.type = 'file';
                               input.multiple = true;
-                              input.accept = '.pdf,.xls,.xlsx,.doc,.docx,.png,.jpg,.jpeg,.las,.csv';
-                              
-                              // Make sure we remove the element after use to prevent memory leaks
-                              input.style.display = 'none';
-                              document.body.appendChild(input);
-                              
+                              input.accept = '.pdf,.xls,.xlsx,.doc,.docx,.png,.jpg,.jpeg';
                               input.onchange = (e) => {
                                 const files = (e.target as HTMLInputElement).files;
                                 if (files && files.length > 0) {
-                                  console.log(`Selected ${files.length} files:`, files);
                                   setAttachments(prev => [...prev, ...Array.from(files)]);
                                   toast({
                                     title: "Files Added",
                                     description: `${files.length} file(s) added to attachments`
                                   });
-                                } else {
-                                  console.log('No files selected');
                                 }
-                                
-                                // Clean up the input element
-                                document.body.removeChild(input);
                               };
-                              
-                              // Add a click handler to check if the dialog was dismissed
-                              setTimeout(() => {
-                                if (document.body.contains(input)) {
-                                  document.body.removeChild(input);
-                                }
-                              }, 5000); // Clean up after 5 seconds if not used
-                              
                               input.click();
                             }} 
                             className="h-8 w-8 p-0 bg-neutral-background hover:bg-neutral-border border-neutral-border"
@@ -605,20 +544,7 @@ export default function EmailAutomation() {
                             variant="outline" 
                             size="sm"
                             onClick={() => {
-                              const folderInput = document.getElementById('folder-input') as HTMLInputElement;
-                              if (folderInput) {
-                                console.log('Clicking folder input element');
-                                // Reset the input value to ensure onChange fires even if the same folder is selected
-                                folderInput.value = '';
-                                folderInput.click();
-                              } else {
-                                console.error('Folder input element not found');
-                                toast({
-                                  title: "Error",
-                                  description: "Folder selection not supported in this browser",
-                                  variant: "destructive"
-                                });
-                              }
+                              document.getElementById('folder-input')?.click();
                             }} 
                             className="h-8 w-8 p-0 bg-blue-950/50 hover:bg-blue-800/30 border-blue-800/50"
                           >

@@ -26,73 +26,35 @@ export const WellProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Function to fetch well info that can be called anytime
-  const fetchWellInfo = async () => {
-    try {
-      setLoading(true);
-      const response = await apiRequest('GET', '/api/well-info', undefined);
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        setWellInfo(data[0]);
-      }
-    } catch (err) {
-      console.error('Error fetching well info:', err);
-      setError('Failed to load well information');
-      toast({
-        title: "Error",
-        description: "Failed to load well information",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
   useEffect(() => {
-    // Initial fetch
+    const fetchWellInfo = async () => {
+      try {
+        setLoading(true);
+        const response = await apiRequest('GET', '/api/well-info', undefined);
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+          setWellInfo(data[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching well info:', err);
+        setError('Failed to load well information');
+        toast({
+          title: "Error",
+          description: "Failed to load well information",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchWellInfo();
 
-    // Ensure WebSocket connection is active
-    witsClient.connect().catch(console.error);
-
-    // Set up WebSocket handler for well info updates
-    const wellInfoHandler = (data: any) => {
-      console.log('WebSocket well info update received:', data);
+    // Listen for well info updates via WebSocket
+    witsClient.onWellInfo((data) => {
       setWellInfo(data);
-    };
-    
-    witsClient.onWellInfo(wellInfoHandler);
-    
-    // Set up reconnection handler
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // Re-fetch data when tab becomes visible again
-        fetchWellInfo();
-        
-        // Ensure WebSocket connection is active
-        witsClient.connect().catch(console.error);
-      }
-    };
-    
-    // Handle tab visibility changes
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Setup heartbeat to periodically refresh data
-    const heartbeat = setInterval(() => {
-      fetchWellInfo();
-      
-      // Also check if WebSocket is connected, reconnect if not
-      if (!witsClient.getStatus().connected) {
-        console.log('Heartbeat detected WebSocket disconnect, reconnecting...');
-        witsClient.connect().catch(console.error);
-      }
-    }, 10000); // Refresh every 10 seconds for better responsiveness
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      clearInterval(heartbeat);
-    };
+    });
   }, [toast]);
 
   const updateWellInfo = async (updatedInfo: Partial<WellInfo>) => {

@@ -16,7 +16,6 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { apiRequest } from '@/lib/queryClient';
 
 export default function WellInfo() {
   const { wellInfo, updateWellInfo, loading } = useWellContext();
@@ -30,16 +29,14 @@ export default function WellInfo() {
   });
   
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
-  // Refresh form data when wellInfo changes
   useEffect(() => {
     if (wellInfo) {
       setFormData({
         wellName: wellInfo.wellName,
         rigName: wellInfo.rigName,
-        sensorOffset: wellInfo.sensorOffset,
-        proposedDirection: wellInfo.proposedDirection
+        sensorOffset: Number(wellInfo.sensorOffset),
+        proposedDirection: Number(wellInfo.proposedDirection)
       });
     }
   }, [wellInfo]);
@@ -48,77 +45,26 @@ export default function WellInfo() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value // Store all values as strings
+      [name]: name === 'sensorOffset' || name === 'proposedDirection' ? parseFloat(value) || 0 : value
     }));
-  };
-
-  const refreshWellInfo = async () => {
-    try {
-      const response = await apiRequest('GET', '/api/well-info', undefined);
-      const data = await response.json();
-      console.log('Refreshed well info:', data);
-      // The WellContext will handle updates through the WebSocket
-    } catch (err) {
-      console.error('Error refreshing well info:', err);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      setIsSaving(true);
-      
-      // Make sure all numeric values are handled as strings
-      const dataToSubmit = {
-        ...formData,
-        sensorOffset: formData.sensorOffset ? String(formData.sensorOffset) : '0',
-        proposedDirection: formData.proposedDirection 
-          ? String(formData.proposedDirection) 
-          : null
-      };
-      
-      console.log('Submitting well info update:', dataToSubmit);
-      
-      if (!wellInfo) {
-        // Create a new well info record if none exists
-        const createResponse = await apiRequest('POST', '/api/well-info', dataToSubmit);
-        const newWellInfo = await createResponse.json();
-        console.log('Created new well info:', newWellInfo);
-        // Update local state directly
-        setFormData({
-          ...formData,
-          ...newWellInfo
-        });
-      } else {
-        // Update existing well info
-        const response = await apiRequest('PATCH', `/api/well-info/${wellInfo.id}`, dataToSubmit);
-        const updatedData = await response.json();
-        console.log('Well info update response:', updatedData);
-        // Update local form data
-        setFormData({
-          ...formData,
-          ...updatedData
-        });
-      }
-      
-      // Force a refresh of data
-      await refreshWellInfo();
-      
+      await updateWellInfo(formData);
       setIsEditing(false);
       toast({
         title: 'Success',
         description: 'Well information updated successfully'
       });
     } catch (error) {
-      console.error('Error updating well info:', error);
       toast({
         title: 'Error',
         description: 'Failed to update well information',
         variant: 'destructive'
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -260,18 +206,9 @@ export default function WellInfo() {
                 
                 {isEditing && (
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={isSaving} className="relative">
-                      {isSaving ? (
-                        <>
-                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Changes
-                        </>
-                      )}
+                    <Button type="submit" disabled={loading}>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
                     </Button>
                   </div>
                 )}
@@ -293,13 +230,13 @@ export default function WellInfo() {
                           name="sensorOffset"
                           type="number"
                           step="0.01"
-                          value={formData.sensorOffset || ''}
+                          value={formData.sensorOffset}
                           onChange={handleInputChange}
                           placeholder="e.g. 100"
                           className="bg-neutral-surface border-neutral-border"
                         />
                       ) : (
-                        <div className="text-xl font-mono">{wellInfo?.sensorOffset ? Number(wellInfo.sensorOffset).toFixed(2) : 'Not specified'}</div>
+                        <div className="text-xl font-mono">{wellInfo?.sensorOffset?.toFixed(2) || 'Not specified'}</div>
                       )}
                       <p className="text-xs text-gray-400 mt-2">
                         Distance from bit to MWD sensors, used to calculate survey depth from bit depth
@@ -308,7 +245,7 @@ export default function WellInfo() {
                       <div className="mt-4 bg-neutral-surface p-3 border border-neutral-border rounded-md">
                         <div className="text-xs text-gray-400 mb-1">Example Calculation:</div>
                         <div className="text-sm">
-                          Bit Depth (1559.92 ft) - Sensor Offset ({wellInfo?.sensorOffset ? Number(wellInfo.sensorOffset).toFixed(2) : '100.00'} ft) = 
+                          Bit Depth (1559.92 ft) - Sensor Offset ({wellInfo?.sensorOffset?.toFixed(2) || '100.00'} ft) = 
                           <span className="font-mono ml-1">1459.92 ft</span> Survey Depth
                         </div>
                       </div>
@@ -327,13 +264,13 @@ export default function WellInfo() {
                           name="proposedDirection"
                           type="number"
                           step="0.01"
-                          value={formData.proposedDirection || ''}
+                          value={formData.proposedDirection}
                           onChange={handleInputChange}
                           placeholder="e.g. 175"
                           className="bg-neutral-surface border-neutral-border"
                         />
                       ) : (
-                        <div className="text-xl font-mono">{wellInfo?.proposedDirection ? Number(wellInfo.proposedDirection).toFixed(2) : 'Not specified'}</div>
+                        <div className="text-xl font-mono">{wellInfo?.proposedDirection?.toFixed(2) || 'Not specified'}</div>
                       )}
                       <p className="text-xs text-gray-400 mt-2">
                         Target azimuth for the well, used to calculate vertical section
@@ -357,18 +294,9 @@ export default function WellInfo() {
                 
                 {isEditing && (
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={isSaving} className="relative">
-                      {isSaving ? (
-                        <>
-                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Parameters
-                        </>
-                      )}
+                    <Button type="submit" disabled={loading}>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Parameters
                     </Button>
                   </div>
                 )}
@@ -378,8 +306,7 @@ export default function WellInfo() {
         </CardContent>
       </Card>
       
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style jsx>{`
         .pulse {
           animation: pulse 2s infinite;
         }
@@ -388,8 +315,7 @@ export default function WellInfo() {
           50% { opacity: 1; }
           100% { opacity: 0.6; }
         }
-        `
-      }}></style>
+      `}</style>
     </div>
   );
 }

@@ -744,16 +744,9 @@ function broadcastMessage(message: any) {
 }
 
 function broadcastWellInfoUpdate(wellInfo: any) {
-  console.log('Broadcasting well info update:', wellInfo);
-  
-  // Use broadcastMessage to send a stringified JSON to all WebSocket clients
-  activeConnections.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({
-        type: 'well_info',
-        data: wellInfo
-      }));
-    }
+  broadcastMessage({
+    type: 'well_info',
+    data: wellInfo
   });
 }
 

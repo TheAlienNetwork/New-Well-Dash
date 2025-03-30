@@ -191,7 +191,7 @@ export default function GammaPlot() {
                   dataKey="depth" 
                   type="number"
                   domain={['dataMin - 5', 'dataMax + 5']}
-                  reversed={false} /* Set to false to have lower depths at TOP */
+                  reversed={true}
                   stroke="#6b7280"
                   tick={{ fill: '#e5e7eb' }}
                   tickFormatter={(value) => value.toFixed(0)}
