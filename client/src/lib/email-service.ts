@@ -1046,36 +1046,31 @@ export class EmailService {
     try {
       const { to, subject, body, attachments } = options;
       
-      // Check if the body is HTML content
-      const isHtmlContent = body.trim().startsWith('<') && body.includes('</');
+      // Gmail compose URL - this will open Gmail directly
+      const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}`;
       
-      // Generate a blob URL for copying HTML to clipboard
-      if (isHtmlContent) {
-        // Create a temporarily hidden textarea with the HTML content
-        const tempDiv = document.createElement('div');
-        tempDiv.style.position = 'fixed';
-        tempDiv.style.left = '-9999px';
-        tempDiv.innerHTML = body;
-        document.body.appendChild(tempDiv);
-        
-        // Create a selection and copy to clipboard
-        const selection = window.getSelection();
-        if (selection) {
-          selection.removeAllRanges();
-          const range = document.createRange();
-          range.selectNodeContents(tempDiv);
-          selection.addRange(range);
-          
-          // Copy the HTML content to clipboard
-          document.execCommand('copy');
-          selection.removeAllRanges();
-        }
-        
-        document.body.removeChild(tempDiv);
-        
-        // Now open email client with only the subject and recipients
-        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`;
-        window.open(mailtoLink);
+      // Open Gmail in a new tab
+      window.open(gmailComposeUrl, '_blank');
+      
+      // Copy HTML content to clipboard for pasting
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'fixed';
+      tempDiv.style.left = '-9999px';
+      tempDiv.innerHTML = body;
+      document.body.appendChild(tempDiv);
+      
+      // Create a selection and copy to clipboard
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        const range = document.createRange();
+        range.selectNodeContents(tempDiv);
+        selection.addRange(range);
+        document.execCommand('copy');
+        selection.removeAllRanges();
+      }
+      
+      document.body.removeChild(tempDiv);
         
         // Prepare attachment files for drag and drop if available
         if (attachments && attachments.length > 0) {
@@ -1086,20 +1081,20 @@ export class EmailService {
           message += `${attachments.length} attachment${attachments.length > 1 ? 's' : ''} ready to add: ${fileNames}\n\n`;
           message += `Please drag and drop these files into your email after pasting the content.`;
           
-          // Show a help message with attachment info
+          // Show Gmail-specific help message
           setTimeout(() => {
-            window.alert(message);
-          }, 1000);
-        } else {
-          // Standard message without attachment info
-          setTimeout(() => {
-            window.alert("HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\nFor best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.");
+            const instructions = [
+              "Gmail compose window has been opened.",
+              "1. Wait for Gmail to load",
+              "2. Click in the email body",
+              "3. Press Ctrl+V (Windows) or Cmd+V (Mac) to paste the formatted content",
+              attachments?.length ? `4. Drag and drop ${attachments.length} attachment(s) into the email` : "",
+              "5. Send when ready"
+            ].filter(Boolean).join("\n\n");
+            
+            window.alert(instructions);
           }, 1000);
         }
-      } else {
-        // For plain text emails, use standard mailto
-        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.open(mailtoLink);
       }
     } catch (error) {
       console.error('Error opening email client:', error);
