@@ -57,8 +57,8 @@ export default function WellInfo() {
       const dataToSubmit = {
         ...formData,
         // Convert string values to numbers for numeric fields
-        sensorOffset: formData.sensorOffset ? formData.sensorOffset : '0',
-        proposedDirection: formData.proposedDirection ? formData.proposedDirection : '0'
+        sensorOffset: formData.sensorOffset ? parseFloat(formData.sensorOffset) : 0,
+        proposedDirection: formData.proposedDirection ? parseFloat(formData.proposedDirection) : 0
       };
       
       console.log('Submitting well info:', dataToSubmit);

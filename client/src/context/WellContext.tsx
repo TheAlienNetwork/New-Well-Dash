@@ -62,7 +62,20 @@ export const WellProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       setLoading(true);
-      const response = await apiRequest('PATCH', `/api/well-info/${wellInfo.id}`, updatedInfo);
+      console.log('Sending update to API:', updatedInfo);
+      
+      // Explicitly ensure numeric types are numbers, not strings
+      const dataToSend = {
+        ...updatedInfo,
+        sensorOffset: typeof updatedInfo.sensorOffset === 'string' 
+          ? parseFloat(updatedInfo.sensorOffset) 
+          : updatedInfo.sensorOffset,
+        proposedDirection: typeof updatedInfo.proposedDirection === 'string' 
+          ? parseFloat(updatedInfo.proposedDirection) 
+          : updatedInfo.proposedDirection
+      };
+      
+      const response = await apiRequest('PATCH', `/api/well-info/${wellInfo.id}`, dataToSend);
       const updatedWellInfo = await response.json();
       setWellInfo(updatedWellInfo);
       toast({

@@ -191,7 +191,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   router.patch('/well-info/:id', async (req: Request, res: Response) => {
     try {
       const wellId = parseInt(req.params.id);
-      const validatedData = insertWellInfoSchema.partial().parse(req.body);
+      
+      console.log('Well info PATCH request received:', req.body);
+      
+      // Convert numeric string values to numbers
+      const processedData = { ...req.body };
+      if (typeof processedData.sensorOffset === 'string' && processedData.sensorOffset !== '') {
+        processedData.sensorOffset = parseFloat(processedData.sensorOffset);
+      }
+      if (typeof processedData.proposedDirection === 'string' && processedData.proposedDirection !== '') {
+        processedData.proposedDirection = parseFloat(processedData.proposedDirection);
+      }
+      
+      console.log('Processed data for validation:', processedData);
+      
+      const validatedData = insertWellInfoSchema.partial().parse(processedData);
+      console.log('Validated data:', validatedData);
 
       const updated = await storage.updateWellInfo(wellId, validatedData);
 
@@ -204,6 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Broadcast update to all connected clients
       broadcastWellInfoUpdate(updated);
     } catch (error) {
+      console.error('Error updating well info:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
