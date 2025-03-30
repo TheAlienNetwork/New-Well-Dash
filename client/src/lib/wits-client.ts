@@ -119,14 +119,35 @@ export class WitsClient {
         this.socket.onmessage = (event) => {
           try {
             const message = JSON.parse(event.data);
+            console.log('Received WebSocket message:', message);
+            
             if (message.type && this.messageHandlers[message.type]) {
               if (message.type === 'wits_status') {
                 this.witsStatus = message.data || { connected: message.connected, address: message.address };
               }
-              this.notifyHandlers(message.type, message.data || message);
+              
+              // For well_info type, ensure we have a valid object
+              if (message.type === 'well_info') {
+                const wellData = message.data || {};
+                console.log('Processing well info update:', wellData);
+                
+                // Ensure numeric string fields are properly handled
+                if (wellData.sensorOffset) {
+                  wellData.sensorOffset = String(wellData.sensorOffset);
+                }
+                if (wellData.proposedDirection) {
+                  wellData.proposedDirection = String(wellData.proposedDirection);
+                }
+                
+                this.notifyHandlers(message.type, wellData);
+              } else {
+                // For all other message types
+                this.notifyHandlers(message.type, message.data || message);
+              }
             }
           } catch (error) {
             console.error('Error parsing WebSocket message:', error);
+            console.error('Raw message:', event.data);
           }
         };
       } catch (error) {

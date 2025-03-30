@@ -53,11 +53,16 @@ export const WellProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Initial fetch
     fetchWellInfo();
 
+    // Ensure WebSocket connection is active
+    witsClient.connect().catch(console.error);
+
     // Set up WebSocket handler for well info updates
-    witsClient.onWellInfo((data) => {
+    const wellInfoHandler = (data: any) => {
       console.log('WebSocket well info update received:', data);
       setWellInfo(data);
-    });
+    };
+    
+    witsClient.onWellInfo(wellInfoHandler);
     
     // Set up reconnection handler
     const handleVisibilityChange = () => {
@@ -76,7 +81,13 @@ export const WellProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Setup heartbeat to periodically refresh data
     const heartbeat = setInterval(() => {
       fetchWellInfo();
-    }, 30000); // Refresh every 30 seconds
+      
+      // Also check if WebSocket is connected, reconnect if not
+      if (!witsClient.getStatus().connected) {
+        console.log('Heartbeat detected WebSocket disconnect, reconnecting...');
+        witsClient.connect().catch(console.error);
+      }
+    }, 10000); // Refresh every 10 seconds for better responsiveness
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);

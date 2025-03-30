@@ -16,6 +16,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function WellInfo() {
   const { wellInfo, updateWellInfo, loading } = useWellContext();
@@ -29,7 +30,9 @@ export default function WellInfo() {
   });
   
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
+  // Refresh form data when wellInfo changes
   useEffect(() => {
     if (wellInfo) {
       setFormData({
@@ -49,22 +52,58 @@ export default function WellInfo() {
     }));
   };
 
+  const refreshWellInfo = async () => {
+    try {
+      const response = await apiRequest('GET', '/api/well-info', undefined);
+      const data = await response.json();
+      console.log('Refreshed well info:', data);
+      // The WellContext will handle updates through the WebSocket
+    } catch (err) {
+      console.error('Error refreshing well info:', err);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      await updateWellInfo(formData);
+      setIsSaving(true);
+      
+      // Make sure all numeric values are handled as strings
+      const dataToSubmit = {
+        ...formData,
+        sensorOffset: String(formData.sensorOffset),
+        proposedDirection: formData.proposedDirection !== undefined 
+          ? String(formData.proposedDirection) 
+          : null
+      };
+      
+      console.log('Submitting well info update:', dataToSubmit);
+      
+      // Directly use the API to ensure the request goes through
+      if (wellInfo) {
+        const response = await apiRequest('PATCH', `/api/well-info/${wellInfo.id}`, dataToSubmit);
+        const updatedData = await response.json();
+        console.log('Well info update response:', updatedData);
+        
+        // Force a refresh of data
+        await refreshWellInfo();
+      }
+      
       setIsEditing(false);
       toast({
         title: 'Success',
         description: 'Well information updated successfully'
       });
     } catch (error) {
+      console.error('Error updating well info:', error);
       toast({
         title: 'Error',
         description: 'Failed to update well information',
         variant: 'destructive'
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -206,9 +245,18 @@ export default function WellInfo() {
                 
                 {isEditing && (
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={loading}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
+                    <Button type="submit" disabled={isSaving} className="relative">
+                      {isSaving ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}
@@ -294,9 +342,18 @@ export default function WellInfo() {
                 
                 {isEditing && (
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={loading}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Parameters
+                    <Button type="submit" disabled={isSaving} className="relative">
+                      {isSaving ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Parameters
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}

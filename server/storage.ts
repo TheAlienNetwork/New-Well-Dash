@@ -260,12 +260,25 @@ export class MemStorage implements IStorage {
   async createWellInfo(info: InsertWellInfo): Promise<WellInfo> {
     const id = this.currentWellInfoId++;
     const now = new Date();
+    
+    // Ensure numeric values are properly handled as strings
+    const processedInfo: InsertWellInfo = {
+      ...info,
+      sensorOffset: String(info.sensorOffset || '0'),
+      proposedDirection: info.proposedDirection ? String(info.proposedDirection) : null
+    };
+    
+    console.log('Creating well info with processed data:', processedInfo);
+    
     const wellInfo: WellInfo = { 
-      ...info, 
+      ...processedInfo, 
       id, 
       createdAt: now, 
       updatedAt: now 
     };
+    
+    console.log('Created well info:', wellInfo);
+    
     this.wellInfos.set(id, wellInfo);
     return wellInfo;
   }
@@ -274,11 +287,33 @@ export class MemStorage implements IStorage {
     const existing = this.wellInfos.get(id);
     if (!existing) return undefined;
     
+    // Ensure numeric values are properly handled
+    const processedInfo: Partial<InsertWellInfo> = {
+      ...info
+    };
+    
+    // Explicitly handle all string type numeric fields to ensure consistency
+    if (processedInfo.sensorOffset !== undefined) {
+      processedInfo.sensorOffset = String(processedInfo.sensorOffset);
+    }
+    
+    if (processedInfo.proposedDirection !== undefined) {
+      processedInfo.proposedDirection = String(processedInfo.proposedDirection);
+    }
+    
+    console.log('Updating well info with processed data:', processedInfo);
+    
     const updated: WellInfo = {
       ...existing,
-      ...info,
+      ...processedInfo,
+      // Explicitly set proposedDirection as it can be undefined in processedInfo
+      proposedDirection: processedInfo.proposedDirection !== undefined 
+        ? processedInfo.proposedDirection 
+        : existing.proposedDirection,
       updatedAt: new Date()
     };
+    
+    console.log('Updated well info:', updated);
     
     this.wellInfos.set(id, updated);
     return updated;
