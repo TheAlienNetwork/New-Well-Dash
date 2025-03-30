@@ -72,23 +72,38 @@ export default function WellInfo() {
       // Make sure all numeric values are handled as strings
       const dataToSubmit = {
         ...formData,
-        sensorOffset: String(formData.sensorOffset),
-        proposedDirection: formData.proposedDirection !== undefined 
+        sensorOffset: formData.sensorOffset ? String(formData.sensorOffset) : '0',
+        proposedDirection: formData.proposedDirection 
           ? String(formData.proposedDirection) 
           : null
       };
       
       console.log('Submitting well info update:', dataToSubmit);
       
-      // Directly use the API to ensure the request goes through
-      if (wellInfo) {
+      if (!wellInfo) {
+        // Create a new well info record if none exists
+        const createResponse = await apiRequest('POST', '/api/well-info', dataToSubmit);
+        const newWellInfo = await createResponse.json();
+        console.log('Created new well info:', newWellInfo);
+        // Update local state directly
+        setFormData({
+          ...formData,
+          ...newWellInfo
+        });
+      } else {
+        // Update existing well info
         const response = await apiRequest('PATCH', `/api/well-info/${wellInfo.id}`, dataToSubmit);
         const updatedData = await response.json();
         console.log('Well info update response:', updatedData);
-        
-        // Force a refresh of data
-        await refreshWellInfo();
+        // Update local form data
+        setFormData({
+          ...formData,
+          ...updatedData
+        });
       }
+      
+      // Force a refresh of data
+      await refreshWellInfo();
       
       setIsEditing(false);
       toast({
@@ -278,7 +293,7 @@ export default function WellInfo() {
                           name="sensorOffset"
                           type="number"
                           step="0.01"
-                          value={String(formData.sensorOffset)}
+                          value={formData.sensorOffset || ''}
                           onChange={handleInputChange}
                           placeholder="e.g. 100"
                           className="bg-neutral-surface border-neutral-border"
@@ -312,7 +327,7 @@ export default function WellInfo() {
                           name="proposedDirection"
                           type="number"
                           step="0.01"
-                          value={String(formData.proposedDirection)}
+                          value={formData.proposedDirection || ''}
                           onChange={handleInputChange}
                           placeholder="e.g. 175"
                           className="bg-neutral-surface border-neutral-border"
