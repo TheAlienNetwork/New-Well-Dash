@@ -1046,60 +1046,64 @@ export class EmailService {
     try {
       const { to, subject, body, attachments } = options;
       
-      // Gmail compose URL - this will open Gmail directly
-      const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}`;
+      // Check if the body is HTML content
+      const isHtmlContent = body.trim().startsWith('<') && body.includes('</');
       
-      // Open Gmail in a new tab
-      window.open(gmailComposeUrl, '_blank');
-      
-      // Copy HTML content to clipboard for pasting
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'fixed';
-      tempDiv.style.left = '-9999px';
-      tempDiv.innerHTML = body;
-      document.body.appendChild(tempDiv);
-      
-      // Create a selection and copy to clipboard
-      const selection = window.getSelection();
-      if (selection) {
-        selection.removeAllRanges();
-        const range = document.createRange();
-        range.selectNodeContents(tempDiv);
-        selection.addRange(range);
-        document.execCommand('copy');
-        selection.removeAllRanges();
-      }
-      
-      document.body.removeChild(tempDiv);
+      // Generate a blob URL for copying HTML to clipboard
+      if (isHtmlContent) {
+        // Create a temporarily hidden textarea with the HTML content
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'fixed';
+        tempDiv.style.left = '-9999px';
+        tempDiv.innerHTML = body;
+        document.body.appendChild(tempDiv);
         
-      // Prepare attachment files for drag and drop if available
-      if (attachments && attachments.length > 0) {
-        // Construct a message about the attachments with a count and list of file names
-        const fileNames = attachments.map(file => file.name).join(", ");
-        let message = `HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\n`;
-        message += `For best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.\n\n`;
-        message += `${attachments.length} attachment${attachments.length > 1 ? 's' : ''} ready to add: ${fileNames}\n\n`;
-        message += `Please drag and drop these files into your email after pasting the content.`;
-        
-        // Show Gmail-specific help message
-        setTimeout(() => {
-          const instructions = [
-            "Gmail compose window has been opened.",
-            "1. Wait for Gmail to load",
-            "2. Click in the email body",
-            "3. Press Ctrl+V (Windows) or Cmd+V (Mac) to paste the formatted content",
-            attachments?.length ? `4. Drag and drop ${attachments.length} attachment(s) into the email` : "",
-            "5. Send when ready"
-          ].filter(Boolean).join("\n\n");
+        // Create a selection and copy to clipboard
+        const selection = window.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+          const range = document.createRange();
+          range.selectNodeContents(tempDiv);
+          selection.addRange(range);
           
-          window.alert(instructions);
-        }, 1000);
+          // Copy the HTML content to clipboard
+          document.execCommand('copy');
+          selection.removeAllRanges();
+        }
+        
+        document.body.removeChild(tempDiv);
+        
+        // Now open email client with only the subject and recipients
+        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`;
+        window.open(mailtoLink);
+        
+        // Prepare attachment files for drag and drop if available
+        if (attachments && attachments.length > 0) {
+          // Construct a message about the attachments with a count and list of file names
+          const fileNames = attachments.map(file => file.name).join(", ");
+          let message = `HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\n`;
+          message += `For best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.\n\n`;
+          message += `${attachments.length} attachment${attachments.length > 1 ? 's' : ''} ready to add: ${fileNames}\n\n`;
+          message += `Please drag and drop these files into your email after pasting the content.`;
+          
+          // Show a help message with attachment info
+          setTimeout(() => {
+            window.alert(message);
+          }, 1000);
+        } else {
+          // Standard message without attachment info
+          setTimeout(() => {
+            window.alert("HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\nFor best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.");
+          }, 1000);
+        }
+      } else {
+        // For plain text emails, use standard mailto
+        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.open(mailtoLink);
       }
     } catch (error) {
       console.error('Error opening email client:', error);
       throw new Error('Failed to open email client');
-    } finally {
-      // Clean up any remaining resources if needed
     }
   }
 
