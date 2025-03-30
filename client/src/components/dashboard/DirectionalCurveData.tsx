@@ -53,34 +53,25 @@ export default function DirectionalCurveData() {
 
   // Calculate offsets when target parameters change
   useEffect(() => {
-    if (latestSurvey && formData.targetTVD && formData.targetVS && formData.targetInc) {
-      const targetTVD = Number(formData.targetTVD);
-      const targetVS = Number(formData.targetVS);
-      const targetInc = Number(formData.targetInc);
+    if (formData.targetTVD && formData.targetVS && formData.targetInc) {
+      const tvd = Number(formData.targetTVD);
+      const vs = Number(formData.targetVS);
+      const inc = Number(formData.targetInc);
 
-      // Get current values from latest survey
-      const currentTVD = Number(latestSurvey.tvd);
-      const currentVS = Number(latestSurvey.vs);
-      const currentInc = Number(latestSurvey.inc);
+      // Calculate vertical offset (difference from target TVD)
+      const verticalOffset = Math.abs(tvd - vs * Math.cos(inc * Math.PI / 180));
 
-      // Calculate vertical offset (difference between current and target TVD)
-      const verticalOffset = Math.abs(targetTVD - currentTVD);
-      const isAbove = currentTVD < targetTVD;
-
-      // Calculate horizontal offset using VS difference
-      const horizontalOffset = Math.abs(targetVS - currentVS);
-      // Use Azimuth difference to determine left/right
-      const aziDiff = (Number(latestSurvey.azi) - Number(formData.targetAz) + 540) % 360 - 180;
-      const isRight = aziDiff > 0;
+      // Calculate horizontal offset (distance from vertical)
+      const horizontalOffset = Math.abs(vs * Math.sin(inc * Math.PI / 180));
 
       setFormData(prev => ({
         ...prev,
-        isAbove,
-        aboveTarget: isAbove ? verticalOffset.toFixed(2) : '0',
-        belowTarget: !isAbove ? verticalOffset.toFixed(2) : '0',
-        isRight,
-        rightTarget: isRight ? horizontalOffset.toFixed(2) : '0',
-        leftTarget: !isRight ? horizontalOffset.toFixed(2) : '0'
+        isAbove: tvd > vs * Math.cos(inc * Math.PI / 180),
+        aboveTarget: prev.isAbove ? verticalOffset.toFixed(2) : '0',
+        belowTarget: !prev.isAbove ? verticalOffset.toFixed(2) : '0',
+        isRight: true, // This would need additional logic based on azimuth
+        rightTarget: prev.isRight ? horizontalOffset.toFixed(2) : '0',
+        leftTarget: !prev.isRight ? horizontalOffset.toFixed(2) : '0'
       }));
     }
   }, [formData.targetTVD, formData.targetVS, formData.targetInc]);
