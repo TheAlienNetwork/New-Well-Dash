@@ -174,10 +174,8 @@ export default function GammaPlot() {
                 data={chartData} 
                 margin={{ top: 10, right: 20, left: 20, bottom: 20 }}
                 key={chartKey}
-                layout="vertical"
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(107, 114, 128, 0.3)" />
-                {/* X-axis now represents Gamma */}
                 <XAxis 
                   dataKey="gamma"
                   type="number"
@@ -186,7 +184,6 @@ export default function GammaPlot() {
                   tick={{ fill: '#e5e7eb' }}
                   label={{ value: 'Gamma (gAPI)', position: 'insideBottom', fill: '#e5e7eb', fontSize: 12, offset: 0 }}
                 />
-                {/* Y-axis now represents Depth, and is reversed so smaller depths are at the top */}
                 <YAxis 
                   dataKey="depth" 
                   type="number"
@@ -224,10 +221,10 @@ export default function GammaPlot() {
                   type="monotone"
                   dataKey="gamma"
                   stroke="#10b981" 
-                  strokeWidth={3.5}  // increased line width
+                  strokeWidth={2.5}
                   activeDot={{ r: 6, strokeWidth: 1, stroke: '#fff', fill: '#10b981' }}
-                  isAnimationActive={true}  // Enable animation
-                  dot={{ stroke: '#10b981', strokeWidth: 1.5, r: 5, fill: '#10b981' }}  // Larger dots
+                  isAnimationActive={false}
+                  dot={{ stroke: '#10b981', strokeWidth: 1, r: 4, fill: '#10b981' }}
                 />
                 
                 {/* Area under the line with gradient */}
@@ -236,8 +233,8 @@ export default function GammaPlot() {
                   dataKey="gamma"
                   stroke="none"
                   fill="url(#gammaGradient)" 
-                  fillOpacity={0.6}  // Increased opacity
-                  isAnimationActive={true}  // Enable animation
+                  fillOpacity={0.4}
+                  isAnimationActive={false}
                 />
                 
                 <Legend 
@@ -247,25 +244,14 @@ export default function GammaPlot() {
                 />
                 
                 {/* Reference line for significant gamma value */}
-                <ReferenceLine 
-                  x={60} 
-                  stroke="rgba(16, 185, 129, 0.7)" // Increased visibility 
-                  strokeWidth={1.5} // Thicker line
-                  strokeDasharray="3 3" 
-                  label={{ 
-                    value: 'Threshold (60 gAPI)', 
-                    fill: '#10b981', 
-                    fontSize: 11,
-                    position: 'right'
-                  }} 
-                />
+                <ReferenceLine x={60} stroke="rgba(16, 185, 129, 0.5)" strokeDasharray="3 3" label={{ value: 'Threshold', fill: '#10b981', fontSize: 11 }} />
                 
                 {/* Gradient definition for area fill */}
                 <defs>
-                  <linearGradient id="gammaGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
-                    <stop offset="50%" stopColor="#10b981" stopOpacity={0.6} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
+                  <linearGradient id="gammaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="50%" stopColor="#10b981" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
               </ComposedChart>
