@@ -94,8 +94,7 @@ export class MemStorage implements IStorage {
     this.currentWitsMappingId = 1;
     this.currentDrillingParamId = 1;
     
-    // Initialize with demo well data
-    this.initializeDemo();
+    // Start without sample data
   }
   
   private initializeDemo() {

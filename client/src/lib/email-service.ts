@@ -198,7 +198,7 @@ export class EmailService {
       ctx.lineTo(padding.left, canvas.height - padding.bottom);
       ctx.stroke();
       
-      // Draw X-axis labels (Depth) with improved styling
+      // Draw X-axis labels (Gamma) with improved styling
       ctx.font = '12px sans-serif';
       ctx.fillStyle = '#9ca3af';
       ctx.textAlign = 'center';
@@ -206,7 +206,7 @@ export class EmailService {
       const numLabelsX = 6;
       for (let i = 0; i <= numLabelsX; i++) {
         const x = padding.left + (chartWidth * i) / numLabelsX;
-        const depth = minDepth + ((maxDepth - minDepth) * i) / numLabelsX;
+        const value = (maxValue * i) / numLabelsX;
         
         // Tick marks
         ctx.beginPath();
@@ -215,17 +215,17 @@ export class EmailService {
         ctx.stroke();
         
         // Labels
-        ctx.fillText(depth.toFixed(0), x, canvas.height - padding.bottom + 20);
+        ctx.fillText(value.toFixed(0), x, canvas.height - padding.bottom + 20);
       }
       
-      // Draw Y-axis labels (Gamma) with improved styling
+      // Draw Y-axis labels (Depth) with improved styling - reversed order
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       
       const numLabelsY = 6;
       for (let i = 0; i <= numLabelsY; i++) {
         const y = canvas.height - padding.bottom - (chartHeight * i) / numLabelsY;
-        const value = (maxValue * i) / numLabelsY;
+        const depth = minDepth + ((maxDepth - minDepth) * (numLabelsY - i)) / numLabelsY;
         
         // Tick marks
         ctx.beginPath();
@@ -234,47 +234,54 @@ export class EmailService {
         ctx.stroke();
         
         // Labels
-        ctx.fillText(value.toFixed(0), padding.left - 10, y);
+        ctx.fillText(depth.toFixed(0), padding.left - 10, y);
       }
       
       // Draw axis titles with better styling
       ctx.fillStyle = '#d1d5db';
       ctx.font = 'bold 14px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('Measured Depth (ft)', canvas.width / 2, canvas.height - 20);
+      ctx.fillText('Gamma Ray (gAPI)', canvas.width / 2, canvas.height - 20);
       
       ctx.save();
       ctx.translate(20, canvas.height / 2);
       ctx.rotate(-Math.PI / 2);
-      ctx.fillText('Gamma Ray (gAPI)', 0, 0);
+      ctx.fillText('Measured Depth (ft)', 0, 0);
       ctx.restore();
       
-      // Draw threshold line for typical sandstone-shale boundary
+      // Draw threshold line for typical sandstone-shale boundary - vertical line in the new orientation
       ctx.beginPath();
-      const thresholdY = canvas.height - padding.bottom - (60 / maxValue) * chartHeight;
-      ctx.moveTo(padding.left, thresholdY);
-      ctx.lineTo(padding.left + chartWidth, thresholdY);
+      const thresholdX = padding.left + (60 / maxValue) * chartWidth;
+      ctx.moveTo(thresholdX, padding.top);
+      ctx.lineTo(thresholdX, canvas.height - padding.bottom);
       ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)'; // More visible
+      ctx.lineWidth = 1.5; // Thicker line
       ctx.stroke();
       ctx.setLineDash([]);
       
-      // Label for threshold line
+      // Label for threshold line - rotated to match new orientation
       ctx.font = 'italic 11px sans-serif';
       ctx.fillStyle = '#10b981';
-      ctx.textAlign = 'right';
-      ctx.fillText('Typical Sandstone-Shale Boundary (60 gAPI)', padding.left + chartWidth - 10, thresholdY - 5);
+      ctx.textAlign = 'left';
+      ctx.save();
+      ctx.translate(thresholdX + 15, padding.top + 100);
+      ctx.rotate(Math.PI/2);
+      ctx.fillText('Typical Sandstone-Shale Boundary (60 gAPI)', 0, 0);
+      ctx.restore();
       
       // Simulate a live data animation by adding a "pulse" to the newest point
       const animationProgress = (Date.now() % 3000) / 3000; // Cycles every 3 seconds
       
       // Draw data points and lines
       if (filteredData.length > 0) {
-        // Draw area under the line with gradient
+        // Draw area under the line with gradient - with new orientation: gamma on x-axis, depth on y-axis (reversed)
         ctx.beginPath();
         filteredData.forEach((point: GammaDataPoint, i: number) => {
-          const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
-          const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
+          // X-axis is now gamma value
+          const x = padding.left + (Number(point.value) / maxValue) * chartWidth;
+          // Y-axis is now depth (reversed scale so smaller depths at top)
+          const y = padding.top + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartHeight;
           
           if (i === 0) {
             ctx.moveTo(x, y);
@@ -284,15 +291,15 @@ export class EmailService {
         });
         
         // Complete the area
-        ctx.lineTo(padding.left + chartWidth, canvas.height - padding.bottom);
         ctx.lineTo(padding.left, canvas.height - padding.bottom);
+        ctx.lineTo(padding.left, padding.top);
         ctx.closePath();
         
-        // Create smooth gradient for area
-        const areaGradient = ctx.createLinearGradient(0, padding.top, 0, canvas.height - padding.bottom);
-        areaGradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
-        areaGradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.05)');
-        areaGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+        // Create smooth gradient for area (horizontal gradient now)
+        const areaGradient = ctx.createLinearGradient(padding.left, 0, padding.left + chartWidth, 0);
+        areaGradient.addColorStop(0, 'rgba(16, 185, 129, 0)');
+        areaGradient.addColorStop(0.3, 'rgba(16, 185, 129, 0.05)');
+        areaGradient.addColorStop(1, 'rgba(16, 185, 129, 0.3)');
         
         ctx.fillStyle = areaGradient;
         ctx.fill();
@@ -300,8 +307,10 @@ export class EmailService {
         // Draw line with improved styling
         ctx.beginPath();
         filteredData.forEach((point: GammaDataPoint, i: number) => {
-          const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
-          const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
+          // X-axis is now gamma value
+          const x = padding.left + (Number(point.value) / maxValue) * chartWidth;
+          // Y-axis is now depth (reversed scale so smaller depths at top)
+          const y = padding.top + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartHeight;
           
           if (i === 0) {
             ctx.moveTo(x, y);
@@ -312,13 +321,15 @@ export class EmailService {
         
         // Line style
         ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3.5; // Thicker for better visibility
         ctx.stroke();
         
         // Draw data points with animation effect
         filteredData.forEach((point: GammaDataPoint, i: number) => {
-          const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
-          const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
+          // X-axis is now gamma value
+          const x = padding.left + (Number(point.value) / maxValue) * chartWidth;
+          // Y-axis is now depth (reversed scale so smaller depths at top)
+          const y = padding.top + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartHeight;
           
           const isNewestPoint = i === filteredData.length - 1;
           
@@ -329,7 +340,7 @@ export class EmailService {
             
             ctx.beginPath();
             ctx.arc(x, y, pulseSize, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.4)'; // More visible
             ctx.fill();
             
             // Animate opacity for newest point
@@ -338,13 +349,13 @@ export class EmailService {
           
           // Draw point
           ctx.beginPath();
-          ctx.arc(x, y, isNewestPoint ? 5 : 3, 0, Math.PI * 2);
+          ctx.arc(x, y, isNewestPoint ? 6 : 4, 0, Math.PI * 2); // Larger points
           ctx.fillStyle = '#10b981';
           ctx.fill();
           
           // Add white border to points
           ctx.strokeStyle = 'white';
-          ctx.lineWidth = 1;
+          ctx.lineWidth = 1.5; // Thicker border
           ctx.stroke();
           
           // Reset opacity
@@ -354,8 +365,10 @@ export class EmailService {
         // Add "Updating..." text near the newest point if there's data
         if (filteredData.length > 0) {
           const lastPoint = filteredData[filteredData.length - 1];
-          const lastX = padding.left + ((Number(lastPoint.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
-          const lastY = canvas.height - padding.bottom - (Number(lastPoint.value) / maxValue) * chartHeight;
+          // X-axis is now gamma value
+          const lastX = padding.left + (Number(lastPoint.value) / maxValue) * chartWidth;
+          // Y-axis is now depth (reversed scale so smaller depths at top)
+          const lastY = padding.top + ((Number(lastPoint.depth) - minDepth) / (maxDepth - minDepth)) * chartHeight;
           
           ctx.font = 'italic 11px sans-serif';
           ctx.fillStyle = '#10b981';
@@ -698,9 +711,65 @@ export class EmailService {
       // Check if the body is HTML content
       const isHtmlContent = body.trim().startsWith('<') && body.includes('</');
       
-      // Generate a blob URL for copying HTML to clipboard
+      // Create a blob of the HTML content for direct attachment
       if (isHtmlContent) {
-        // Create a temporarily hidden textarea with the HTML content
+        // Create HTML file for the email body
+        const htmlBlob = new Blob([body], { type: 'text/html' });
+        const htmlFile = new File([htmlBlob], 'email-body.html', { type: 'text/html' });
+        
+        // Create a collection of all attachments
+        const allAttachments = attachments ? [...attachments] : [];
+        
+        // Add the HTML body as an attachment
+        allAttachments.push(htmlFile);
+        
+        // Generate GIF version of gamma plot if needed
+        if (window.gammaData && Array.isArray(window.gammaData) && window.gammaData.length > 0) {
+          try {
+            // Create an animated GIF of the gamma plot
+            const gammaGif = this.generateAnimatedGammaGif();
+            if (gammaGif) {
+              const gifBlob = this.dataURItoBlob(gammaGif);
+              const gifFile = new File([gifBlob], 'gamma-plot.gif', { type: 'image/gif' });
+              allAttachments.push(gifFile);
+            }
+          } catch (err) {
+            console.error('Failed to create gamma GIF:', err);
+          }
+        }
+        
+        // Open mail client with necessary fields
+        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`;
+        window.open(mailtoLink);
+        
+        // Create a data transfer object to handle the files
+        const dataTransfer = new DataTransfer();
+        
+        // Add all attachments to the data transfer
+        allAttachments.forEach(file => {
+          dataTransfer.items.add(file);
+        });
+        
+        // Register a clipboard event listener to handle paste events
+        const handlePaste = (pasteEvent: ClipboardEvent) => {
+          // We can't directly modify the clipboard data during a paste event in all browsers,
+          // but we can ensure the correct HTML content is available
+          try {
+            // Use non-null assertion as we've already checked for existence
+            // Try to set the HTML content if the browser allows it
+            pasteEvent.clipboardData?.setData('text/html', body);
+          } catch (e) {
+            // Some browsers don't allow modifying clipboardData during paste events
+            console.log('Browser prevented modifying clipboard during paste event');
+          }
+          // Clean up the event listener after use
+          document.removeEventListener('paste', handlePaste);
+        };
+        
+        // Add the paste event listener
+        document.addEventListener('paste', handlePaste);
+        
+        // Copy the HTML to clipboard for pasting
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'fixed';
         tempDiv.style.left = '-9999px';
@@ -722,13 +791,25 @@ export class EmailService {
         
         document.body.removeChild(tempDiv);
         
-        // Now open email client with only the subject and recipients
-        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`;
-        window.open(mailtoLink);
-        
-        // Show a help message
+        // Show an updated instruction message
         setTimeout(() => {
-          window.alert("HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\nFor best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.");
+          window.alert(
+            "Email content has been copied to your clipboard. Please paste (Ctrl+V or Cmd+V) into your email client.\n\n" +
+            `${allAttachments.length} file(s) are ready to be added to the email.\n\n` +
+            "To insert attachments manually, drag & drop the files you'll find in your downloads folder after creating them."
+          );
+          
+          // Create download links for each attachment
+          allAttachments.forEach(file => {
+            const url = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          });
         }, 1000);
       } else {
         // For plain text emails, use standard mailto
@@ -738,6 +819,62 @@ export class EmailService {
     } catch (error) {
       console.error('Error opening email client:', error);
       throw new Error('Failed to open email client');
+    }
+  }
+  
+  // Helper function to convert data URI to Blob
+  dataURItoBlob(dataURI: string): Blob {
+    // convert base64/URLEncoded data component to raw binary data held in a string
+    let byteString;
+    if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+      byteString = atob(dataURI.split(',')[1]);
+    } else {
+      byteString = decodeURIComponent(dataURI.split(',')[1]);
+    }
+    
+    // separate out the mime component
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    
+    // write the bytes of the string to a typed array
+    const ia = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    
+    return new Blob([ia], { type: mimeString });
+  }
+  
+  // Generate an animated GIF of the gamma plot
+  generateAnimatedGammaGif(): string | null {
+    try {
+      // Create a canvas element
+      const canvas = document.createElement('canvas');
+      canvas.width = 900;
+      canvas.height = 450;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        console.error('Could not get canvas context');
+        return null;
+      }
+      
+      // Generate the static gamma plot image
+      const staticImage = this.generateGammaPlotImage();
+      
+      // For a simple animated effect, we would need a GIF encoder library
+      // Since we don't have that, we'll return the static image with a note
+      // In a real implementation, we would use a library like gif.js
+      
+      // For now, return the static image
+      return staticImage;
+      
+      // In a real implementation with a GIF library, we would do:
+      // 1. Create multiple frames with slight variations
+      // 2. Encode those frames into a GIF
+      // 3. Return the GIF data URL
+    } catch (error) {
+      console.error('Error generating animated gamma GIF:', error);
+      return null;
     }
   }
 
