@@ -78,23 +78,23 @@ export class EmailService {
       canvas.width = 900; // Wider canvas for better detail
       canvas.height = 450;
       const ctx = canvas.getContext('2d');
-
+      
       if (!ctx) {
         console.error('Could not get canvas context');
         return '';
       }
-
+      
       // Set background with gradient for more professional look
       const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
       bgGradient.addColorStop(0, '#111827');
       bgGradient.addColorStop(1, '#0f172a');
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+      
       // Add subtle grid pattern
       ctx.strokeStyle = 'rgba(55, 65, 81, 0.3)';
       ctx.lineWidth = 0.5;
-
+      
       // Vertical grid lines
       const gridSpacingX = 50;
       for (let x = 50; x < canvas.width; x += gridSpacingX) {
@@ -103,7 +103,7 @@ export class EmailService {
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
       }
-
+      
       // Horizontal grid lines
       const gridSpacingY = 50;
       for (let y = 50; y < canvas.height; y += gridSpacingY) {
@@ -112,10 +112,10 @@ export class EmailService {
         ctx.lineTo(canvas.width, y);
         ctx.stroke();
       }
-
+      
       // Get gamma data from the window object
       const gammaData = window.gammaData || [];
-
+      
       if (gammaData.length === 0) {
         // Draw "No data available" text with modern styling
         ctx.font = 'bold 20px sans-serif';
@@ -125,63 +125,63 @@ export class EmailService {
         ctx.shadowBlur = 10;
         ctx.fillText('No gamma data available', canvas.width / 2, canvas.height / 2);
         ctx.shadowBlur = 0;
-
+        
         // Add a subtle note
         ctx.font = '14px sans-serif';
         ctx.fillStyle = 'rgba(156, 163, 175, 0.8)';
         ctx.fillText('Import LAS file or connect to WITS to view gamma data', canvas.width / 2, canvas.height / 2 + 30);
-
+        
         return canvas.toDataURL('image/png', 1.0);
       }
-
+      
       // Calculate min and max values
       const depths = gammaData.map((d: GammaDataPoint) => Number(d.depth));
       const values = gammaData.map((d: GammaDataPoint) => Number(d.value));
-
+      
       // Find the highest depth to focus on the last 100ft
       const maxDepth = Math.max(...depths);
       const minDepth = Math.max(maxDepth - 100, Math.min(...depths)); // Last 100ft or all data if less
-
+      
       // Filter data to only show the last 100ft
       const filteredData = gammaData
         .filter((d: GammaDataPoint) => Number(d.depth) >= minDepth)
         .sort((a: GammaDataPoint, b: GammaDataPoint) => Number(a.depth) - Number(b.depth));
-
+      
       // Recalculate values for the filtered data
       const filteredValues = filteredData.map((d: GammaDataPoint) => Number(d.value));
       const maxValue = Math.max(120, ...filteredValues); // At least 120 as max for better scaling
-
+      
       // Padding for chart area
       const padding = { top: 50, right: 50, bottom: 70, left: 70 };
       const chartWidth = canvas.width - padding.left - padding.right;
       const chartHeight = canvas.height - padding.top - padding.bottom;
-
+      
       // Add title and subtitle
       ctx.font = 'bold 18px sans-serif';
       ctx.fillStyle = '#f9fafb';
       ctx.textAlign = 'left';
       ctx.fillText('Gamma Ray Plot', padding.left, 25);
-
+      
       ctx.font = '12px sans-serif';
       ctx.fillStyle = '#9ca3af';
       ctx.fillText(`Showing Last 100ft (${minDepth.toFixed(0)}ft - ${maxDepth.toFixed(0)}ft)`, padding.left, 45);
-
+      
       // Draw "LIVE" indicator
       ctx.font = 'bold 11px sans-serif';
       ctx.fillStyle = '#10b981';
       ctx.textAlign = 'right';
-
+      
       // Draw pulsing dot
       const currentTime = Date.now() / 1000;
       const pulseSize = 4 + Math.sin(currentTime * 5) * 2; // Simulates animation
-
+      
       ctx.beginPath();
       ctx.arc(canvas.width - padding.right - 60, 30, pulseSize, 0, Math.PI * 2);
       ctx.fillStyle = '#10b981';
       ctx.fill();
-
+      
       ctx.fillText('LIVE DATA', canvas.width - padding.right - 40, 33);
-
+      
       // Add a frosted glass background for chart area
       ctx.save();
       ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
@@ -200,74 +200,74 @@ export class EmailService {
       ctx.beginPath();
       ctx.roundRect(padding.left - 25, padding.top - 25, chartWidth + 50, chartHeight + 50, 8);
       ctx.stroke();
-
+      
       // Draw axes with better styling
       ctx.strokeStyle = 'rgba(156, 163, 175, 0.7)';
       ctx.lineWidth = 1.5;
-
+      
       // X-axis
       ctx.beginPath();
       ctx.moveTo(padding.left, canvas.height - padding.bottom);
       ctx.lineTo(padding.left + chartWidth, canvas.height - padding.bottom);
       ctx.stroke();
-
+      
       // Y-axis
       ctx.beginPath();
       ctx.moveTo(padding.left, padding.top);
       ctx.lineTo(padding.left, canvas.height - padding.bottom);
       ctx.stroke();
-
+      
       // Draw X-axis labels (Depth) with improved styling
       ctx.font = '12px sans-serif';
       ctx.fillStyle = '#9ca3af';
       ctx.textAlign = 'center';
-
+      
       const numLabelsX = 6;
       for (let i = 0; i <= numLabelsX; i++) {
         const x = padding.left + (chartWidth * i) / numLabelsX;
         const depth = minDepth + ((maxDepth - minDepth) * i) / numLabelsX;
-
+        
         // Tick marks
         ctx.beginPath();
         ctx.moveTo(x, canvas.height - padding.bottom);
         ctx.lineTo(x, canvas.height - padding.bottom + 5);
         ctx.stroke();
-
+        
         // Labels
         ctx.fillText(depth.toFixed(0), x, canvas.height - padding.bottom + 20);
       }
-
+      
       // Draw Y-axis labels (Gamma) with improved styling
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
-
+      
       const numLabelsY = 6;
       for (let i = 0; i <= numLabelsY; i++) {
         const y = canvas.height - padding.bottom - (chartHeight * i) / numLabelsY;
         const value = (maxValue * i) / numLabelsY;
-
+        
         // Tick marks
         ctx.beginPath();
         ctx.moveTo(padding.left, y);
         ctx.lineTo(padding.left - 5, y);
         ctx.stroke();
-
+        
         // Labels
         ctx.fillText(value.toFixed(0), padding.left - 10, y);
       }
-
+      
       // Draw axis titles with better styling
       ctx.fillStyle = '#d1d5db';
       ctx.font = 'bold 14px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('Measured Depth (ft)', canvas.width / 2, canvas.height - 20);
-
+      
       ctx.save();
       ctx.translate(20, canvas.height / 2);
       ctx.rotate(-Math.PI / 2);
       ctx.fillText('Gamma Ray (gAPI)', 0, 0);
       ctx.restore();
-
+      
       // Draw threshold line for typical sandstone-shale boundary
       ctx.beginPath();
       const thresholdY = canvas.height - padding.bottom - (60 / maxValue) * chartHeight;
@@ -277,16 +277,16 @@ export class EmailService {
       ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
       ctx.stroke();
       ctx.setLineDash([]);
-
+      
       // Label for threshold line
       ctx.font = 'italic 11px sans-serif';
       ctx.fillStyle = '#10b981';
       ctx.textAlign = 'right';
       ctx.fillText('Typical Sandstone-Shale Boundary (60 gAPI)', padding.left + chartWidth - 10, thresholdY - 5);
-
+      
       // Simulate a live data animation by adding a "pulse" to the newest point
       const animationProgress = (Date.now() % 3000) / 3000; // Cycles every 3 seconds
-
+      
       // Draw data points and lines
       if (filteredData.length > 0) {
         // Draw area under the line with gradient
@@ -294,101 +294,101 @@ export class EmailService {
         filteredData.forEach((point: GammaDataPoint, i: number) => {
           const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
           const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
-
+          
           if (i === 0) {
             ctx.moveTo(x, y);
           } else {
             ctx.lineTo(x, y);
           }
         });
-
+        
         // Complete the area
         ctx.lineTo(padding.left + chartWidth, canvas.height - padding.bottom);
         ctx.lineTo(padding.left, canvas.height - padding.bottom);
         ctx.closePath();
-
+        
         // Create smooth gradient for area
         const areaGradient = ctx.createLinearGradient(0, padding.top, 0, canvas.height - padding.bottom);
         areaGradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
         areaGradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.05)');
         areaGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
+        
         ctx.fillStyle = areaGradient;
         ctx.fill();
-
+        
         // Draw line with improved styling
         ctx.beginPath();
         filteredData.forEach((point: GammaDataPoint, i: number) => {
           const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
           const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
-
+          
           if (i === 0) {
             ctx.moveTo(x, y);
           } else {
             ctx.lineTo(x, y);
           }
         });
-
+        
         // Line style
         ctx.strokeStyle = '#10b981';
         ctx.lineWidth = 3;
         ctx.stroke();
-
+        
         // Draw data points with animation effect
         filteredData.forEach((point: GammaDataPoint, i: number) => {
           const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
           const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
-
+          
           const isNewestPoint = i === filteredData.length - 1;
-
+          
           // For the newest point, add a pulsing effect
           if (isNewestPoint) {
             // Outer glow - pulsing effect
             const pulseSize = 8 + Math.sin(animationProgress * Math.PI * 2) * 4;
-
+            
             ctx.beginPath();
             ctx.arc(x, y, pulseSize, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
             ctx.fill();
-
+            
             // Animate opacity for newest point
             ctx.globalAlpha = 0.7 + Math.sin(animationProgress * Math.PI * 2) * 0.3;
           }
-
+          
           // Draw point
           ctx.beginPath();
           ctx.arc(x, y, isNewestPoint ? 5 : 3, 0, Math.PI * 2);
           ctx.fillStyle = '#10b981';
           ctx.fill();
-
+          
           // Add white border to points
           ctx.strokeStyle = 'white';
           ctx.lineWidth = 1;
           ctx.stroke();
-
+          
           // Reset opacity
           ctx.globalAlpha = 1;
         });
-
+        
         // Add "Updating..." text near the newest point if there's data
         if (filteredData.length > 0) {
           const lastPoint = filteredData[filteredData.length - 1];
           const lastX = padding.left + ((Number(lastPoint.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
           const lastY = canvas.height - padding.bottom - (Number(lastPoint.value) / maxValue) * chartHeight;
-
+          
           ctx.font = 'italic 11px sans-serif';
           ctx.fillStyle = '#10b981';
           ctx.textAlign = 'left';
           ctx.fillText('Updating...', lastX + 10, lastY - 10);
         }
       }
-
+      
       // Add timestamp and data point count
       ctx.textAlign = 'right';
       ctx.font = '11px sans-serif';
       ctx.fillStyle = '#9ca3af';
       ctx.fillText(`Data Points: ${filteredData.length}  |  Last Updated: ${new Date().toLocaleTimeString()}`, canvas.width - padding.right, canvas.height - 10);
-
+      
       // Convert to data URL (PNG for better quality)
       return canvas.toDataURL('image/png', 1.0);
     } catch (error) {
@@ -396,14 +396,14 @@ export class EmailService {
       return '';
     }
   }
-
+  
   // Generate an animated GIF of the gamma plot for emails
   async generateAnimatedGammaPlotGif(): Promise<string> {
     try {
       // We'll create multiple frames to simulate animation
       const numFrames = 10;
       const frames: string[] = [];
-
+      
       // Create frames with different animation states
       for (let frameIndex = 0; frameIndex < numFrames; frameIndex++) {
         // Create a fresh canvas for each frame
@@ -411,23 +411,23 @@ export class EmailService {
         canvas.width = 900;
         canvas.height = 450;
         const ctx = canvas.getContext('2d');
-
+        
         if (!ctx) {
           console.error('Could not get canvas context');
           return '';
         }
-
+        
         // Set background
         const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
         bgGradient.addColorStop(0, '#111827');
         bgGradient.addColorStop(1, '#0f172a');
         ctx.fillStyle = bgGradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+        
         // Add grid pattern
         ctx.strokeStyle = 'rgba(55, 65, 81, 0.3)';
         ctx.lineWidth = 0.5;
-
+        
         // Vertical and horizontal grid lines
         const gridSpacingX = 50;
         for (let x = 50; x < canvas.width; x += gridSpacingX) {
@@ -436,7 +436,7 @@ export class EmailService {
           ctx.lineTo(x, canvas.height);
           ctx.stroke();
         }
-
+        
         const gridSpacingY = 50;
         for (let y = 50; y < canvas.height; y += gridSpacingY) {
           ctx.beginPath();
@@ -444,10 +444,10 @@ export class EmailService {
           ctx.lineTo(canvas.width, y);
           ctx.stroke();
         }
-
+        
         // Get gamma data
         const gammaData = window.gammaData || [];
-
+        
         if (gammaData.length === 0) {
           ctx.font = 'bold 20px sans-serif';
           ctx.fillStyle = '#10b981';
@@ -456,58 +456,58 @@ export class EmailService {
           ctx.shadowBlur = 10;
           ctx.fillText('No gamma data available', canvas.width / 2, canvas.height / 2);
           ctx.shadowBlur = 0;
-
+          
           ctx.font = '14px sans-serif';
           ctx.fillStyle = 'rgba(156, 163, 175, 0.8)';
           ctx.fillText('Import LAS file or connect to WITS to view gamma data', canvas.width / 2, canvas.height / 2 + 30);
-
+          
           // Return static image if no data
           return canvas.toDataURL('image/png', 1.0);
         }
-
+        
         // Calculate values similar to the static version
         const depths = gammaData.map((d: GammaDataPoint) => Number(d.depth));
         const maxDepth = Math.max(...depths);
         const minDepth = Math.max(maxDepth - 100, Math.min(...depths));
-
+        
         const filteredData = gammaData
           .filter((d: GammaDataPoint) => Number(d.depth) >= minDepth)
           .sort((a: GammaDataPoint, b: GammaDataPoint) => Number(a.depth) - Number(b.depth));
-
+        
         const filteredValues = filteredData.map((d: GammaDataPoint) => Number(d.value));
         const maxValue = Math.max(120, ...filteredValues);
-
+        
         // Padding for chart area
         const padding = { top: 50, right: 50, bottom: 70, left: 70 };
         const chartWidth = canvas.width - padding.left - padding.right;
         const chartHeight = canvas.height - padding.top - padding.bottom;
-
+        
         // Add title and subtitle
         ctx.font = 'bold 18px sans-serif';
         ctx.fillStyle = '#f9fafb';
         ctx.textAlign = 'left';
         ctx.fillText('Gamma Ray Plot', padding.left, 25);
-
+        
         ctx.font = '12px sans-serif';
         ctx.fillStyle = '#9ca3af';
         ctx.fillText(`Showing Last 100ft (${minDepth.toFixed(0)}ft - ${maxDepth.toFixed(0)}ft)`, padding.left, 45);
-
+        
         // Draw "LIVE" indicator with animation
         ctx.font = 'bold 11px sans-serif';
         ctx.fillStyle = '#10b981';
         ctx.textAlign = 'right';
-
+        
         // Animated pulsing dot for each frame
         const pulseProgress = frameIndex / numFrames;
         const pulseSize = 4 + Math.sin(pulseProgress * Math.PI * 2) * 2;
-
+        
         ctx.beginPath();
         ctx.arc(canvas.width - padding.right - 60, 30, pulseSize, 0, Math.PI * 2);
         ctx.fillStyle = '#10b981';
         ctx.fill();
-
+        
         ctx.fillText('LIVE DATA', canvas.width - padding.right - 40, 33);
-
+        
         // Add a frosted glass background for chart area
         ctx.save();
         ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
@@ -526,70 +526,70 @@ export class EmailService {
         ctx.beginPath();
         ctx.roundRect(padding.left - 25, padding.top - 25, chartWidth + 50, chartHeight + 50, 8);
         ctx.stroke();
-
+        
         // Draw axes
         ctx.strokeStyle = 'rgba(156, 163, 175, 0.7)';
         ctx.lineWidth = 1.5;
-
+        
         // X-axis
         ctx.beginPath();
         ctx.moveTo(padding.left, canvas.height - padding.bottom);
         ctx.lineTo(padding.left + chartWidth, canvas.height - padding.bottom);
         ctx.stroke();
-
+        
         // Y-axis
         ctx.beginPath();
         ctx.moveTo(padding.left, padding.top);
         ctx.lineTo(padding.left, canvas.height - padding.bottom);
         ctx.stroke();
-
+        
         // Draw X-axis labels
         ctx.font = '12px sans-serif';
         ctx.fillStyle = '#9ca3af';
         ctx.textAlign = 'center';
-
+        
         const numLabelsX = 6;
         for (let i = 0; i <= numLabelsX; i++) {
           const x = padding.left + (chartWidth * i) / numLabelsX;
           const depth = minDepth + ((maxDepth - minDepth) * i) / numLabelsX;
-
+          
           ctx.beginPath();
           ctx.moveTo(x, canvas.height - padding.bottom);
           ctx.lineTo(x, canvas.height - padding.bottom + 5);
           ctx.stroke();
-
+          
           ctx.fillText(depth.toFixed(0), x, canvas.height - padding.bottom + 20);
         }
-
+        
         // Draw Y-axis labels
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
-
+        
         const numLabelsY = 6;
         for (let i = 0; i <= numLabelsY; i++) {
           const y = canvas.height - padding.bottom - (chartHeight * i) / numLabelsY;
           const value = (maxValue * i) / numLabelsY;
-
+          
           ctx.beginPath();
           ctx.moveTo(padding.left, y);
           ctx.lineTo(padding.left - 5, y);
           ctx.stroke();
-
+          
           ctx.fillText(value.toFixed(0), padding.left - 10, y);
         }
-
+        
         // Draw axis titles
         ctx.fillStyle = '#d1d5db';
         ctx.font = 'bold 14px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Measured Depth (ft)', canvas.width / 2, canvas.height - 20);
-
+        
         ctx.save();
         ctx.translate(20, canvas.height / 2);
         ctx.rotate(-Math.PI / 2);
         ctx.fillText('Gamma Ray (gAPI)', 0, 0);
         ctx.restore();
-
+        
         // Draw threshold line
         ctx.beginPath();
         const thresholdY = canvas.height - padding.bottom - (60 / maxValue) * chartHeight;
@@ -599,15 +599,15 @@ export class EmailService {
         ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
         ctx.stroke();
         ctx.setLineDash([]);
-
+        
         ctx.font = 'italic 11px sans-serif';
         ctx.fillStyle = '#10b981';
         ctx.textAlign = 'right';
         ctx.fillText('Typical Sandstone-Shale Boundary (60 gAPI)', padding.left + chartWidth - 10, thresholdY - 5);
-
+        
         // Animation progress for this frame
         const animationProgress = frameIndex / numFrames;
-
+        
         // Draw data with animation
         if (filteredData.length > 0) {
           // Draw area under the line with gradient
@@ -615,94 +615,94 @@ export class EmailService {
           filteredData.forEach((point: GammaDataPoint, i: number) => {
             const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
             const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
-
+            
             if (i === 0) {
               ctx.moveTo(x, y);
             } else {
               ctx.lineTo(x, y);
             }
           });
-
+          
           // Complete the area
           ctx.lineTo(padding.left + chartWidth, canvas.height - padding.bottom);
           ctx.lineTo(padding.left, canvas.height - padding.bottom);
           ctx.closePath();
-
+          
           // Create gradient for area
           const areaGradient = ctx.createLinearGradient(0, padding.top, 0, canvas.height - padding.bottom);
           areaGradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
           areaGradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.05)');
           areaGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
+          
           ctx.fillStyle = areaGradient;
           ctx.fill();
-
+          
           // Draw line
           ctx.beginPath();
           filteredData.forEach((point: GammaDataPoint, i: number) => {
             const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
             const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
-
+            
             if (i === 0) {
               ctx.moveTo(x, y);
             } else {
               ctx.lineTo(x, y);
             }
           });
-
+          
           ctx.strokeStyle = '#10b981';
           ctx.lineWidth = 3;
           ctx.stroke();
-
+          
           // Draw data points with frame-specific animation
           filteredData.forEach((point: GammaDataPoint, i: number) => {
             const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
             const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
-
+            
             const isNewestPoint = i === filteredData.length - 1;
-
+            
             // Animated pulsing effect for the newest point
             if (isNewestPoint) {
               const pulseSize = 8 + Math.sin(animationProgress * Math.PI * 2) * 4;
-
+              
               ctx.beginPath();
               ctx.arc(x, y, pulseSize, 0, Math.PI * 2);
               ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
               ctx.fill();
-
+              
               ctx.globalAlpha = 0.7 + Math.sin(animationProgress * Math.PI * 2) * 0.3;
             }
-
+            
             // Draw point
             ctx.beginPath();
             ctx.arc(x, y, isNewestPoint ? 5 : 3, 0, Math.PI * 2);
             ctx.fillStyle = '#10b981';
             ctx.fill();
-
+            
             ctx.strokeStyle = 'white';
             ctx.lineWidth = 1;
             ctx.stroke();
-
+            
             ctx.globalAlpha = 1;
           });
-
+          
           // Animated "Updating..." text
           if (filteredData.length > 0) {
             const lastPoint = filteredData[filteredData.length - 1];
             const lastX = padding.left + ((Number(lastPoint.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
             const lastY = canvas.height - padding.bottom - (Number(lastPoint.value) / maxValue) * chartHeight;
-
+            
             ctx.font = 'italic 11px sans-serif';
             ctx.fillStyle = '#10b981';
             ctx.textAlign = 'left';
-
+            
             // Show/hide "Updating..." text based on animation frame
             if (frameIndex % 2 === 0) {
               ctx.fillText('Updating...', lastX + 10, lastY - 10);
             }
           }
         }
-
+        
         // Add timestamp that changes with each frame
         ctx.textAlign = 'right';
         ctx.font = '11px sans-serif';
@@ -710,17 +710,17 @@ export class EmailService {
         const fakeTime = new Date();
         fakeTime.setSeconds(fakeTime.getSeconds() + frameIndex); // Increment time for each frame
         ctx.fillText(`Data Points: ${filteredData.length}  |  Last Updated: ${fakeTime.toLocaleTimeString()}`, canvas.width - padding.right, canvas.height - 10);
-
+        
         // Convert frame to image data URL
         frames.push(canvas.toDataURL('image/png', 0.8));
       }
-
+      
       // For a real implementation, we would use a GIF encoder library
       // But for this demo, we'll just return the first frame
       // In a real implementation, the frames would be combined into an animated GIF using a library like gif.js
-
+      
       console.log(`Generated ${frames.length} frames for animated gamma plot`);
-
+      
       // For demonstration, we'll indicate this is an animated version with a special marker
       return frames[0] + '#animated'; // This would be replaced with actual GIF encoding in production
     } catch (error) {
@@ -738,7 +738,7 @@ export class EmailService {
     const includeCurveData = curveData && curveData.includeInEmail;
     const includeTargetPosition = curveData?.includeTargetPosition && (targetPosition || projections);
     const includeGammaPlot = curveData?.includeGammaPlot && gammaImageUrl;
-
+    
     // Status indicators
     const getStatusBadge = (status: string) => {
       const colors: Record<string, string> = {
@@ -761,7 +761,7 @@ export class EmailService {
             <p style="margin: 2px 0 0; color: #93c5fd; font-size: 14px;">Advanced Measurement While Drilling</p>
           </div>
         </div>
-
+        
         <!-- Report Header -->
         <div style="background: linear-gradient(to right, rgba(30, 41, 59, 0.7), rgba(30, 41, 59, 0.9)); padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #3b82f6; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
@@ -786,7 +786,7 @@ export class EmailService {
             </div>
             <h3 style="color: white; margin: 0; font-size: 16px;">Well Information</h3>
           </div>
-
+          
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
             <div style="background-color: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.1);">
               <div style="font-size: 12px; color: #93c5fd; margin-bottom: 3px;">Well Name</div>
@@ -809,7 +809,7 @@ export class EmailService {
             </div>
             <h3 style="color: white; margin: 0; font-size: 16px;">Survey Details</h3>
           </div>
-
+          
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px;">
             <div style="background-color: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.1);">
               <div style="font-size: 11px; color: #93c5fd; margin-bottom: 3px;">Measured Depth</div>
@@ -824,7 +824,7 @@ export class EmailService {
               <div style="font-size: 16px; color: #8b5cf6; font-weight: 600;">${Number(survey.azi).toFixed(2)} <span style="font-size: 11px; color: #93c5fd;">°</span></div>
             </div>
           </div>
-
+          
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
             <div style="background-color: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.1);">
               <div style="font-size: 11px; color: #93c5fd; margin-bottom: 3px;">TVD</div>
@@ -839,7 +839,7 @@ export class EmailService {
               <div style="font-size: 14px; color: white; font-weight: 500;">${Number(survey.dls).toFixed(2)} <span style="font-size: 11px; color: #93c5fd;">°/100ft</span></div>
             </div>
           </div>
-
+          
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px;">
             <div style="background-color: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.1);">
               <div style="font-size: 11px; color: #93c5fd; margin-bottom: 3px;">N/S</div>
@@ -872,7 +872,7 @@ export class EmailService {
               ${getStatusBadge(aiAnalysis.status)}
             </div>
           </div>
-
+          
           <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
             <div style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 14px; border-radius: 8px; border: 1px solid rgba(124, 58, 237, 0.2); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
               <div style="font-size: 13px; color: #c4b5fd; margin-bottom: 4px;">Dogleg Severity Analysis</div>
@@ -901,7 +901,7 @@ export class EmailService {
             </div>
             <h3 style="color: white; margin: 0; font-size: 18px;">Curve Data Analysis</h3>
           </div>
-
+          
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px;">
             <div style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 14px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
               <div style="font-size: 13px; color: #6ee7b7; margin-bottom: 4px;">Motor Yield</div>
@@ -916,7 +916,7 @@ export class EmailService {
               <div style="font-size: 18px; color: #10b981; font-weight: 600;">${Number(curveData.projectedInc || 0).toFixed(2)} <span style="font-size: 12px; color: #6ee7b7;">°</span></div>
             </div>
           </div>
-
+          
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
             <div style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 14px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
               <div style="font-size: 13px; color: #6ee7b7; margin-bottom: 4px;">Projected Az</div>
@@ -945,7 +945,7 @@ export class EmailService {
             </div>
             <h3 style="color: white; margin: 0; font-size: 18px;">Target Position</h3>
           </div>
-
+          
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
             <div style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 16px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.2); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
               <div style="font-size: 13px; color: #fcd34d; margin-bottom: 6px;">Vertical Position</div>
@@ -994,7 +994,7 @@ export class EmailService {
               <span>Live Data</span>
             </div>
           </div>
-
+          
           <div style="text-align: center; margin-top: 15px; background-color: rgba(15, 22, 41, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 20px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
             <!-- Using GIF format for the gamma plot to simulate real-time updates - Now larger -->
             <img src="${gammaImageUrl}" alt="Gamma Plot" style="width: 100%; max-width: 850px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);" />
@@ -1008,7 +1008,7 @@ export class EmailService {
           </div>
         </div>
         ` : ''}
-
+        
         ${additionalNote ? `
         <!-- Additional Notes with frosted glass styling -->
         <div style="background-color: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 20px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); border: 1px solid rgba(59, 130, 246, 0.2);">
@@ -1020,7 +1020,7 @@ export class EmailService {
             </div>
             <h3 style="color: white; margin: 0; font-size: 18px;">Additional Notes</h3>
           </div>
-
+          
           <div style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 18px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);">
             <div style="color: white; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${additionalNote}</div>
           </div>
@@ -1045,10 +1045,10 @@ export class EmailService {
   openEmailClient(options: EmailOptions): void {
     try {
       const { to, subject, body, attachments } = options;
-
+      
       // Check if the body is HTML content
       const isHtmlContent = body.trim().startsWith('<') && body.includes('</');
-
+      
       // Generate a blob URL for copying HTML to clipboard
       if (isHtmlContent) {
         // Create a temporarily hidden textarea with the HTML content
@@ -1057,27 +1057,41 @@ export class EmailService {
         tempDiv.style.left = '-9999px';
         tempDiv.innerHTML = body;
         document.body.appendChild(tempDiv);
-
-        // Get the HTML content before removing the div
-        const htmlContent = tempDiv.innerHTML;
+        
+        // Create a selection and copy to clipboard
+        const selection = window.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+          const range = document.createRange();
+          range.selectNodeContents(tempDiv);
+          selection.addRange(range);
+          
+          // Copy the HTML content to clipboard
+          document.execCommand('copy');
+          selection.removeAllRanges();
+        }
+        
         document.body.removeChild(tempDiv);
 
-        // Create mailto link with the HTML content included in the body
-        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(htmlContent)}`;
-        window.location.href = mailtoLink;
-
-        // Show a more streamlined helper message
+        // Create a mailto link that will open Outlook if it's the default client
+        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`;
+        
+        // Open the email client
+        window.location.href = mailtoLink; // Use location.href instead of window.open() for better Outlook integration
+        
+        // Show a more Outlook-focused helper message
         setTimeout(() => {
           const message = [
             "Email draft opened in Outlook",
             "",
-            "The formatted content has been automatically added to the email body.",
-            attachments?.length ? `Please add the following attachment${attachments.length > 1 ? 's' : ''}:` : '',
-            ...(attachments?.map(file => `• ${file.name}`) || [])
+            "1. The formatted content is copied to your clipboard",
+            "2. Use Ctrl+V (or Cmd+V) to paste the content into the email body",
+            attachments?.length ? `3. Add the ${attachments.length} selected attachment${attachments.length > 1 ? 's' : ''}:` : '',
+            ...(attachments?.map(file => `   • ${file.name}`) || [])
           ].join('\n');
-
+          
           window.alert(message);
-        }, 1500);
+        }, 1500); // Slightly longer delay to ensure Outlook opens first
       } else {
         // For plain text emails, include the body directly
         const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -1094,7 +1108,7 @@ export class EmailService {
     const formattedDate = new Date().toLocaleDateString('en-US', { 
       year: 'numeric', month: 'short', day: 'numeric' 
     });
-
+    
     const subject = `[NWT] Survey Report #${data.survey.index} | ${data.wellName} | ${Number(data.survey.md).toFixed(2)}ft | ${formattedDate}`;
     const body = data.emailBody || this.generateHtmlBody(data);
 
@@ -1117,7 +1131,7 @@ export class EmailService {
       body: body + additionalNoteText + attachmentsInfo,
       attachments: data.attachments
     });
-
+    
     // No need for additional alert about attachments since it's already handled in openEmailClient
   }
 }
