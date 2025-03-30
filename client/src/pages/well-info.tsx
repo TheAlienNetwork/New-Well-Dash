@@ -45,7 +45,7 @@ export default function WellInfo() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'sensorOffset' || name === 'proposedDirection' ? parseFloat(value) || 0 : value
+      [name]: value // Store value as string, convert when submitting
     }));
   };
 
@@ -53,13 +53,23 @@ export default function WellInfo() {
     e.preventDefault();
     
     try {
-      await updateWellInfo(formData);
+      // Prepare data with proper types
+      const dataToSubmit = {
+        ...formData,
+        // Convert string values to numbers for numeric fields
+        sensorOffset: formData.sensorOffset ? formData.sensorOffset : '0',
+        proposedDirection: formData.proposedDirection ? formData.proposedDirection : '0'
+      };
+      
+      console.log('Submitting well info:', dataToSubmit);
+      await updateWellInfo(dataToSubmit);
       setIsEditing(false);
       toast({
         title: 'Success',
         description: 'Well information updated successfully'
       });
     } catch (error) {
+      console.error('Error updating well info:', error);
       toast({
         title: 'Error',
         description: 'Failed to update well information',

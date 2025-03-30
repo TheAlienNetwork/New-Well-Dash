@@ -184,27 +184,29 @@ export default function GammaPlot() {
             <ResponsiveContainer width="100%" height={400}>
               <ComposedChart 
                 data={chartData} 
-                margin={{ top: 10, right: 20, left: 20, bottom: 20 }}
+                margin={{ top: 10, right: 20, left: 70, bottom: 20 }}
                 key={chartKey}
+                layout="vertical" // This makes depth go on the Y-axis
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(107, 114, 128, 0.3)" />
-                <XAxis 
+                <YAxis 
                   dataKey="depth"
                   type="number"
                   domain={['dataMin - 5', 'dataMax + 5']}
                   stroke="#6b7280"
                   tick={{ fill: '#e5e7eb' }}
-                  label={{ value: 'Depth (ft)', position: 'insideBottom', fill: '#e5e7eb', fontSize: 12, offset: 0 }}
+                  label={{ value: 'Depth (ft)', angle: -90, position: 'insideLeft', fill: '#e5e7eb', fontSize: 12, offset: -55 }}
+                  reversed={true} // Important: This makes depth increase downward
+                  width={70}
                 />
-                <YAxis 
+                <XAxis 
                   dataKey="gamma" 
                   type="number"
                   domain={[0, 'dataMax + 20']}
                   stroke="#6b7280"
                   tick={{ fill: '#e5e7eb' }}
                   tickFormatter={(value) => value.toFixed(0)}
-                  label={{ value: 'Gamma (gAPI)', angle: -90, position: 'insideLeft', fill: '#e5e7eb', fontSize: 12 }}
-                  width={70}
+                  label={{ value: 'Gamma (gAPI)', position: 'insideBottom', fill: '#e5e7eb', fontSize: 12, offset: 0 }}
                 />
                 <Tooltip
                   contentStyle={{ 
@@ -238,7 +240,7 @@ export default function GammaPlot() {
                   dot={{ stroke: '#10b981', strokeWidth: 1, r: 4, fill: '#10b981' }}
                 />
                 
-                {/* Area under the line with gradient */}
+                {/* Area for the gamma values */}
                 <Area 
                   type="monotone"
                   dataKey="gamma"
@@ -255,14 +257,21 @@ export default function GammaPlot() {
                 />
                 
                 {/* Reference line for significant gamma value */}
-                <ReferenceLine y={60} stroke="rgba(16, 185, 129, 0.5)" strokeDasharray="3 3" label={{ value: 'Threshold', fill: '#10b981', fontSize: 11, position: 'right' }} />
+                <ReferenceLine x={60} stroke="rgba(16, 185, 129, 0.5)" strokeDasharray="3 3" 
+                  label={{ 
+                    value: 'Threshold', 
+                    fill: '#10b981', 
+                    fontSize: 11, 
+                    position: 'top' 
+                  }} 
+                />
                 
-                {/* Gradient definition for area fill */}
+                {/* Gradient definition for area fill - horizontal direction now */}
                 <defs>
-                  <linearGradient id="gammaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
+                  <linearGradient id="gammaGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.1} />
                     <stop offset="50%" stopColor="#10b981" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.1} />
+                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.8} />
                   </linearGradient>
                 </defs>
               </ComposedChart>
