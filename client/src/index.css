@@ -9,8 +9,8 @@
   }
 
   body {
-    @apply font-sans antialiased bg-navy-950 text-foreground;
-    background: linear-gradient(to bottom, #0a192f, #0f1c2e);
+    @apply font-sans antialiased text-foreground;
+    background: #111827; /* Dark blue background instead of gradient */
   }
 }
 
@@ -49,129 +49,168 @@
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 
-  /* Futuristic input and textarea styling */
+  /* Professional input and textarea styling */
   input, textarea, select {
-    @apply bg-navy-900 border-cyan-500/30 focus:border-cyan-400 shadow-md;
+    @apply bg-gray-800 border-blue-500/30 focus:border-blue-400 shadow-md;
   }
   
-  /* Application color schemes */
-  .card {
-    @apply bg-navy-900 shadow-lg hover:shadow-cyan-900/20 transition-all duration-300 border border-cyan-500/20;
-  }
-  
-  /* Futuristic glassmorphism effects */
-  .glass-panel {
-    @apply bg-navy-950/40 backdrop-blur-sm border border-cyan-500/20 rounded-lg shadow-lg;
-  }
-  
-  /* Neon glowing values */
+  /* Vibrant value highlighting with enhanced visibility */
   .glow-text {
-    @apply text-cyan-400 font-mono;
-    text-shadow: 0 0 8px rgba(0, 191, 255, 0.6);
+    @apply text-blue-400 font-semibold;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
   }
   
   .glow-text-green {
-    @apply text-emerald-400 font-mono;
-    text-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+    @apply text-emerald-400 font-semibold;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
   }
   
   .glow-text-orange {
-    @apply text-orange-400 font-mono;
-    text-shadow: 0 0 8px rgba(251, 146, 60, 0.6);
+    @apply text-orange-400 font-semibold;
+    text-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
   }
   
   .glow-border {
-    @apply border border-cyan-500/30 shadow-md;
-    box-shadow: 0 0 15px rgba(0, 191, 255, 0.2);
+    @apply border border-blue-500/40 shadow-md;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
   }
   
-  /* Futuristic container styling */
-  .futuristic-container {
-    @apply bg-navy-900/80 backdrop-blur-md rounded-lg border border-cyan-500/20 shadow-lg;
+  /* Modern container styling with subtle animation */
+  .card {
+    @apply bg-gray-800 shadow-lg hover:shadow-blue-800/20 transition-all duration-300 border border-gray-700 rounded-lg;
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   }
   
-  /* Futuristic border styling */
-  .futuristic-border {
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 0 25px rgba(6, 182, 212, 0.12);
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   }
   
-  .futuristic-border::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.8), transparent);
-    animation: border-glow 3s linear infinite;
+  /* Professional panel styling */
+  .glass-panel {
+    @apply bg-gray-800/90 border border-gray-700 rounded-lg shadow-lg backdrop-blur-sm;
   }
   
-  @keyframes border-glow {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-  
-  /* Shadow effects */
+  /* Enhanced shadow effects */
   .shadow-glow {
-    box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
   }
   
   .shadow-glow-green {
-    box-shadow: 0 0 20px rgba(5, 150, 105, 0.15);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
   }
   
-  /* Animated pulse effect */
+  /* Smooth animation effects */
   .pulse-effect {
-    animation: pulse 2s infinite;
+    transition: all 0.2s ease-in-out;
   }
   
-  @keyframes pulse {
-    0% { opacity: 0.7; }
+  .pulse-effect:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+  }
+  
+  /* Enhanced data display styles with vibrant colors */
+  .highlight-text {
+    font-weight: 600;
+    color: #60a5fa;
+    text-shadow: 0 0 5px rgba(96, 165, 250, 0.3);
+  }
+  
+  /* Vibrant value styling with text shadows for better visibility */
+  .value-blue {
+    color: #3b82f6;
+    font-weight: 600;
+    text-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+  }
+  
+  .value-green {
+    color: #10b981;
+    font-weight: 600;
+    text-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+  }
+  
+  .value-orange {
+    color: #f97316;
+    font-weight: 600;
+    text-shadow: 0 0 6px rgba(249, 115, 22, 0.3);
+  }
+  
+  .value-red {
+    color: #ef4444;
+    font-weight: 600;
+    text-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+  }
+  
+  .value-purple {
+    color: #8b5cf6;
+    font-weight: 600;
+    text-shadow: 0 0 6px rgba(139, 92, 246, 0.3);
+  }
+  
+  /* Professional border accent */
+  .border-accent {
+    border-left: 4px solid #3b82f6;
+  }
+  
+  .border-accent-green {
+    border-left: 4px solid #10b981;
+  }
+  
+  .border-accent-orange {
+    border-left: 4px solid #f97316;
+  }
+  
+  /* Advanced animations for drill data */
+  @keyframes pulse-subtle {
+    0% { opacity: 0.8; }
     50% { opacity: 1; }
-    100% { opacity: 0.7; }
+    100% { opacity: 0.8; }
   }
   
-  /* Animated flicker effect for futuristic displays */
-  .flicker-text {
-    animation: flicker 5s linear infinite;
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
   }
   
-  @keyframes flicker {
-    0%, 19.999%, 22%, 62.999%, 64%, 97.999%, 99.999%, 100% { opacity: 1; }
-    20%, 21.999%, 63%, 63.999%, 98%, 99.998% { opacity: 0.8; }
+  @keyframes slide-in {
+    0% { transform: translateY(10px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
   }
   
-  /* Glow text variants for data displays */
-  .glow-text-subtle {
-    text-shadow: 0 0 5px rgba(6, 182, 212, 0.3);
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out forwards;
   }
   
-  .glow-text-green {
-    text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
-    color: #4ade80;
+  /* Smooth page transitions */
+  .page-transition-enter {
+    opacity: 0;
+    transform: translateY(10px);
   }
   
-  /* Subtle futuristic border for containers */
-  .futuristic-border-subtle {
-    position: relative;
-    overflow: hidden;
+  .page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s, transform 0.3s;
   }
   
-  .futuristic-border-subtle::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.4), transparent);
-    animation: flow 3s linear infinite;
+  /* Add a professional pill style for status indicators */
+  .status-pill {
+    @apply rounded-full px-2 py-0.5 text-xs font-medium;
   }
   
-  @keyframes flow {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+  .status-pill-green {
+    @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+  }
+  
+  .status-pill-blue {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400;
+  }
+  
+  .status-pill-orange {
+    @apply bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400;
+  }
+  
+  .status-pill-red {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
   }
 }

@@ -93,15 +93,15 @@ export default function MwdSurvey() {
           <CurveData />
         </div>
 
-        <div className="xl:col-span-1">
+        <div className="xl:col-span-3">
           <GammaPlot />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
-          <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
-            <h2 className="text-lg font-semibold flex items-center text-cyan-100 font-mono">INCLINATION DIFFERENCES</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+        <div className="card border border-gray-700 bg-gray-900/50 overflow-hidden shadow-md">
+          <div className="p-3 bg-gray-800 flex justify-between items-center border-b border-gray-700">
+            <h2 className="text-lg font-semibold flex items-center text-white">Inclination Plot</h2>
           </div>
           <div className="p-4">
             <Plot
@@ -110,40 +110,41 @@ export default function MwdSurvey() {
                 y: surveys.map(s => s.inc),
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#06b6d4', width: 2 },
-                marker: { color: '#22d3ee', size: 6 },
+                line: { color: '#3b82f6', width: 3 },
+                marker: { color: '#60a5fa', size: 8 },
                 name: 'Inclination'
               }]}
               layout={{
-                height: 300,
-                width: 750, // Increased width to prevent content cutoff
-                margin: { t: 20, r: 20, b: 40, l: 40 },
+                height: 320,
+                autosize: true,
+                margin: { t: 20, r: 30, b: 50, l: 60 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
+                plot_bgcolor: 'rgba(30, 41, 59, 0.4)',
                 xaxis: { 
-                  title: 'MD (ft)',
-                  gridcolor: 'rgba(6, 182, 212, 0.1)',
-                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
-                  titlefont: { color: '#94a3b8' },
-                  tickfont: { color: '#94a3b8' }
+                  title: 'Measured Depth (ft)',
+                  gridcolor: 'rgba(148, 163, 184, 0.15)',
+                  zerolinecolor: 'rgba(148, 163, 184, 0.3)',
+                  titlefont: { color: '#e2e8f0', size: 14 },
+                  tickfont: { color: '#e2e8f0', size: 12 }
                 },
                 yaxis: { 
                   title: 'Inclination (°)',
-                  gridcolor: 'rgba(6, 182, 212, 0.1)',
-                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
-                  titlefont: { color: '#94a3b8' },
-                  tickfont: { color: '#94a3b8' }
+                  gridcolor: 'rgba(148, 163, 184, 0.15)',
+                  zerolinecolor: 'rgba(148, 163, 184, 0.3)',
+                  titlefont: { color: '#e2e8f0', size: 14 },
+                  tickfont: { color: '#e2e8f0', size: 12 }
                 },
-                font: { color: '#94a3b8' }
+                font: { color: '#e2e8f0' }
               }}
               config={{ responsive: true }}
+              style={{ width: '100%' }}
             />
           </div>
         </div>
 
-        <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
-          <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
-            <h2 className="text-lg font-semibold flex items-center text-cyan-100 font-mono">AZIMUTH DIFFERENCES</h2>
+        <div className="card border border-gray-700 bg-gray-900/50 overflow-hidden shadow-md">
+          <div className="p-3 bg-gray-800 flex justify-between items-center border-b border-gray-700">
+            <h2 className="text-lg font-semibold flex items-center text-white">Azimuth Plot</h2>
           </div>
           <div className="p-4">
             <Plot
@@ -152,40 +153,41 @@ export default function MwdSurvey() {
                 y: surveys.map(s => s.azi),
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#0ea5e9', width: 2 },
-                marker: { color: '#38bdf8', size: 6 },
+                line: { color: '#0ea5e9', width: 3 },
+                marker: { color: '#38bdf8', size: 8 },
                 name: 'Azimuth'
               }]}
               layout={{
-                height: 300,
-                width: 750, // Increased width to prevent content cutoff
-                margin: { t: 20, r: 20, b: 40, l: 40 },
+                height: 320,
+                autosize: true,
+                margin: { t: 20, r: 30, b: 50, l: 60 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
+                plot_bgcolor: 'rgba(30, 41, 59, 0.4)',
                 xaxis: { 
-                  title: 'MD (ft)',
-                  gridcolor: 'rgba(6, 182, 212, 0.1)',
-                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
-                  titlefont: { color: '#94a3b8' },
-                  tickfont: { color: '#94a3b8' }
+                  title: 'Measured Depth (ft)',
+                  gridcolor: 'rgba(148, 163, 184, 0.15)',
+                  zerolinecolor: 'rgba(148, 163, 184, 0.3)',
+                  titlefont: { color: '#e2e8f0', size: 14 },
+                  tickfont: { color: '#e2e8f0', size: 12 }
                 },
                 yaxis: { 
                   title: 'Azimuth (°)',
-                  gridcolor: 'rgba(6, 182, 212, 0.1)',
-                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
-                  titlefont: { color: '#94a3b8' },
-                  tickfont: { color: '#94a3b8' }
+                  gridcolor: 'rgba(148, 163, 184, 0.15)',
+                  zerolinecolor: 'rgba(148, 163, 184, 0.3)',
+                  titlefont: { color: '#e2e8f0', size: 14 },
+                  tickfont: { color: '#e2e8f0', size: 12 }
                 },
-                font: { color: '#94a3b8' }
+                font: { color: '#e2e8f0' }
               }}
               config={{ responsive: true }}
+              style={{ width: '100%' }}
             />
           </div>
         </div>
 
-        <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
-          <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
-            <h2 className="text-lg font-semibold flex items-center text-cyan-100 font-mono">TOTAL MAGNETOMETER</h2>
+        <div className="card border border-gray-700 bg-gray-900/50 overflow-hidden shadow-md">
+          <div className="p-3 bg-gray-800 flex justify-between items-center border-b border-gray-700">
+            <h2 className="text-lg font-semibold flex items-center text-white">Total Magnetometer</h2>
           </div>
           <div className="p-4">
             <Plot
@@ -194,40 +196,41 @@ export default function MwdSurvey() {
                 y: surveys.map(s => s.gTotal),
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#8b5cf6', width: 2 },
-                marker: { color: '#a78bfa', size: 6 },
+                line: { color: '#8b5cf6', width: 3 },
+                marker: { color: '#a78bfa', size: 8 },
                 name: 'G Total'
               }]}
               layout={{
-                height: 300,
-                width: 750, // Increased width to prevent content cutoff
-                margin: { t: 20, r: 20, b: 40, l: 40 },
+                height: 320,
+                autosize: true,
+                margin: { t: 20, r: 30, b: 50, l: 60 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
+                plot_bgcolor: 'rgba(30, 41, 59, 0.4)',
                 xaxis: { 
-                  title: 'MD (ft)',
-                  gridcolor: 'rgba(6, 182, 212, 0.1)',
-                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
-                  titlefont: { color: '#94a3b8' },
-                  tickfont: { color: '#94a3b8' }
+                  title: 'Measured Depth (ft)',
+                  gridcolor: 'rgba(148, 163, 184, 0.15)',
+                  zerolinecolor: 'rgba(148, 163, 184, 0.3)',
+                  titlefont: { color: '#e2e8f0', size: 14 },
+                  tickfont: { color: '#e2e8f0', size: 12 }
                 },
                 yaxis: { 
                   title: 'G Total',
-                  gridcolor: 'rgba(6, 182, 212, 0.1)',
-                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
-                  titlefont: { color: '#94a3b8' },
-                  tickfont: { color: '#94a3b8' }
+                  gridcolor: 'rgba(148, 163, 184, 0.15)',
+                  zerolinecolor: 'rgba(148, 163, 184, 0.3)',
+                  titlefont: { color: '#e2e8f0', size: 14 },
+                  tickfont: { color: '#e2e8f0', size: 12 }
                 },
-                font: { color: '#94a3b8' }
+                font: { color: '#e2e8f0' }
               }}
               config={{ responsive: true }}
+              style={{ width: '100%' }}
             />
           </div>
         </div>
 
-        <div className="rounded-lg overflow-hidden border border-cyan-500/20 bg-navy-950/50">
-          <div className="p-3 bg-navy-900 flex justify-between items-center border-b border-cyan-500/20">
-            <h2 className="text-lg font-semibold flex items-center text-cyan-100 font-mono">TOTAL ACCELEROMETER</h2>
+        <div className="card border border-gray-700 bg-gray-900/50 overflow-hidden shadow-md">
+          <div className="p-3 bg-gray-800 flex justify-between items-center border-b border-gray-700">
+            <h2 className="text-lg font-semibold flex items-center text-white">Total Accelerometer</h2>
           </div>
           <div className="p-4">
             <Plot
@@ -236,33 +239,34 @@ export default function MwdSurvey() {
                 y: surveys.map(s => s.bTotal),
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#ec4899', width: 2 },
-                marker: { color: '#f472b6', size: 6 },
+                line: { color: '#ec4899', width: 3 },
+                marker: { color: '#f472b6', size: 8 },
                 name: 'B Total'
               }]}
               layout={{
-                height: 300,
-                width: 750, // Increased width to prevent content cutoff
-                margin: { t: 20, r: 20, b: 40, l: 40 },
+                height: 320,
+                autosize: true,
+                margin: { t: 20, r: 30, b: 50, l: 60 },
                 paper_bgcolor: 'transparent',
-                plot_bgcolor: 'rgba(3, 22, 56, 0.3)',
+                plot_bgcolor: 'rgba(30, 41, 59, 0.4)',
                 xaxis: { 
-                  title: 'MD (ft)',
-                  gridcolor: 'rgba(6, 182, 212, 0.1)',
-                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
-                  titlefont: { color: '#94a3b8' },
-                  tickfont: { color: '#94a3b8' }
+                  title: 'Measured Depth (ft)',
+                  gridcolor: 'rgba(148, 163, 184, 0.15)',
+                  zerolinecolor: 'rgba(148, 163, 184, 0.3)',
+                  titlefont: { color: '#e2e8f0', size: 14 },
+                  tickfont: { color: '#e2e8f0', size: 12 }
                 },
                 yaxis: { 
                   title: 'B Total',
-                  gridcolor: 'rgba(6, 182, 212, 0.1)',
-                  zerolinecolor: 'rgba(6, 182, 212, 0.2)',
-                  titlefont: { color: '#94a3b8' },
-                  tickfont: { color: '#94a3b8' }
+                  gridcolor: 'rgba(148, 163, 184, 0.15)',
+                  zerolinecolor: 'rgba(148, 163, 184, 0.3)',
+                  titlefont: { color: '#e2e8f0', size: 14 },
+                  tickfont: { color: '#e2e8f0', size: 12 }
                 },
-                font: { color: '#94a3b8' }
+                font: { color: '#e2e8f0' }
               }}
               config={{ responsive: true }}
+              style={{ width: '100%' }}
             />
           </div>
         </div>
