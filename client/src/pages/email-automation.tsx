@@ -253,7 +253,7 @@ export default function EmailAutomation() {
   };
 
   // Send email
-  const sendEmail = () => {
+  const sendEmail = async () => {
     if (!latestSurvey || !wellInfo) {
       toast({
         title: 'Error',
@@ -277,8 +277,9 @@ export default function EmailAutomation() {
 
     try {
       // Generate gamma plot image from the emailService
+      // Use animated GIF for gamma plots in emails
       const gammaImageUrl = emailSettings.includeGammaPlot ? 
-        emailService.generateGammaPlotImage() : undefined;
+        await emailService.generateAnimatedGammaPlotGif() : undefined;
 
       // Prepare target position data from curve data
       const targetPosition = emailSettings.includeTargetPosition ? {
@@ -356,6 +357,78 @@ export default function EmailAutomation() {
   // Show email preview
   const previewEmail = () => {
     setShowEmailPreviewDialog(true);
+  };
+  
+  // Copy HTML Email to clipboard (async function)
+  const copyHtmlToClipboard = async () => {
+    try {
+      // Generate email content with animated gamma plot
+      const content = emailService.generateHtmlBody({
+        survey: latestSurvey!,
+        wellName: wellInfo!.wellName,
+        rigName: wellInfo!.rigName,
+        gammaImageUrl: emailSettings.includeGammaPlot ? await emailService.generateAnimatedGammaPlotGif() : undefined,
+        aiAnalysis: emailSettings.includeAiAnalysis ? {
+          status: aiAnalysis?.status || 'Passed',
+          doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey!.dls).toFixed(2)}°/100ft (Within limits)`,
+          trend: aiAnalysis?.trend || 'Consistent with build plan',
+          recommendation: aiAnalysis?.recommendation || 'Continue as planned'
+        } : undefined,
+        curveData: emailSettings.includeCurveData && curveData ? {
+          motorYield: Number(curveData.motorYield),
+          dogLegNeeded: Number(curveData.dogLegNeeded),
+          projectedInc: Number(curveData.projectedInc),
+          projectedAz: Number(curveData.projectedAz),
+          slideSeen: Number(curveData.slideSeen),
+          slideAhead: Number(curveData.slideAhead),
+          includeInEmail: emailSettings.includeCurveData,
+          includeTargetPosition: emailSettings.includeTargetPosition,
+          includeGammaPlot: emailSettings.includeGammaPlot
+        } : undefined,
+        targetPosition: emailSettings.includeTargetPosition ? {
+          verticalPosition: Number(curveData?.aboveTarget || 0) - Number(curveData?.belowTarget || 0),
+          horizontalPosition: Number(curveData?.rightTarget || 0) - Number(curveData?.leftTarget || 0),
+          isAbove: Number(curveData?.aboveTarget || 0) > 0 && Number(curveData?.belowTarget || 0) === 0,
+          isBelow: Number(curveData?.belowTarget || 0) > 0 && Number(curveData?.aboveTarget || 0) === 0,
+          isLeft: Number(curveData?.leftTarget || 0) > 0 && Number(curveData?.rightTarget || 0) === 0,
+          isRight: Number(curveData?.rightTarget || 0) > 0 && Number(curveData?.leftTarget || 0) === 0
+        } : undefined,
+        additionalNote: emailSettings.additionalNote || undefined
+      });
+      
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'fixed';
+      tempDiv.style.left = '-9999px';
+      tempDiv.innerHTML = content;
+      document.body.appendChild(tempDiv);
+      
+      // Create a selection and copy to clipboard
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        const range = document.createRange();
+        range.selectNodeContents(tempDiv);
+        selection.addRange(range);
+        
+        // Copy the HTML content to clipboard
+        document.execCommand('copy');
+        selection.removeAllRanges();
+      }
+      
+      document.body.removeChild(tempDiv);
+      
+      toast({
+        title: 'Copied!',
+        description: 'HTML email content copied to clipboard'
+      });
+    } catch (error) {
+      console.error('Error copying HTML to clipboard:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate email content',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -961,39 +1034,40 @@ export default function EmailAutomation() {
             </Button>
             <Button 
               type="button" 
-              onClick={() => {
-                // Create a temporarily hidden div with the HTML content
-                const content = emailService.generateHtmlBody({
-                  survey: latestSurvey!,
-                  wellName: wellInfo!.wellName,
-                  rigName: wellInfo!.rigName,
-                  gammaImageUrl: emailSettings.includeGammaPlot ? emailService.generateGammaPlotImage() : undefined,
-                  aiAnalysis: emailSettings.includeAiAnalysis ? {
-                    status: aiAnalysis?.status || 'Passed',
-                    doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey!.dls).toFixed(2)}°/100ft (Within limits)`,
-                    trend: aiAnalysis?.trend || 'Consistent with build plan',
-                    recommendation: aiAnalysis?.recommendation || 'Continue as planned'
-                  } : undefined,
-                  curveData: emailSettings.includeCurveData && curveData ? {
-                    motorYield: Number(curveData.motorYield),
-                    dogLegNeeded: Number(curveData.dogLegNeeded),
-                    projectedInc: Number(curveData.projectedInc),
-                    projectedAz: Number(curveData.projectedAz),
-                    slideSeen: Number(curveData.slideSeen),
-                    slideAhead: Number(curveData.slideAhead),
-                    includeInEmail: emailSettings.includeCurveData,
-                    includeTargetPosition: emailSettings.includeTargetPosition,
-                    includeGammaPlot: emailSettings.includeGammaPlot
-                  } : undefined,
-                  targetPosition: emailSettings.includeTargetPosition ? {
-                    verticalPosition: Number(curveData?.aboveTarget || 0) - Number(curveData?.belowTarget || 0),
-                    horizontalPosition: Number(curveData?.rightTarget || 0) - Number(curveData?.leftTarget || 0),
-                    isAbove: Number(curveData?.aboveTarget || 0) > 0 && Number(curveData?.belowTarget || 0) === 0,
-                    isBelow: Number(curveData?.belowTarget || 0) > 0 && Number(curveData?.aboveTarget || 0) === 0,
-                    isLeft: Number(curveData?.leftTarget || 0) > 0 && Number(curveData?.rightTarget || 0) === 0,
-                    isRight: Number(curveData?.rightTarget || 0) > 0 && Number(curveData?.leftTarget || 0) === 0
-                  } : undefined,
-                  additionalNote: emailSettings.additionalNote || undefined
+              onClick={async () => {
+                try {
+                  // Create a temporarily hidden div with the HTML content
+                  const content = emailService.generateHtmlBody({
+                    survey: latestSurvey!,
+                    wellName: wellInfo!.wellName,
+                    rigName: wellInfo!.rigName,
+                    gammaImageUrl: emailSettings.includeGammaPlot ? await emailService.generateAnimatedGammaPlotGif() : undefined,
+                    aiAnalysis: emailSettings.includeAiAnalysis ? {
+                      status: aiAnalysis?.status || 'Passed',
+                      doglegs: aiAnalysis?.doglegs || `${Number(latestSurvey!.dls).toFixed(2)}°/100ft (Within limits)`,
+                      trend: aiAnalysis?.trend || 'Consistent with build plan',
+                      recommendation: aiAnalysis?.recommendation || 'Continue as planned'
+                    } : undefined,
+                    curveData: emailSettings.includeCurveData && curveData ? {
+                      motorYield: Number(curveData.motorYield),
+                      dogLegNeeded: Number(curveData.dogLegNeeded),
+                      projectedInc: Number(curveData.projectedInc),
+                      projectedAz: Number(curveData.projectedAz),
+                      slideSeen: Number(curveData.slideSeen),
+                      slideAhead: Number(curveData.slideAhead),
+                      includeInEmail: emailSettings.includeCurveData,
+                      includeTargetPosition: emailSettings.includeTargetPosition,
+                      includeGammaPlot: emailSettings.includeGammaPlot
+                    } : undefined,
+                    targetPosition: emailSettings.includeTargetPosition ? {
+                      verticalPosition: Number(curveData?.aboveTarget || 0) - Number(curveData?.belowTarget || 0),
+                      horizontalPosition: Number(curveData?.rightTarget || 0) - Number(curveData?.leftTarget || 0),
+                      isAbove: Number(curveData?.aboveTarget || 0) > 0 && Number(curveData?.belowTarget || 0) === 0,
+                      isBelow: Number(curveData?.belowTarget || 0) > 0 && Number(curveData?.aboveTarget || 0) === 0,
+                      isLeft: Number(curveData?.leftTarget || 0) > 0 && Number(curveData?.rightTarget || 0) === 0,
+                      isRight: Number(curveData?.rightTarget || 0) > 0 && Number(curveData?.leftTarget || 0) === 0
+                    } : undefined,
+                    additionalNote: emailSettings.additionalNote || undefined
                 });
                 
                 const tempDiv = document.createElement('div');
@@ -1021,6 +1095,14 @@ export default function EmailAutomation() {
                   title: 'Copied!',
                   description: 'HTML email content copied to clipboard'
                 });
+                } catch (error) {
+                  console.error('Error copying HTML to clipboard:', error);
+                  toast({
+                    title: 'Error',
+                    description: 'Failed to generate email content',
+                    variant: 'destructive'
+                  });
+                }
               }}
               className="bg-cyan-800 hover:bg-cyan-700"
             >

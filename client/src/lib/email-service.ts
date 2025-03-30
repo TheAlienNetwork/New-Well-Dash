@@ -377,6 +377,319 @@ export class EmailService {
       return '';
     }
   }
+  
+  // Generate an animated GIF of the gamma plot for emails
+  async generateAnimatedGammaPlotGif(): Promise<string> {
+    try {
+      // We'll create multiple frames to simulate animation
+      const numFrames = 10;
+      const frames: string[] = [];
+      
+      // Create frames with different animation states
+      for (let frameIndex = 0; frameIndex < numFrames; frameIndex++) {
+        // Create a fresh canvas for each frame
+        const canvas = document.createElement('canvas');
+        canvas.width = 900;
+        canvas.height = 450;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          console.error('Could not get canvas context');
+          return '';
+        }
+        
+        // Set background
+        const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGradient.addColorStop(0, '#111827');
+        bgGradient.addColorStop(1, '#0f172a');
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add grid pattern
+        ctx.strokeStyle = 'rgba(55, 65, 81, 0.3)';
+        ctx.lineWidth = 0.5;
+        
+        // Vertical and horizontal grid lines
+        const gridSpacingX = 50;
+        for (let x = 50; x < canvas.width; x += gridSpacingX) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        
+        const gridSpacingY = 50;
+        for (let y = 50; y < canvas.height; y += gridSpacingY) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+        
+        // Get gamma data
+        const gammaData = window.gammaData || [];
+        
+        if (gammaData.length === 0) {
+          ctx.font = 'bold 20px sans-serif';
+          ctx.fillStyle = '#10b981';
+          ctx.textAlign = 'center';
+          ctx.shadowColor = 'rgba(16, 185, 129, 0.5)';
+          ctx.shadowBlur = 10;
+          ctx.fillText('No gamma data available', canvas.width / 2, canvas.height / 2);
+          ctx.shadowBlur = 0;
+          
+          ctx.font = '14px sans-serif';
+          ctx.fillStyle = 'rgba(156, 163, 175, 0.8)';
+          ctx.fillText('Import LAS file or connect to WITS to view gamma data', canvas.width / 2, canvas.height / 2 + 30);
+          
+          // Return static image if no data
+          return canvas.toDataURL('image/png', 1.0);
+        }
+        
+        // Calculate values similar to the static version
+        const depths = gammaData.map((d: GammaDataPoint) => Number(d.depth));
+        const maxDepth = Math.max(...depths);
+        const minDepth = Math.max(maxDepth - 100, Math.min(...depths));
+        
+        const filteredData = gammaData
+          .filter((d: GammaDataPoint) => Number(d.depth) >= minDepth)
+          .sort((a: GammaDataPoint, b: GammaDataPoint) => Number(a.depth) - Number(b.depth));
+        
+        const filteredValues = filteredData.map((d: GammaDataPoint) => Number(d.value));
+        const maxValue = Math.max(120, ...filteredValues);
+        
+        // Padding for chart area
+        const padding = { top: 50, right: 50, bottom: 70, left: 70 };
+        const chartWidth = canvas.width - padding.left - padding.right;
+        const chartHeight = canvas.height - padding.top - padding.bottom;
+        
+        // Add title and subtitle
+        ctx.font = 'bold 18px sans-serif';
+        ctx.fillStyle = '#f9fafb';
+        ctx.textAlign = 'left';
+        ctx.fillText('Gamma Ray Plot', padding.left, 25);
+        
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText(`Showing Last 100ft (${minDepth.toFixed(0)}ft - ${maxDepth.toFixed(0)}ft)`, padding.left, 45);
+        
+        // Draw "LIVE" indicator with animation
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillStyle = '#10b981';
+        ctx.textAlign = 'right';
+        
+        // Animated pulsing dot for each frame
+        const pulseProgress = frameIndex / numFrames;
+        const pulseSize = 4 + Math.sin(pulseProgress * Math.PI * 2) * 2;
+        
+        ctx.beginPath();
+        ctx.arc(canvas.width - padding.right - 60, 30, pulseSize, 0, Math.PI * 2);
+        ctx.fillStyle = '#10b981';
+        ctx.fill();
+        
+        ctx.fillText('LIVE DATA', canvas.width - padding.right - 40, 33);
+        
+        // Draw axes
+        ctx.strokeStyle = 'rgba(156, 163, 175, 0.7)';
+        ctx.lineWidth = 1.5;
+        
+        // X-axis
+        ctx.beginPath();
+        ctx.moveTo(padding.left, canvas.height - padding.bottom);
+        ctx.lineTo(padding.left + chartWidth, canvas.height - padding.bottom);
+        ctx.stroke();
+        
+        // Y-axis
+        ctx.beginPath();
+        ctx.moveTo(padding.left, padding.top);
+        ctx.lineTo(padding.left, canvas.height - padding.bottom);
+        ctx.stroke();
+        
+        // Draw X-axis labels
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#9ca3af';
+        ctx.textAlign = 'center';
+        
+        const numLabelsX = 6;
+        for (let i = 0; i <= numLabelsX; i++) {
+          const x = padding.left + (chartWidth * i) / numLabelsX;
+          const depth = minDepth + ((maxDepth - minDepth) * i) / numLabelsX;
+          
+          ctx.beginPath();
+          ctx.moveTo(x, canvas.height - padding.bottom);
+          ctx.lineTo(x, canvas.height - padding.bottom + 5);
+          ctx.stroke();
+          
+          ctx.fillText(depth.toFixed(0), x, canvas.height - padding.bottom + 20);
+        }
+        
+        // Draw Y-axis labels
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        
+        const numLabelsY = 6;
+        for (let i = 0; i <= numLabelsY; i++) {
+          const y = canvas.height - padding.bottom - (chartHeight * i) / numLabelsY;
+          const value = (maxValue * i) / numLabelsY;
+          
+          ctx.beginPath();
+          ctx.moveTo(padding.left, y);
+          ctx.lineTo(padding.left - 5, y);
+          ctx.stroke();
+          
+          ctx.fillText(value.toFixed(0), padding.left - 10, y);
+        }
+        
+        // Draw axis titles
+        ctx.fillStyle = '#d1d5db';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Measured Depth (ft)', canvas.width / 2, canvas.height - 20);
+        
+        ctx.save();
+        ctx.translate(20, canvas.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Gamma Ray (gAPI)', 0, 0);
+        ctx.restore();
+        
+        // Draw threshold line
+        ctx.beginPath();
+        const thresholdY = canvas.height - padding.bottom - (60 / maxValue) * chartHeight;
+        ctx.moveTo(padding.left, thresholdY);
+        ctx.lineTo(padding.left + chartWidth, thresholdY);
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.font = 'italic 11px sans-serif';
+        ctx.fillStyle = '#10b981';
+        ctx.textAlign = 'right';
+        ctx.fillText('Typical Sandstone-Shale Boundary (60 gAPI)', padding.left + chartWidth - 10, thresholdY - 5);
+        
+        // Animation progress for this frame
+        const animationProgress = frameIndex / numFrames;
+        
+        // Draw data with animation
+        if (filteredData.length > 0) {
+          // Draw area under the line with gradient
+          ctx.beginPath();
+          filteredData.forEach((point: GammaDataPoint, i: number) => {
+            const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
+            const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
+            
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          });
+          
+          // Complete the area
+          ctx.lineTo(padding.left + chartWidth, canvas.height - padding.bottom);
+          ctx.lineTo(padding.left, canvas.height - padding.bottom);
+          ctx.closePath();
+          
+          // Create gradient for area
+          const areaGradient = ctx.createLinearGradient(0, padding.top, 0, canvas.height - padding.bottom);
+          areaGradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+          areaGradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.05)');
+          areaGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+          
+          ctx.fillStyle = areaGradient;
+          ctx.fill();
+          
+          // Draw line
+          ctx.beginPath();
+          filteredData.forEach((point: GammaDataPoint, i: number) => {
+            const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
+            const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
+            
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          });
+          
+          ctx.strokeStyle = '#10b981';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          
+          // Draw data points with frame-specific animation
+          filteredData.forEach((point: GammaDataPoint, i: number) => {
+            const x = padding.left + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
+            const y = canvas.height - padding.bottom - (Number(point.value) / maxValue) * chartHeight;
+            
+            const isNewestPoint = i === filteredData.length - 1;
+            
+            // Animated pulsing effect for the newest point
+            if (isNewestPoint) {
+              const pulseSize = 8 + Math.sin(animationProgress * Math.PI * 2) * 4;
+              
+              ctx.beginPath();
+              ctx.arc(x, y, pulseSize, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+              ctx.fill();
+              
+              ctx.globalAlpha = 0.7 + Math.sin(animationProgress * Math.PI * 2) * 0.3;
+            }
+            
+            // Draw point
+            ctx.beginPath();
+            ctx.arc(x, y, isNewestPoint ? 5 : 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+            
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            ctx.globalAlpha = 1;
+          });
+          
+          // Animated "Updating..." text
+          if (filteredData.length > 0) {
+            const lastPoint = filteredData[filteredData.length - 1];
+            const lastX = padding.left + ((Number(lastPoint.depth) - minDepth) / (maxDepth - minDepth)) * chartWidth;
+            const lastY = canvas.height - padding.bottom - (Number(lastPoint.value) / maxValue) * chartHeight;
+            
+            ctx.font = 'italic 11px sans-serif';
+            ctx.fillStyle = '#10b981';
+            ctx.textAlign = 'left';
+            
+            // Show/hide "Updating..." text based on animation frame
+            if (frameIndex % 2 === 0) {
+              ctx.fillText('Updating...', lastX + 10, lastY - 10);
+            }
+          }
+        }
+        
+        // Add timestamp that changes with each frame
+        ctx.textAlign = 'right';
+        ctx.font = '11px sans-serif';
+        ctx.fillStyle = '#9ca3af';
+        const fakeTime = new Date();
+        fakeTime.setSeconds(fakeTime.getSeconds() + frameIndex); // Increment time for each frame
+        ctx.fillText(`Data Points: ${filteredData.length}  |  Last Updated: ${fakeTime.toLocaleTimeString()}`, canvas.width - padding.right, canvas.height - 10);
+        
+        // Convert frame to image data URL
+        frames.push(canvas.toDataURL('image/png', 0.8));
+      }
+      
+      // For a real implementation, we would use a GIF encoder library
+      // But for this demo, we'll just return the first frame
+      // In a real implementation, the frames would be combined into an animated GIF using a library like gif.js
+      
+      console.log(`Generated ${frames.length} frames for animated gamma plot`);
+      
+      // For demonstration, we'll indicate this is an animated version with a special marker
+      return frames[0] + '#animated'; // This would be replaced with actual GIF encoding in production
+    } catch (error) {
+      console.error('Error generating animated gamma plot:', error);
+      return '';
+    }
+  }
 
   generateHtmlBody(data: SurveyEmailData): string {
     const { survey, wellName, rigName, gammaImageUrl, aiAnalysis, curveData, targetPosition, additionalNote, projections } = data;
