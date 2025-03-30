@@ -218,14 +218,15 @@ export class EmailService {
         ctx.fillText(value.toFixed(0), x, canvas.height - padding.bottom + 20);
       }
       
-      // Draw Y-axis labels (Depth) with improved styling - reversed order
+      // Draw Y-axis labels (Depth) with improved styling - low depths at top
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       
       const numLabelsY = 6;
       for (let i = 0; i <= numLabelsY; i++) {
         const y = canvas.height - padding.bottom - (chartHeight * i) / numLabelsY;
-        const depth = minDepth + ((maxDepth - minDepth) * (numLabelsY - i)) / numLabelsY;
+        // Flip the depth calculation to have lower depths at top
+        const depth = minDepth + ((maxDepth - minDepth) * i) / numLabelsY;
         
         // Tick marks
         ctx.beginPath();
@@ -280,8 +281,8 @@ export class EmailService {
         filteredData.forEach((point: GammaDataPoint, i: number) => {
           // X-axis is now gamma value
           const x = padding.left + (Number(point.value) / maxValue) * chartWidth;
-          // Y-axis is now depth (reversed scale so smaller depths at top)
-          const y = padding.top + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartHeight;
+          // Y-axis is now depth with smaller depths at top (flipped order)
+          const y = padding.top + ((maxDepth - Number(point.depth)) / (maxDepth - minDepth)) * chartHeight;
           
           if (i === 0) {
             ctx.moveTo(x, y);
@@ -309,8 +310,8 @@ export class EmailService {
         filteredData.forEach((point: GammaDataPoint, i: number) => {
           // X-axis is now gamma value
           const x = padding.left + (Number(point.value) / maxValue) * chartWidth;
-          // Y-axis is now depth (reversed scale so smaller depths at top)
-          const y = padding.top + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartHeight;
+          // Y-axis is now depth with smaller depths at top (flipped order)
+          const y = padding.top + ((maxDepth - Number(point.depth)) / (maxDepth - minDepth)) * chartHeight;
           
           if (i === 0) {
             ctx.moveTo(x, y);
@@ -328,8 +329,8 @@ export class EmailService {
         filteredData.forEach((point: GammaDataPoint, i: number) => {
           // X-axis is now gamma value
           const x = padding.left + (Number(point.value) / maxValue) * chartWidth;
-          // Y-axis is now depth (reversed scale so smaller depths at top)
-          const y = padding.top + ((Number(point.depth) - minDepth) / (maxDepth - minDepth)) * chartHeight;
+          // Y-axis is now depth with smaller depths at top (flipped order)
+          const y = padding.top + ((maxDepth - Number(point.depth)) / (maxDepth - minDepth)) * chartHeight;
           
           const isNewestPoint = i === filteredData.length - 1;
           
@@ -367,7 +368,7 @@ export class EmailService {
           const lastPoint = filteredData[filteredData.length - 1];
           // X-axis is now gamma value
           const lastX = padding.left + (Number(lastPoint.value) / maxValue) * chartWidth;
-          // Y-axis is now depth (reversed scale so smaller depths at top)
+          // Y-axis is now depth with smaller depths at top (flipped order)
           const lastY = padding.top + ((Number(lastPoint.depth) - minDepth) / (maxDepth - minDepth)) * chartHeight;
           
           ctx.font = 'italic 11px sans-serif';

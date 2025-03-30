@@ -102,19 +102,19 @@ export class MemStorage implements IStorage {
     const demoWellInfo: InsertWellInfo = {
       wellName: "DEEP HORIZON #42",
       rigName: "PLATFORM ALPHA",
-      sensorOffset: 100,
-      proposedDirection: 175
+      sensorOffset: "100",
+      proposedDirection: "175"
     };
     this.createWellInfo(demoWellInfo);
     
     // Add demo curve data
     const demoCurveData: InsertCurveData = {
-      motorYield: 2.76,
-      dogLegNeeded: 1.54,
-      projectedInc: 6.23,
-      projectedAz: 178.65,
-      slideSeen: 38.2,
-      slideAhead: 42.5,
+      motorYield: "2.76",
+      dogLegNeeded: "1.54",
+      projectedInc: "6.23",
+      projectedAz: "178.65",
+      slideSeen: "38.2",
+      slideAhead: "42.5",
       includeInEmail: true,
       wellId: 1
     };
@@ -123,57 +123,57 @@ export class MemStorage implements IStorage {
     // Add demo surveys
     const demoSurveys: InsertSurvey[] = [
       {
-        md: 1250.45,
-        inc: 1.25,
-        azi: 175.82,
-        tvd: 1250.40,
-        northSouth: 3.82,
+        md: "1250.45",
+        inc: "1.25",
+        azi: "175.82",
+        tvd: "1250.40",
+        northSouth: "3.82",
         isNorth: false,
-        eastWest: 0.42,
+        eastWest: "0.42",
         isEast: true,
-        vs: 3.78,
-        dls: 0.15,
-        bitDepth: 1350.45,
-        gTotal: 0.999,
-        bTotal: 1.002,
-        dipAngle: 67.52,
-        toolFace: 264.2,
+        vs: "3.78",
+        dls: "0.15",
+        bitDepth: "1350.45",
+        gTotal: "0.999",
+        bTotal: "1.002",
+        dipAngle: "67.52",
+        toolFace: "264.2",
         wellId: 1
       },
       {
-        md: 1350.78,
-        inc: 2.18,
-        azi: 176.13,
-        tvd: 1350.67,
-        northSouth: 6.58,
+        md: "1350.78",
+        inc: "2.18",
+        azi: "176.13",
+        tvd: "1350.67",
+        northSouth: "6.58",
         isNorth: false,
-        eastWest: 0.67,
+        eastWest: "0.67",
         isEast: true,
-        vs: 6.53,
-        dls: 0.93,
-        bitDepth: 1450.78,
-        gTotal: 0.999,
-        bTotal: 1.002,
-        dipAngle: 67.52,
-        toolFace: 264.2,
+        vs: "6.53",
+        dls: "0.93",
+        bitDepth: "1450.78",
+        gTotal: "0.999",
+        bTotal: "1.002",
+        dipAngle: "67.52",
+        toolFace: "264.2",
         wellId: 1
       },
       {
-        md: 1459.92,
-        inc: 3.85,
-        azi: 177.42,
-        tvd: 1459.69,
-        northSouth: 12.45,
+        md: "1459.92",
+        inc: "3.85",
+        azi: "177.42",
+        tvd: "1459.69",
+        northSouth: "12.45",
         isNorth: false,
-        eastWest: 0.89,
+        eastWest: "0.89",
         isEast: true,
-        vs: 12.38,
-        dls: 1.54,
-        bitDepth: 1559.92,
-        gTotal: 0.999,
-        bTotal: 1.002,
-        dipAngle: 67.52,
-        toolFace: 264.2,
+        vs: "12.38",
+        dls: "1.54",
+        bitDepth: "1559.92",
+        gTotal: "0.999",
+        bTotal: "1.002",
+        dipAngle: "67.52",
+        toolFace: "264.2",
         wellId: 1
       }
     ];
@@ -184,8 +184,8 @@ export class MemStorage implements IStorage {
     });
     
     // Add demo gamma data
-    const depths = [1450, 1451, 1452, 1453, 1454, 1455, 1456, 1457, 1458, 1459, 1460];
-    const values = [60, 62, 64, 68, 72, 74, 72, 68, 65, 63, 62];
+    const depths = ["1450", "1451", "1452", "1453", "1454", "1455", "1456", "1457", "1458", "1459", "1460"];
+    const values = ["60", "62", "64", "68", "72", "74", "72", "68", "65", "63", "62"];
     
     depths.forEach((depth, index) => {
       this.createGammaData({
@@ -210,12 +210,12 @@ export class MemStorage implements IStorage {
     
     // Add demo drilling parameters
     const demoDrillingParams: InsertDrillingParam[] = [
-      { name: "Weight on Bit", value: 25.4, unit: "klbs", witsId: 10, wellId: 1 },
-      { name: "RPM", value: 120, unit: "rpm", witsId: 11, wellId: 1 },
-      { name: "Flow Rate", value: 650, unit: "gpm", witsId: 12, wellId: 1 },
-      { name: "Standpipe Pressure", value: 2750, unit: "psi", witsId: 13, wellId: 1 },
-      { name: "Torque", value: 8500, unit: "ft-lbs", witsId: 14, wellId: 1 },
-      { name: "ROP", value: 54.2, unit: "ft/hr", witsId: 5, wellId: 1 }
+      { name: "Weight on Bit", value: "25.4", unit: "klbs", witsId: 10, wellId: 1 },
+      { name: "RPM", value: "120", unit: "rpm", witsId: 11, wellId: 1 },
+      { name: "Flow Rate", value: "650", unit: "gpm", witsId: 12, wellId: 1 },
+      { name: "Standpipe Pressure", value: "2750", unit: "psi", witsId: 13, wellId: 1 },
+      { name: "Torque", value: "8500", unit: "ft-lbs", witsId: 14, wellId: 1 },
+      { name: "ROP", value: "54.2", unit: "ft/hr", witsId: 5, wellId: 1 }
     ];
     
     demoDrillingParams.forEach(param => {
