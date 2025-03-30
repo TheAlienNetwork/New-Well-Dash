@@ -100,19 +100,31 @@ export default function GammaPlot() {
     }
   }, [gammaData]);
 
-  // Format data for Recharts - only show last 100ft
-  const chartData = gammaData
-    .map(point => ({
-      depth: Number(point.depth),
-      gamma: Number(point.value),
-      // Adding a unique key to each point to avoid React key conflicts
-      id: `gamma-${point.id}-${point.depth}`
-    }))
-    .sort((a, b) => a.depth - b.depth)
-    .filter(point => {
-      const maxDepth = Math.max(...gammaData.map(p => Number(p.depth)));
-      return point.depth >= maxDepth - 50; // Show only last 50ft for more compact view
+  // Format data for Recharts - properly process the gamma data
+  const chartData = React.useMemo(() => {
+    if (gammaData.length === 0) return [];
+    
+    // Create a proper data array for the chart
+    const formattedData = gammaData
+      .map(point => ({
+        depth: Number(point.depth),
+        gamma: Number(point.value),
+        // Adding a unique key to each point to avoid React key conflicts
+        id: `gamma-${point.id}-${point.depth}`
+      }))
+      .sort((a, b) => a.depth - b.depth);
+    
+    // Determine display range - either show all data or the last 200ft
+    const shouldTruncate = formattedData.length > 200;
+    const maxDepth = Math.max(...formattedData.map(p => p.depth));
+    const displayWindow = shouldTruncate ? 200 : 50; // Use 200ft window for large datasets, 50ft for smaller ones
+    
+    // Filter data for display - dynamically adjust based on data size
+    return formattedData.filter(point => {
+      if (formattedData.length <= 10) return true; // Always show all data for small datasets
+      return point.depth >= maxDepth - displayWindow;
     });
+  }, [gammaData]);
 
   return (
     <div className="card h-full flex flex-col w-full">
@@ -177,22 +189,21 @@ export default function GammaPlot() {
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(107, 114, 128, 0.3)" />
                 <XAxis 
-                  dataKey="gamma"
+                  dataKey="depth"
+                  type="number"
+                  domain={['dataMin - 5', 'dataMax + 5']}
+                  stroke="#6b7280"
+                  tick={{ fill: '#e5e7eb' }}
+                  label={{ value: 'Depth (ft)', position: 'insideBottom', fill: '#e5e7eb', fontSize: 12, offset: 0 }}
+                />
+                <YAxis 
+                  dataKey="gamma" 
                   type="number"
                   domain={[0, 'dataMax + 20']}
                   stroke="#6b7280"
                   tick={{ fill: '#e5e7eb' }}
-                  label={{ value: 'Gamma (gAPI)', position: 'insideBottom', fill: '#e5e7eb', fontSize: 12, offset: 0 }}
-                />
-                <YAxis 
-                  dataKey="depth" 
-                  type="number"
-                  domain={['dataMin - 5', 'dataMax + 5']}
-                  reversed={true}
-                  stroke="#6b7280"
-                  tick={{ fill: '#e5e7eb' }}
                   tickFormatter={(value) => value.toFixed(0)}
-                  label={{ value: 'DEPTH (ft)', angle: -90, position: 'insideLeft', fill: '#e5e7eb', fontSize: 12 }}
+                  label={{ value: 'Gamma (gAPI)', angle: -90, position: 'insideLeft', fill: '#e5e7eb', fontSize: 12 }}
                   width={70}
                 />
                 <Tooltip
@@ -244,7 +255,7 @@ export default function GammaPlot() {
                 />
                 
                 {/* Reference line for significant gamma value */}
-                <ReferenceLine x={60} stroke="rgba(16, 185, 129, 0.5)" strokeDasharray="3 3" label={{ value: 'Threshold', fill: '#10b981', fontSize: 11 }} />
+                <ReferenceLine y={60} stroke="rgba(16, 185, 129, 0.5)" strokeDasharray="3 3" label={{ value: 'Threshold', fill: '#10b981', fontSize: 11, position: 'right' }} />
                 
                 {/* Gradient definition for area fill */}
                 <defs>

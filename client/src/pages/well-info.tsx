@@ -35,8 +35,8 @@ export default function WellInfo() {
       setFormData({
         wellName: wellInfo.wellName,
         rigName: wellInfo.rigName,
-        sensorOffset: Number(wellInfo.sensorOffset),
-        proposedDirection: Number(wellInfo.proposedDirection)
+        sensorOffset: wellInfo.sensorOffset,
+        proposedDirection: wellInfo.proposedDirection
       });
     }
   }, [wellInfo]);
@@ -236,7 +236,7 @@ export default function WellInfo() {
                           className="bg-neutral-surface border-neutral-border"
                         />
                       ) : (
-                        <div className="text-xl font-mono">{wellInfo?.sensorOffset?.toFixed(2) || 'Not specified'}</div>
+                        <div className="text-xl font-mono">{wellInfo?.sensorOffset ? Number(wellInfo.sensorOffset).toFixed(2) : 'Not specified'}</div>
                       )}
                       <p className="text-xs text-gray-400 mt-2">
                         Distance from bit to MWD sensors, used to calculate survey depth from bit depth
@@ -245,7 +245,7 @@ export default function WellInfo() {
                       <div className="mt-4 bg-neutral-surface p-3 border border-neutral-border rounded-md">
                         <div className="text-xs text-gray-400 mb-1">Example Calculation:</div>
                         <div className="text-sm">
-                          Bit Depth (1559.92 ft) - Sensor Offset ({wellInfo?.sensorOffset?.toFixed(2) || '100.00'} ft) = 
+                          Bit Depth (1559.92 ft) - Sensor Offset ({wellInfo?.sensorOffset ? Number(wellInfo.sensorOffset).toFixed(2) : '100.00'} ft) = 
                           <span className="font-mono ml-1">1459.92 ft</span> Survey Depth
                         </div>
                       </div>
@@ -270,7 +270,7 @@ export default function WellInfo() {
                           className="bg-neutral-surface border-neutral-border"
                         />
                       ) : (
-                        <div className="text-xl font-mono">{wellInfo?.proposedDirection?.toFixed(2) || 'Not specified'}</div>
+                        <div className="text-xl font-mono">{wellInfo?.proposedDirection ? Number(wellInfo.proposedDirection).toFixed(2) : 'Not specified'}</div>
                       )}
                       <p className="text-xs text-gray-400 mt-2">
                         Target azimuth for the well, used to calculate vertical section
@@ -306,7 +306,7 @@ export default function WellInfo() {
         </CardContent>
       </Card>
       
-      <style jsx>{`
+      <style>{`
         .pulse {
           animation: pulse 2s infinite;
         }

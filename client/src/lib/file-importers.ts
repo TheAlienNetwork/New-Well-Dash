@@ -295,11 +295,11 @@ export async function parseSurveyText(file: File, wellId: number): Promise<Inser
         const content = e.target?.result as string;
         
         // Split by lines
-        const lines = content.split(/\\r?\\n/);
+        const lines = content.split(/\r?\n/);
         
         // Convert to array of arrays (split by whitespace)
         const rows = lines.map(line => 
-          line.trim().split(/\\s+/).filter(cell => cell.length > 0)
+          line.trim().split(/\s+/).filter(cell => cell.length > 0)
         );
         
         // Detect header row
@@ -335,27 +335,37 @@ export async function parseGammaLAS(file: File, wellId: number): Promise<InsertG
         const content = e.target?.result as string;
         
         // Enhanced LAS parser for gamma data and Hutchison-Teele format
-        const lines = content.split(/\\r?\\n/);
+        const lines = content.split(/\r?\n/);
+        console.log(`Parsing LAS file: ${file.name} for gamma data, found ${lines.length} lines`);
         
-        let inDataSection = false;
+        // First identify the file structure by checking sections
+        const sections: string[] = [];
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line.startsWith('~')) {
+            sections.push(line);
+            console.log(`Found section at line ${i+1}: ${line}`);
+          }
+        }
+        
+        // Look for curve information section to identify GR
         let inCurveSection = false;
+        let inDataSection = false;
         let inOtherInfoSection = false;
         let gammaIndex = -1;
-        let depthIndex = -1;
-        let grColumn = '';
-        let depthColumn = '';
-        const curves: {name: string, unit: string, description: string}[] = [];
+        let depthIndex = 0; // Default to first column
+        const curves: {name: string, unit: string, index: number}[] = [];
         const gammaData: InsertGammaData[] = [];
         
-        // Look for curves in the ~Curve Information section
+        // First pass - determine the curves and which one is GR
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
           
-          // Skip empty lines or comments
+          // Skip empty lines and comments
           if (!line || line.startsWith('#')) continue;
           
-          // Check for curve section to detect column names
-          if (line.startsWith('~C') || line.startsWith('~Curve')) {
+          // Check for curve information section
+          if (line.startsWith('~Curve') || line.startsWith('~C ')) {
             inCurveSection = true;
             inDataSection = false;
             inOtherInfoSection = false;
@@ -386,226 +396,125 @@ export async function parseGammaLAS(file: File, wellId: number): Promise<InsertG
             continue;
           }
           
-          // Process curve definitions to find gamma and depth indices
-          if (inCurveSection && line.includes('.') && !line.startsWith('~')) {
-            // Standard LAS curve format: "DEPTH .FT 001 :Measured Depth"
+          // Process curve definitions
+          if (inCurveSection && !line.startsWith('#')) {
+            // Extract curve name
+            let curveName = '';
+            let curveUnit = '';
             
-            // Extract curve name by splitting on whitespace or period
-            const parts = line.split(/\\s+|\\./);
-            if (parts.length > 0) {
-              const curveName = parts[0].trim().toLowerCase();
+            // Format is typically: MNEM.UNIT API CODE VALUE : DESCRIPTION
+            if (line.includes('.')) {
+              const parts = line.split('.');
+              curveName = parts[0].trim();
               
-              // Store the curve information
+              // Extract unit if available
+              if (parts.length > 1 && parts[1].includes(' ')) {
+                curveUnit = parts[1].split(' ')[0].trim();
+              }
+            } else {
+              // Simple format - just get the first word
+              const parts = line.split(/\s+/);
+              if (parts.length > 0) {
+                curveName = parts[0].trim();
+              }
+            }
+            
+            if (curveName) {
+              const index = curves.length;
               curves.push({
-                name: parts[0].trim(),
-                unit: parts.length > 1 ? parts[1].trim() : '',
-                description: line.includes(':') ? line.split(':')[1].trim() : ''
+                name: curveName,
+                unit: curveUnit,
+                index: index
               });
               
-              // Try to identify depth and gamma curves
-              if (depthIndex === -1 && 
-                  (curveName === 'depth' || curveName === 'md')) {
-                depthIndex = curves.length - 1;
-                depthColumn = parts[0].trim();
+              // Check if this is depth or gamma
+              const curveNameLower = curveName.toLowerCase();
+              if (curveNameLower === 'depth' || curveNameLower === 'md' || curveNameLower === 'dept') {
+                depthIndex = index;
+                console.log(`Found depth curve: ${curveName} at index ${index}`);
               }
               
-              if (gammaIndex === -1 && 
-                  (curveName === 'gr' || curveName.includes('gamma'))) {
-                gammaIndex = curves.length - 1;
-                grColumn = parts[0].trim();
+              if (curveNameLower === 'gr' || curveNameLower.includes('gamma')) {
+                gammaIndex = index;
+                console.log(`Found gamma curve: ${curveName} at index ${index}`);
               }
             }
           }
           
-          // Process data lines in the ASCII section
-          if (inDataSection && !line.startsWith('~')) {
-            const values = line.trim().split(/\\s+/);
+          // Process data in the ~ASCII section
+          if (inDataSection && !line.startsWith('#') && !line.startsWith('~')) {
+            const values = line.split(/\s+/).filter(v => v.trim() !== '');
             
-            // If we found depth and gamma columns in the curve section
-            if (depthIndex !== -1 && gammaIndex !== -1 && values.length > Math.max(depthIndex, gammaIndex)) {
-              const depth = parseNumber(values[depthIndex]);
-              const gammaValue = parseNumber(values[gammaIndex]);
+            if (values.length > Math.max(depthIndex, gammaIndex !== -1 ? gammaIndex : 1)) {
+              // Default behavior - depth is first column
+              let depth = parseNumber(values[depthIndex]);
               
-              if (depth > 0) {
+              // For gamma, check if we found a specific column, otherwise use column 1
+              let gamma = -1;
+              if (gammaIndex !== -1 && values.length > gammaIndex) {
+                gamma = parseNumber(values[gammaIndex]);
+              } else if (values.length > 1) {
+                // Default to second column if no specific gamma curve was identified
+                gamma = parseNumber(values[1]);
+              }
+              
+              // Only add points with valid values
+              if (depth > 0 && gamma >= 0) {
                 gammaData.push({
                   wellId,
                   depth: String(depth),
-                  value: String(gammaValue)
+                  value: String(gamma)
                 });
               }
             }
           }
-          
-          // Process data in the ~Other Information section (Hutchison-Teele format)
-          if (inOtherInfoSection && !line.startsWith('~') && !line.startsWith('#')) {
-            const values = line.trim().split(/\\s+/).filter(val => val.trim().length > 0);
-            
-            // Check if this is a data line (has at least 4 columns and starts with a number)
-            if (values.length >= 4 && !isNaN(parseFloat(values[0]))) {
-              let depth, gamma;
-              
-              // Hutchison-Teele format usually has GR as the second column after DEPTH
-              // Format: TRACK SVY DEPTH INCL AZM TVD VS N/-S E/-W DLS
-              if (values.length >= 4 && line.match(/^\s*\d+\s+\d+\s+\d+/)) {
-                // Find the DEPTH column - it's usually the 3rd number
-                depth = parseFloat(values[2]);
-                
-                // Try to find GR - Check if there's an explicit GR column
-                // If not found, handle it outside this block with other approaches
-                // Extract GR from another source in the file
-              }
-            }
-          }
         }
         
-        // If standard LAS parsing didn't work, try to find data in Curve Information section
-        // and parse the data section differently
-        if (gammaData.length === 0 && curves.length > 0) {
-          // First, determine if this file has GR data
-          const hasGammaCurve = curves.some(curve => 
-            curve.name.toLowerCase() === 'gr' || 
-            curve.name.toLowerCase().includes('gamma')
-          );
-          
-          if (hasGammaCurve) {
-            // Find the data section
-            let dataLineStart = 0;
-            for (let i = 0; i < lines.length; i++) {
-              if (lines[i].trim().startsWith('~A')) {
-                dataLineStart = i + 1;
-                break;
-              }
-            }
-            
-            // Parse data lines with index-based approach
-            if (dataLineStart > 0) {
-              for (let i = dataLineStart; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line || line.startsWith('~') || line.startsWith('#')) continue;
-                
-                const values = line.split(/\\s+/).filter(v => v.trim().length > 0);
-                if (values.length >= 2) {
-                  // In standard LAS, first column is depth, find the GR column
-                  const depth = parseNumber(values[0]);
-                  
-                  // Find the gamma ray column
-                  let gamma = 0;
-                  for (let j = 0; j < curves.length; j++) {
-                    if (curves[j].name.toLowerCase() === 'gr' || 
-                        curves[j].name.toLowerCase().includes('gamma')) {
-                      gamma = parseNumber(values[j]);
-                      break;
-                    }
-                  }
-                  
-                  if (depth > 0) {
-                    gammaData.push({
-                      wellId,
-                      depth: String(depth),
-                      value: String(gamma)
-                    });
-                  }
-                }
-              }
-            }
-          }
+        // If we have data from ~ASCII section, return it
+        if (gammaData.length > 0) {
+          console.log(`Found ${gammaData.length} gamma points in ASCII section`);
+          resolve(gammaData);
+          return;
         }
         
-        // Specifically handle Hutchison-Teele LAS format which may have embedded GR data
-        if (gammaData.length === 0) {
-          // Look for "~Other Information" section that contains both survey and sometimes gamma data
-          let otherInfoSectionStart = -1;
+        // Specifically handle Hutchison-Teele format (for Gamma API)
+        if (sections.some(s => s.includes('Curve'))) {
+          console.log("Checking Hutchison-Teele format for GR data");
+          
+          // Look for the GR curve in the curve definitions
+          let grCurveIndex = -1;
           for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('~Other Information')) {
-              otherInfoSectionStart = i + 1;
+            const line = lines[i].trim().toUpperCase();
+            if (line.includes('GR') && line.includes('API')) {
+              console.log(`Found GR curve definition: ${line}`);
+              grCurveIndex = 1; // Default to second column
               break;
             }
           }
           
-          if (otherInfoSectionStart > 0) {
-            // Look for GR data in the Curve Information section first to identify columns
-            let hasGR = false;
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i].trim();
-              if (line.includes('GR') && line.includes('API')) {
-                hasGR = true;
-                break;
-              }
-            }
-            
-            if (hasGR) {
-              // Process the data section with the knowledge there is GR data
-              // The data might be in a tabular format with DEPTH and GR columns
-              for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line || line.startsWith('#') || line.startsWith('~')) continue;
-                
-                // Try to parse data lines
-                const parts = line.split(/\\s+/).filter(p => p.trim().length > 0);
-                if (parts.length >= 2 && !isNaN(parseFloat(parts[0]))) {
-                  const depth = parseFloat(parts[0]);
-                  
-                  // Usually GR is the 2nd column in tabular data
-                  let gr = parts.length >= 2 ? parseFloat(parts[1]) : 0;
-                  
-                  // If this looks like survey data (has inclination, azimuth), skip it
-                  if (parts.length >= 4 && !isNaN(parseFloat(parts[3]))) {
-                    // This is likely survey data
-                    continue;
-                  }
-                  
-                  if (depth > 0) {
-                    gammaData.push({
-                      wellId,
-                      depth: String(depth),
-                      value: String(gr)
-                    });
-                  }
-                }
-              }
+          // Look for the ~ASCII data section
+          let dataStart = -1;
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].trim().startsWith('~A')) {
+              dataStart = i + 1;
+              break;
             }
           }
-        }
-        
-        // If we still couldn't parse the gamma data, try to parse directly from the LAS 
-        // data section by looking at the format of each line
-        if (gammaData.length === 0) {
-          let foundDataSection = false;
           
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
+          if (dataStart > 0 && grCurveIndex >= 0) {
+            console.log(`Processing data starting at line ${dataStart}`);
             
-            // Skip empty or comment lines
-            if (!line || line.startsWith('#')) continue;
-            
-            // Check for data section start
-            if (line.startsWith('~A')) {
-              foundDataSection = true;
-              continue;
-            }
-            
-            // Process data lines
-            if (foundDataSection && !line.startsWith('~')) {
-              // Standard LAS data format: values separated by whitespace
-              // First value is typically depth
-              const values = line.trim().split(/\\s+/).filter(v => v.trim().length > 0);
+            // Process each line in the data section
+            for (let i = dataStart; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (!line || line.startsWith('#') || line.startsWith('~')) continue;
               
-              if (values.length >= 2) {
-                // First column is almost always depth
+              const values = line.split(/\s+/).filter(v => v.trim() !== '');
+              if (values.length > Math.max(0, grCurveIndex)) {
                 const depth = parseNumber(values[0]);
+                const gr = parseNumber(values[grCurveIndex]);
                 
-                // For GR, we need to check curve definitions or use a heuristic
-                // Often it's the 2nd column, but better to verify with curve info
-                let grIndex = 1; // Default to second column
-                
-                // If we found a specific GR column in curve definitions, use that
-                if (gammaIndex !== -1) {
-                  grIndex = gammaIndex;
-                }
-                
-                const gr = parseNumber(values[grIndex]);
-                
-                if (depth > 0) {
+                if (depth > 0 && gr >= 0) {
                   gammaData.push({
                     wellId,
                     depth: String(depth),
@@ -614,26 +523,135 @@ export async function parseGammaLAS(file: File, wellId: number): Promise<InsertG
                 }
               }
             }
+            
+            if (gammaData.length > 0) {
+              console.log(`Found ${gammaData.length} gamma points in ASCII section (Hutchison-Teele format)`);
+              resolve(gammaData);
+              return;
+            }
           }
         }
         
-        // Last resort: try to parse as a CSV or tab-delimited file
+        // Special handling for Hutchison-Teele 4-column format that might have GR data
+        // in a separate section not marked with ~A
         if (gammaData.length === 0) {
-          const rows = lines.map(line => 
-            line.trim().split(/\\s+|,/).filter(cell => cell.length > 0)
-          );
+          console.log("Checking for alternative data formats");
+          
+          let dataFound = false;
+          let grColumn = 1; // Default GR to second column
+          
+          // Look for lines that contain numeric data in a consistent format
+          const potentialDataLines = [];
+          
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line || line.startsWith('#') || line.startsWith('~')) continue;
+            
+            // Check for a line that has a consistent columnar format with numbers
+            const values = line.split(/\s+/).filter(v => v.trim() !== '');
+            
+            // Look for lines with at least two values, first one being depth-like
+            if (values.length >= 2) {
+              const firstVal = parseNumber(values[0]);
+              if (firstVal > 0) {
+                potentialDataLines.push({
+                  lineNum: i,
+                  values: values,
+                  depth: firstVal
+                });
+              }
+            }
+          }
+          
+          // If we found potential data lines, try to extract gamma
+          if (potentialDataLines.length > 0) {
+            console.log(`Found ${potentialDataLines.length} potential data lines`);
+            
+            // Sort by depth to ensure we're looking at a continuous dataset
+            potentialDataLines.sort((a, b) => a.depth - b.depth);
+            
+            // Try to identify which column contains gamma values
+            // Usually GR values are in the range 0-300
+            let potentialGrColumns = [];
+            
+            for (let colIdx = 1; colIdx < 5; colIdx++) { // Check columns 1-4 (index 0-3)
+              let validValues = 0;
+              for (let i = 0; i < Math.min(potentialDataLines.length, 20); i++) {
+                const line = potentialDataLines[i];
+                if (line.values.length > colIdx) {
+                  const val = parseNumber(line.values[colIdx]);
+                  if (val >= 0 && val <= 300) {
+                    validValues++;
+                  }
+                }
+              }
+              
+              if (validValues > 10) { // If we found at least 10 valid values
+                potentialGrColumns.push({ 
+                  colIdx: colIdx, 
+                  validCount: validValues 
+                });
+              }
+            }
+            
+            // Sort by number of valid values in descending order
+            potentialGrColumns.sort((a, b) => b.validCount - a.validCount);
+            
+            if (potentialGrColumns.length > 0) {
+              // Use the column with the most valid values
+              grColumn = potentialGrColumns[0].colIdx;
+              console.log(`Using column ${grColumn} for GR values`);
+              
+              // Process all potential data lines
+              for (const line of potentialDataLines) {
+                if (line.values.length > grColumn) {
+                  const depth = line.depth;
+                  const gr = parseNumber(line.values[grColumn]);
+                  
+                  if (depth > 0 && gr >= 0 && gr <= 300) {
+                    gammaData.push({
+                      wellId,
+                      depth: String(depth),
+                      value: String(gr)
+                    });
+                    dataFound = true;
+                  }
+                }
+              }
+            }
+          }
+          
+          if (dataFound) {
+            console.log(`Found ${gammaData.length} gamma points using column analysis`);
+            resolve(gammaData);
+            return;
+          }
+        }
+        
+        // Last resort: try generic tabular data parsing
+        if (gammaData.length === 0) {
+          console.log("Trying generic tabular data parsing");
+          
+          const rows = lines
+            .filter(line => !line.startsWith('#') && line.trim().length > 0)
+            .map(line => line.trim().split(/\s+/).filter(cell => cell.length > 0));
           
           const headerInfo = detectGammaHeaderRow(rows);
           
-          if (headerInfo.headers.depth !== undefined) {
+          if (headerInfo.headers.depth !== undefined && 
+              (headerInfo.headers.gamma !== undefined || 
+               headerInfo.headers.gr !== undefined || 
+               headerInfo.headers.api !== undefined)) {
+            
             const extractedData = extractGammaData(rows, headerInfo, wellId);
             if (extractedData.length > 0) {
+              console.log(`Extracted ${extractedData.length} gamma points using generic tabular parser`);
               resolve(extractedData);
               return;
             }
           }
           
-          reject(new Error('Could not parse gamma data from LAS file'));
+          reject(new Error('Could not parse gamma data from file - no gamma values detected'));
         } else {
           resolve(gammaData);
         }
@@ -728,11 +746,11 @@ export async function parseGammaFile(file: File, wellId: number): Promise<Insert
             const content = e.target?.result as string;
             
             // Split by lines
-            const lines = content.split(/\\r?\\n/);
+            const lines = content.split(/\r?\n/);
             
             // Convert to array of arrays (split by whitespace)
             const rows = lines.map(line => 
-              line.trim().split(/\\s+/).filter(cell => cell.length > 0)
+              line.trim().split(/\s+/).filter(cell => cell.length > 0)
             );
             
             // Detect header row
@@ -768,13 +786,37 @@ export async function parseSurveyLAS(file: File, wellId: number): Promise<Insert
     reader.onload = (e) => {
       try {
         const content = e.target?.result as string;
-        const lines = content.split(/\\r?\\n/);
+        const lines = content.split(/\r?\n/);
+        console.log(`Parsing LAS file: ${file.name} for survey data, found ${lines.length} lines`);
         const surveys: InsertSurvey[] = [];
         
         // Check for survey data in the ~Other Information section (common in Hutchison-Teele format)
         let inSurveySection = false;
         let surveyHeaderFound = false;
         
+        // Look for sections in the file to better understand its structure
+        const foundSections = [];
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].startsWith('~')) {
+            foundSections.push(lines[i].trim());
+            console.log(`Found section at line ${i+1}: ${lines[i].trim()}`);
+          }
+        }
+        
+        console.log(`Sections found: ${foundSections.join(', ')}`);
+        
+        // Look for known formats or headers that indicate survey data
+        let surveyDataStartLine = -1;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line.includes('TRACK') && line.includes('SVY') && line.includes('DEPTH')) {
+            surveyDataStartLine = i;
+            console.log(`Found survey header at line ${i+1}: ${line}`);
+            break;
+          }
+        }
+        
+        // Process the file based on the detected format
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
           
@@ -802,7 +844,7 @@ export async function parseSurveyLAS(file: File, wellId: number): Promise<Insert
           // Process lines in the survey section
           if (inSurveySection && !line.startsWith('#') && !line.startsWith('~')) {
             // Split line into elements
-            const elements = line.split(/\\s+/).filter(e => e.trim() !== '');
+            const elements = line.split(/\s+/).filter(e => e.trim() !== '');
             
             // Hutchison-Teele format typically has:
             // TRACK SVY DEPTH INCL AZM TVD VS N/-S E/-W DLS
@@ -837,7 +879,7 @@ export async function parseSurveyLAS(file: File, wellId: number): Promise<Insert
         if (surveys.length === 0) {
           // Convert lines to rows for the generic parser
           const rows = lines.map(line => 
-            line.trim().split(/\\s+/).filter(cell => cell.length > 0)
+            line.trim().split(/\s+/).filter(cell => cell.length > 0)
           );
           
           // Detect header row
