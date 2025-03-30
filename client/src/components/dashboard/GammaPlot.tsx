@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, ReferenceLine, Legend, Area, ComposedChart,
   AreaChart 
 } from 'recharts';
-import { Activity, BarChart3, Download, Zap, Mail } from 'lucide-react';
+import { Activity, ArrowUpDown, BarChart3, BarChart, Clock, Download, Zap, Mail } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
@@ -127,22 +127,22 @@ export default function GammaPlot() {
   }, [gammaData]);
 
   return (
-    <div className="card h-full flex flex-col w-full backdrop-blur-sm bg-gray-900/50 rounded-xl shadow-xl border border-gray-800/50">
-      <div className="p-3 flex justify-between items-center border-b border-gray-700/50 bg-gradient-to-r from-gray-900/70 to-gray-800/70 rounded-t-xl">
+    <div className="premium-card h-full flex flex-col w-full">
+      <div className="p-4 flex justify-between items-center border-b border-gray-700/30 bg-gradient-to-r from-gray-900/80 to-gray-800/80">
         <h2 className="font-heading text-lg font-semibold flex items-center text-white">
           <BarChart3 className="h-5 w-5 mr-2 text-blue-400" />
           <span>Gamma Plot</span>
         </h2>
-        <div className="flex space-x-2">
+        <div className="flex space-x-3">
           <button 
             onClick={handleExportPDF}
-            className="px-3 py-1 rounded-md text-xs text-blue-300 hover:bg-blue-900/30 transition-all duration-300 flex items-center border border-blue-500/20 shadow-inner shadow-blue-500/5"
+            className="px-3 py-1.5 rounded-md text-xs text-blue-300 hover:bg-blue-900/40 transition-all duration-300 flex items-center border border-blue-500/30 shadow-inner shadow-blue-500/5 backdrop-blur-sm"
           >
-            <Download className="h-3 w-3 mr-1" />
+            <Download className="h-3 w-3 mr-1.5" />
             Export PDF
           </button>
-          <div className="bg-gray-900/70 text-xs px-2 py-1 rounded-md flex items-center border border-emerald-500/30 backdrop-blur-sm shadow-lg">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 mr-1 animate-pulse"></div>
+          <div className="glass-card text-xs px-3 py-1.5 rounded-md flex items-center border border-emerald-500/40 shadow-glow-green">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></div>
             <span className="text-emerald-400 font-semibold">LIVE</span>
           </div>
         </div>
@@ -150,37 +150,50 @@ export default function GammaPlot() {
       
       <div className="flex flex-col md:flex-row flex-1 w-full">
         {/* Side metrics panel - takes up less space on large screens */}
-        <div className="flex flex-row md:flex-col md:w-60 p-3 gap-2">
-          <div className="backdrop-blur-md bg-gray-800/40 rounded-lg p-3 border border-gray-700/50 shadow-xl flex-1 border-l-4 border-l-emerald-500">
-            <span className="text-xs text-gray-300 font-semibold">CURRENT API</span>
-            <div className="font-semibold text-2xl value-green mt-1">{currentGamma?.toFixed(1) || 'N/A'}</div>
+        <div className="flex flex-row md:flex-col md:w-60 p-4 gap-3">
+          <div className="glass-card p-4 flex-1 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500/50"></div>
+            <span className="text-xs text-gray-300 font-semibold flex items-center">
+              <Activity className="h-3 w-3 mr-1.5 text-emerald-400" />
+              CURRENT API
+            </span>
+            <div className="font-semibold text-2xl value-green mt-1.5">{currentGamma?.toFixed(1) || 'N/A'}</div>
             <span className="text-xs text-gray-400">gAPI</span>
           </div>
           
-          <div className="backdrop-blur-md bg-gray-800/40 rounded-lg p-3 border border-gray-700/50 shadow-xl flex-1 border-l-4 border-l-blue-500">
-            <span className="text-xs text-gray-300 font-semibold">AVG API</span>
-            <div className="font-semibold text-lg value-blue mt-1">{avgGamma?.toFixed(1) || 'N/A'}</div>
+          <div className="glass-card p-4 flex-1 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/50"></div>
+            <span className="text-xs text-gray-300 font-semibold flex items-center">
+              <BarChart className="h-3 w-3 mr-1.5 text-blue-400" />
+              AVG API
+            </span>
+            <div className="font-semibold text-lg value-blue mt-1.5">{avgGamma?.toFixed(1) || 'N/A'}</div>
             <span className="text-xs text-gray-400">gAPI</span>
           </div>
           
-          <div className="backdrop-blur-md bg-gray-800/40 rounded-lg p-3 border border-gray-700/50 shadow-xl flex-1 border-l-4 border-l-purple-500">
-            <span className="text-xs text-gray-300 font-semibold">RANGE</span>
-            <div className="font-semibold text-sm value-purple mt-1">{depthRange || 'N/A'}</div>
+          <div className="glass-card p-4 flex-1 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-purple-500/50"></div>
+            <span className="text-xs text-gray-300 font-semibold flex items-center">
+              <ArrowUpDown className="h-3 w-3 mr-1.5 text-purple-400" />
+              RANGE
+            </span>
+            <div className="font-semibold text-sm value-purple mt-1.5">{depthRange || 'N/A'}</div>
             <span className="text-xs text-gray-400">ft MD</span>
           </div>
           
-          <div className="backdrop-blur-md bg-gray-800/40 rounded-lg p-3 border border-gray-700/50 shadow-xl flex-1 md:block hidden border-l-4 border-l-gray-500">
-            <div className="text-xs text-gray-400 flex items-center">
-              <Activity className="h-3 w-3 mr-1 text-blue-400" />
+          <div className="glass-card p-4 flex-1 md:flex hidden flex-col relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gray-500/50"></div>
+            <div className="text-xs text-gray-300 flex items-center">
+              <Clock className="h-3 w-3 mr-1.5 text-gray-400" />
               LAST UPDATE
             </div>
-            <div className="text-xs text-gray-300">{lastUpdate || 'N/A'}</div>
+            <div className="text-xs text-gray-300 mt-1.5">{lastUpdate || 'N/A'}</div>
           </div>
         </div>
         
         {/* Gamma plot - takes up full remaining width */}
-        <div className="flex-1 p-3">
-          <div className="backdrop-blur-md bg-gray-800/50 rounded-lg p-4 h-full border border-gray-700/50 shadow-xl">
+        <div className="flex-1 p-4">
+          <div className="neumorph-card p-4 h-full">
             <ResponsiveContainer width="100%" height={400}>
               <ComposedChart 
                 data={chartData} 
@@ -281,12 +294,12 @@ export default function GammaPlot() {
         </div>
       </div>
 
-      <div className="p-2 border-t border-gray-700/50 flex justify-between items-center bg-gradient-to-r from-gray-900/70 to-gray-800/70 rounded-b-xl">
+      <div className="p-3 border-t border-gray-700/30 flex justify-between items-center glass-footer">
         <div className="flex items-center">
-          <Zap className="h-4 w-4 text-blue-400 mr-1" />
+          <Zap className="h-4 w-4 text-blue-400 mr-2" />
           <span className="text-xs text-gray-300 font-semibold">Real-time Gamma Analysis</span>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-5">
           {/* Email toggle */}
           <div className="flex items-center space-x-2">
             <Mail className="h-4 w-4 text-blue-400" />
@@ -298,7 +311,7 @@ export default function GammaPlot() {
               className="data-[state=checked]:bg-blue-500"
             />
           </div>
-          <div className="text-xs text-gray-400">
+          <div className="text-xs glass-badge px-2 py-1">
             SAMPLES: {chartData.length}
           </div>
         </div>
