@@ -120,18 +120,18 @@ export function SurveyFileImporter() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-primary-dark/50 hover:bg-primary-dark border-primary-border flex gap-2 h-9 items-center">
-          <FileSpreadsheet className="h-4 w-4" />
+        <Button className="glass-button-outline px-3 py-1.5 rounded text-sm flex items-center">
+          <FileSpreadsheet className="h-4 w-4 mr-1.5" />
           <span>Import Surveys</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-neutral-surface border-neutral-border">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5 text-primary" />
+      <DialogContent className="sm:max-w-[425px] premium-card border-gray-700/30">
+        <DialogHeader className="pb-4 border-b border-gray-700/20">
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Upload className="h-5 w-5 text-blue-400" />
             Import Survey Data
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-300 mt-1">
             Import survey data from Excel (XLSX/XLS), CSV, or text files.
             The system will automatically detect column headers.
           </DialogDescription>
@@ -175,20 +175,31 @@ export function SurveyFileImporter() {
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="pt-4 border-t border-gray-700/20">
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}
             disabled={isLoading}
+            className="glass-button-outline"
           >
             Cancel
           </Button>
           <Button
             onClick={processFile}
             disabled={!selectedFile || isLoading}
-            className="bg-primary hover:bg-primary/90"
+            className="glass-button-blue"
           >
-            {isLoading ? "Processing..." : "Import Surveys"}
+            {isLoading ? (
+              <span className="flex items-center">
+                <span className="animate-pulse-subtle mr-2">●</span>
+                Processing...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <Upload className="h-4 w-4 mr-1.5" />
+                Import Surveys
+              </span>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -305,18 +316,18 @@ export function GammaFileImporter() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-primary-dark/50 hover:bg-primary-dark border-primary-border flex gap-2 h-9 items-center">
-          <Activity className="h-4 w-4" />
+        <Button className="glass-button-outline px-3 py-1.5 rounded text-sm flex items-center">
+          <Activity className="h-4 w-4 mr-1.5" />
           <span>Import Gamma</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-neutral-surface border-neutral-border">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileType className="h-5 w-5 text-primary" />
+      <DialogContent className="sm:max-w-[425px] premium-card border-gray-700/30">
+        <DialogHeader className="pb-4 border-b border-gray-700/20">
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <FileType className="h-5 w-5 text-green-400" />
             Import Gamma Data
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-300 mt-1">
             Import gamma ray data from LAS, Excel, CSV, or text files.
             The system will automatically detect column headers.
           </DialogDescription>
@@ -360,20 +371,31 @@ export function GammaFileImporter() {
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="pt-4 border-t border-gray-700/20">
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}
             disabled={isLoading}
+            className="glass-button-outline"
           >
             Cancel
           </Button>
           <Button
             onClick={processFile}
             disabled={!selectedFile || isLoading}
-            className="bg-primary hover:bg-primary/90"
+            className="glass-button-blue"
           >
-            {isLoading ? "Processing..." : "Import Gamma Data"}
+            {isLoading ? (
+              <span className="flex items-center">
+                <span className="animate-pulse-subtle mr-2">●</span>
+                Processing...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <Activity className="h-4 w-4 mr-1.5" />
+                Import Gamma Data
+              </span>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
