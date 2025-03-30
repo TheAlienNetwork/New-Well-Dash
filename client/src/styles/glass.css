@@ -1,3 +1,25 @@
+/* Premium Card Styles */
+.premium-card, .glass-panel, .glass-card, .glass-card-blue {
+  backdrop-filter: blur(16px);
+  background: rgba(15, 23, 42, 0.75);
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.premium-card:hover, .glass-panel:hover, .glass-card:hover, .glass-card-blue:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
 
 .glass-card {
   background: rgba(30, 41, 59, 0.4);
