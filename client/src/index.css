@@ -10,7 +10,22 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: #111827; /* Dark blue background instead of gradient */
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    background-attachment: fixed;
+    position: relative;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1), transparent 40%);
+    z-index: -1;
   }
 }
 
@@ -77,27 +92,45 @@
   
   /* Modern container styling with subtle animation */
   .card {
-    @apply bg-gray-800 shadow-lg hover:shadow-blue-800/20 transition-all duration-300 border border-gray-700 rounded-lg;
+    @apply bg-gray-800/60 shadow-lg hover:shadow-blue-800/30 transition-all duration-300 border border-gray-700/50 rounded-lg;
     transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    backdrop-filter: blur(10px);
   }
   
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
   }
   
   /* Professional panel styling */
   .glass-panel {
-    @apply bg-gray-800/90 border border-gray-700 rounded-lg shadow-lg backdrop-blur-sm;
+    @apply bg-gray-800/60 border border-gray-700/50 rounded-lg shadow-lg;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
   
   /* Enhanced shadow effects */
   .shadow-glow {
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
   }
   
   .shadow-glow-green {
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25);
+  }
+  
+  .shadow-glow-purple {
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.25);
+  }
+  
+  /* Advanced card effects */
+  .glass-card {
+    @apply bg-gray-800/40 border border-gray-700/30 rounded-xl;
+    backdrop-filter: blur(12px);
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   }
   
   /* Smooth animation effects */
@@ -119,33 +152,38 @@
   
   /* Vibrant value styling with text shadows for better visibility */
   .value-blue {
-    color: #3b82f6;
-    font-weight: 600;
-    text-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+    letter-spacing: -0.02em;
   }
   
   .value-green {
-    color: #10b981;
-    font-weight: 600;
-    text-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+    color: #34d399;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    letter-spacing: -0.02em;
   }
   
   .value-orange {
-    color: #f97316;
-    font-weight: 600;
-    text-shadow: 0 0 6px rgba(249, 115, 22, 0.3);
+    color: #fb923c;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
+    letter-spacing: -0.02em;
   }
   
   .value-red {
-    color: #ef4444;
-    font-weight: 600;
-    text-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+    letter-spacing: -0.02em;
   }
   
   .value-purple {
-    color: #8b5cf6;
-    font-weight: 600;
-    text-shadow: 0 0 6px rgba(139, 92, 246, 0.3);
+    color: #a78bfa;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+    letter-spacing: -0.02em;
   }
   
   /* Professional border accent */

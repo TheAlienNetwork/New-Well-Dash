@@ -182,6 +182,25 @@ export class EmailService {
       
       ctx.fillText('LIVE DATA', canvas.width - padding.right - 40, 33);
       
+      // Add a frosted glass background for chart area
+      ctx.save();
+      ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
+      ctx.shadowColor = 'rgba(148, 163, 184, 0.1)';
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 5;
+      ctx.beginPath();
+      ctx.roundRect(padding.left - 30, padding.top - 30, chartWidth + 60, chartHeight + 60, 10);
+      ctx.fill();
+      ctx.restore();
+
+      // Draw subtle inner border for chart area
+      ctx.strokeStyle = 'rgba(156, 163, 175, 0.2)';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.roundRect(padding.left - 25, padding.top - 25, chartWidth + 50, chartHeight + 50, 8);
+      ctx.stroke();
+      
       // Draw axes with better styling
       ctx.strokeStyle = 'rgba(156, 163, 175, 0.7)';
       ctx.lineWidth = 1.5;
@@ -488,6 +507,25 @@ export class EmailService {
         ctx.fill();
         
         ctx.fillText('LIVE DATA', canvas.width - padding.right - 40, 33);
+        
+        // Add a frosted glass background for chart area
+        ctx.save();
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
+        ctx.shadowColor = 'rgba(148, 163, 184, 0.1)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 5;
+        ctx.beginPath();
+        ctx.roundRect(padding.left - 30, padding.top - 30, chartWidth + 60, chartHeight + 60, 10);
+        ctx.fill();
+        ctx.restore();
+
+        // Draw subtle inner border for chart area
+        ctx.strokeStyle = 'rgba(156, 163, 175, 0.2)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.roundRect(padding.left - 25, padding.top - 25, chartWidth + 50, chartHeight + 50, 8);
+        ctx.stroke();
         
         // Draw axes
         ctx.strokeStyle = 'rgba(156, 163, 175, 0.7)';

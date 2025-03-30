@@ -127,8 +127,8 @@ export default function GammaPlot() {
   }, [gammaData]);
 
   return (
-    <div className="card h-full flex flex-col w-full">
-      <div className="p-3 flex justify-between items-center border-b border-gray-700">
+    <div className="card h-full flex flex-col w-full backdrop-blur-sm bg-gray-900/50 rounded-xl shadow-xl border border-gray-800/50">
+      <div className="p-3 flex justify-between items-center border-b border-gray-700/50 bg-gradient-to-r from-gray-900/70 to-gray-800/70 rounded-t-xl">
         <h2 className="font-heading text-lg font-semibold flex items-center text-white">
           <BarChart3 className="h-5 w-5 mr-2 text-blue-400" />
           <span>Gamma Plot</span>
@@ -136,13 +136,13 @@ export default function GammaPlot() {
         <div className="flex space-x-2">
           <button 
             onClick={handleExportPDF}
-            className="px-3 py-1 rounded text-xs text-blue-300 hover:bg-blue-900/20 transition-all duration-300 flex items-center border border-gray-700"
+            className="px-3 py-1 rounded-md text-xs text-blue-300 hover:bg-blue-900/30 transition-all duration-300 flex items-center border border-blue-500/20 shadow-inner shadow-blue-500/5"
           >
             <Download className="h-3 w-3 mr-1" />
             Export PDF
           </button>
-          <div className="bg-gray-900 text-xs px-2 py-1 rounded flex items-center border border-emerald-500/30">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 mr-1"></div>
+          <div className="bg-gray-900/70 text-xs px-2 py-1 rounded-md flex items-center border border-emerald-500/30 backdrop-blur-sm shadow-lg">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 mr-1 animate-pulse"></div>
             <span className="text-emerald-400 font-semibold">LIVE</span>
           </div>
         </div>
@@ -151,25 +151,25 @@ export default function GammaPlot() {
       <div className="flex flex-col md:flex-row flex-1 w-full">
         {/* Side metrics panel - takes up less space on large screens */}
         <div className="flex flex-row md:flex-col md:w-60 p-3 gap-2">
-          <div className="bg-gray-900 rounded-md p-3 border border-gray-700 shadow-glow flex-1 border-accent">
+          <div className="backdrop-blur-md bg-gray-800/40 rounded-lg p-3 border border-gray-700/50 shadow-xl flex-1 border-l-4 border-l-emerald-500">
             <span className="text-xs text-gray-300 font-semibold">CURRENT API</span>
             <div className="font-semibold text-2xl value-green mt-1">{currentGamma?.toFixed(1) || 'N/A'}</div>
             <span className="text-xs text-gray-400">gAPI</span>
           </div>
           
-          <div className="bg-gray-900 rounded-md p-3 border border-gray-700 flex-1">
+          <div className="backdrop-blur-md bg-gray-800/40 rounded-lg p-3 border border-gray-700/50 shadow-xl flex-1 border-l-4 border-l-blue-500">
             <span className="text-xs text-gray-300 font-semibold">AVG API</span>
             <div className="font-semibold text-lg value-blue mt-1">{avgGamma?.toFixed(1) || 'N/A'}</div>
             <span className="text-xs text-gray-400">gAPI</span>
           </div>
           
-          <div className="bg-gray-900 rounded-md p-3 border border-gray-700 flex-1">
+          <div className="backdrop-blur-md bg-gray-800/40 rounded-lg p-3 border border-gray-700/50 shadow-xl flex-1 border-l-4 border-l-purple-500">
             <span className="text-xs text-gray-300 font-semibold">RANGE</span>
             <div className="font-semibold text-sm value-purple mt-1">{depthRange || 'N/A'}</div>
             <span className="text-xs text-gray-400">ft MD</span>
           </div>
           
-          <div className="bg-gray-900 rounded-md p-3 border border-gray-700 flex-1 md:block hidden">
+          <div className="backdrop-blur-md bg-gray-800/40 rounded-lg p-3 border border-gray-700/50 shadow-xl flex-1 md:block hidden border-l-4 border-l-gray-500">
             <div className="text-xs text-gray-400 flex items-center">
               <Activity className="h-3 w-3 mr-1 text-blue-400" />
               LAST UPDATE
@@ -180,7 +180,7 @@ export default function GammaPlot() {
         
         {/* Gamma plot - takes up full remaining width */}
         <div className="flex-1 p-3">
-          <div className="bg-gray-800 rounded-lg p-3 h-full border border-gray-700 shadow-md">
+          <div className="backdrop-blur-md bg-gray-800/50 rounded-lg p-4 h-full border border-gray-700/50 shadow-xl">
             <ResponsiveContainer width="100%" height={400}>
               <ComposedChart 
                 data={chartData} 
@@ -210,11 +210,12 @@ export default function GammaPlot() {
                 />
                 <Tooltip
                   contentStyle={{ 
-                    backgroundColor: 'rgba(31, 41, 55, 0.95)', 
+                    backgroundColor: 'rgba(31, 41, 55, 0.85)', 
                     border: '1px solid #4b5563', 
-                    borderRadius: '4px',
+                    borderRadius: '8px',
                     color: '#e5e7eb',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    boxShadow: '0 8px 16px -2px rgba(0, 0, 0, 0.2)',
+                    backdropFilter: 'blur(12px)'
                   }}
                   formatter={(value: number) => [
                     `${value.toFixed(2)} gAPI`, 
@@ -280,7 +281,7 @@ export default function GammaPlot() {
         </div>
       </div>
 
-      <div className="p-2 border-t border-gray-700 flex justify-between items-center bg-gray-800">
+      <div className="p-2 border-t border-gray-700/50 flex justify-between items-center bg-gradient-to-r from-gray-900/70 to-gray-800/70 rounded-b-xl">
         <div className="flex items-center">
           <Zap className="h-4 w-4 text-blue-400 mr-1" />
           <span className="text-xs text-gray-300 font-semibold">Real-time Gamma Analysis</span>
