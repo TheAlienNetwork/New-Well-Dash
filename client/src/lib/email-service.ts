@@ -1072,34 +1072,30 @@ export class EmailService {
         }
         
         document.body.removeChild(tempDiv);
-        
-        // Now open email client with only the subject and recipients
+
+        // Create a mailto link that will open Outlook if it's the default client
         const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`;
-        window.open(mailtoLink);
         
-        // Prepare attachment files for drag and drop if available
-        if (attachments && attachments.length > 0) {
-          // Construct a message about the attachments with a count and list of file names
-          const fileNames = attachments.map(file => file.name).join(", ");
-          let message = `HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\n`;
-          message += `For best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.\n\n`;
-          message += `${attachments.length} attachment${attachments.length > 1 ? 's' : ''} ready to add: ${fileNames}\n\n`;
-          message += `Please drag and drop these files into your email after pasting the content.`;
+        // Open the email client
+        window.location.href = mailtoLink; // Use location.href instead of window.open() for better Outlook integration
+        
+        // Show a more Outlook-focused helper message
+        setTimeout(() => {
+          const message = [
+            "Email draft opened in Outlook",
+            "",
+            "1. The formatted content is copied to your clipboard",
+            "2. Use Ctrl+V (or Cmd+V) to paste the content into the email body",
+            attachments?.length ? `3. Add the ${attachments.length} selected attachment${attachments.length > 1 ? 's' : ''}:` : '',
+            ...(attachments?.map(file => `   • ${file.name}`) || [])
+          ].join('\n');
           
-          // Show a help message with attachment info
-          setTimeout(() => {
-            window.alert(message);
-          }, 1000);
-        } else {
-          // Standard message without attachment info
-          setTimeout(() => {
-            window.alert("HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\nFor best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.");
-          }, 1000);
-        }
+          window.alert(message);
+        }, 1500); // Slightly longer delay to ensure Outlook opens first
       } else {
-        // For plain text emails, use standard mailto
+        // For plain text emails, include the body directly
         const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.open(mailtoLink);
+        window.location.href = mailtoLink;
       }
     } catch (error) {
       console.error('Error opening email client:', error);
