@@ -421,6 +421,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to create gamma data' });
     }
   });
+  
+  // Bulk gamma data import
+  router.post('/gamma-data/bulk', async (req: Request, res: Response) => {
+    try {
+      const { wellId, data } = req.body;
+      
+      if (!Array.isArray(data) || !wellId) {
+        return res.status(400).json({ error: 'Invalid request format. Expected wellId and data array.' });
+      }
+      
+      // Process in batches
+      const results = [];
+      let inserted = 0;
+      
+      for (const item of data) {
+        try {
+          const validatedData = insertGammaDataSchema.parse({
+            ...item,
+            wellId: parseInt(wellId) // Ensure wellId is set correctly
+          });
+          
+          const gammaPoint = await storage.createGammaData(validatedData);
+          
+          if (gammaPoint) {
+            inserted++;
+            results.push(gammaPoint);
+            
+            // Broadcast update to all connected clients
+            broadcastGammaDataUpdate(gammaPoint);
+          }
+        } catch (error) {
+          console.error('Error importing gamma point:', error);
+          // Continue with next item even if this one failed
+        }
+      }
+      
+      res.status(201).json({ 
+        message: `Successfully imported ${inserted} of ${data.length} gamma points`,
+        inserted,
+        total: data.length
+      });
+    } catch (error) {
+      console.error('Bulk gamma import error:', error);
+      res.status(500).json({ error: 'Failed to process bulk gamma data import' });
+    }
+  });
 
   // Email Distribution Routes
   router.get('/email-distributions/:wellId', async (req: Request, res: Response) => {

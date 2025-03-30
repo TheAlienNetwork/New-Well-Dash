@@ -4,10 +4,9 @@ import { DataTable } from '@/components/ui/data-table';
 import { Survey } from '@shared/schema';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash, Plus } from 'lucide-react';
-import { 
-  BarChart4 
-} from 'lucide-react';
+import { Pencil, Trash, Plus, Upload, FileSpreadsheet, Activity } from 'lucide-react';
+import { BarChart4 } from 'lucide-react';
+import { SurveyFileImporter, GammaFileImporter } from '@/components/dashboard/FileImporters';
 
 interface SurveyTableProps {
   onAddSurvey: () => void;
@@ -119,6 +118,8 @@ export default function SurveyTable({ onAddSurvey, onEditSurvey }: SurveyTablePr
             <Plus className="h-4 w-4 mr-1" />
             Add Survey
           </Button>
+          <SurveyFileImporter />
+          <GammaFileImporter />
           <Button 
             variant="outline"
             className="bg-neutral-surface hover:bg-neutral-border transition-colors px-3 py-1 rounded text-sm"
