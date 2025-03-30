@@ -91,15 +91,19 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { wellInfo } = useWellContext();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (wellInfo?.id) {
-      loadSurveys(wellInfo.id);
-      loadCurveData(wellInfo.id);
-      loadGammaData(wellInfo.id);
+  // Function to load data when needed
+  const loadAllData = async (wellId: number) => {
+    if (wellId) {
+      await Promise.all([
+        loadSurveys(wellId),
+        loadCurveData(wellId),
+        loadGammaData(wellId)
+      ]);
     }
-  }, [wellInfo]);
+  };
 
-  useEffect(() => {
+  // Handle AI analysis and projections updates
+  const processAnalyticsAndProjections = () => {
     // Calculate AI analysis
     if (latestSurvey) {
       try {
@@ -147,12 +151,25 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.error('Error calculating projections:', err);
       }
     }
-  }, [surveys, latestSurvey]);
+  };
 
-  // Listen for WebSocket events
+  // Load initial data when well info changes
+  useEffect(() => {
+    if (wellInfo?.id) {
+      loadAllData(wellInfo.id);
+    }
+  }, [wellInfo]);
+
+  // Process analytics when survey data changes
+  useEffect(() => {
+    processAnalyticsAndProjections();
+  }, [surveys, latestSurvey, curveData, wellInfo]);
+
+  // Set up WebSocket handlers
   useEffect(() => {
     // Listen for survey list updates
     witsClient.onSurveys((data) => {
+      console.log('WebSocket received surveys update:', data.length);
       setSurveys(data);
       if (data.length > 0) {
         setLatestSurvey(data[data.length - 1]);
@@ -161,6 +178,7 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Listen for individual survey updates
     witsClient.onSurveyUpdate((data) => {
+      console.log('WebSocket received survey update:', data.action);
       if (data.action === 'created') {
         setSurveys(prev => [...prev, data.data]);
         setLatestSurvey(data.data);
@@ -182,15 +200,18 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Listen for curve data updates
     witsClient.onCurveData((data) => {
+      console.log('WebSocket received curve data update');
       setCurveData(data);
     });
 
     // Listen for gamma data updates
     witsClient.onGammaData((data) => {
+      console.log('WebSocket received gamma data update:', data.length);
       setGammaData(data);
     });
     
     witsClient.onGammaDataUpdate((data) => {
+      console.log('WebSocket received gamma data item update');
       setGammaData(prev => {
         const index = prev.findIndex(g => g.id === data.id);
         if (index >= 0) {
@@ -208,7 +229,33 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setModalSurvey(data);
       setShowSurveyModal(true);
     });
-  }, [surveys, latestSurvey]);
+    
+    // Set up visibility change handler to refresh data
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && wellInfo?.id) {
+        // Re-fetch data when tab becomes visible again
+        loadAllData(wellInfo.id);
+        
+        // Ensure WebSocket connection is active
+        witsClient.connect().catch(console.error);
+      }
+    };
+    
+    // Handle tab visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Setup heartbeat to periodically refresh data
+    const heartbeat = setInterval(() => {
+      if (wellInfo?.id) {
+        loadAllData(wellInfo.id);
+      }
+    }, 60000); // Refresh every minute
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(heartbeat);
+    };
+  }, [wellInfo, surveys, latestSurvey]);
 
   const loadSurveys = async (wellId: number) => {
     try {
