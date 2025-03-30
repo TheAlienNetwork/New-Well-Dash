@@ -22,7 +22,10 @@ export default function DirectionalCurveData() {
     leftTarget: '' as string | number,
     rightTarget: '' as string | number,
     isAbove: true,
-    isRight: true
+    isRight: true,
+    targetTVD: '',
+    targetVS: '',
+    targetInc: ''
   });
 
   useEffect(() => {
@@ -40,16 +43,44 @@ export default function DirectionalCurveData() {
         leftTarget: 0,
         rightTarget: 0,
         isAbove: true,
-        isRight: true
+        isRight: true,
+        targetTVD: '',
+        targetVS: '',
+        targetInc: ''
       });
     }
   }, [curveData]);
+
+  // Calculate offsets when target parameters change
+  useEffect(() => {
+    if (formData.targetTVD && formData.targetVS && formData.targetInc) {
+      const tvd = Number(formData.targetTVD);
+      const vs = Number(formData.targetVS);
+      const inc = Number(formData.targetInc);
+
+      // Calculate vertical offset (difference from target TVD)
+      const verticalOffset = Math.abs(tvd - vs * Math.cos(inc * Math.PI / 180));
+
+      // Calculate horizontal offset (distance from vertical)
+      const horizontalOffset = Math.abs(vs * Math.sin(inc * Math.PI / 180));
+
+      setFormData(prev => ({
+        ...prev,
+        isAbove: tvd > vs * Math.cos(inc * Math.PI / 180),
+        aboveTarget: prev.isAbove ? verticalOffset.toFixed(2) : '0',
+        belowTarget: !prev.isAbove ? verticalOffset.toFixed(2) : '0',
+        isRight: true, // This would need additional logic based on azimuth
+        rightTarget: prev.isRight ? horizontalOffset.toFixed(2) : '0',
+        leftTarget: !prev.isRight ? horizontalOffset.toFixed(2) : '0'
+      }));
+    }
+  }, [formData.targetTVD, formData.targetVS, formData.targetInc]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : parseFloat(value) || 0
+      [name]: type === 'checkbox' ? checked : parseFloat(value) || ''
     }));
   };
 
@@ -85,7 +116,19 @@ export default function DirectionalCurveData() {
           </h2>
         </div>
         <div className="p-4 glass-container">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-indigo-900/10">
+              <Label className="text-xs text-indigo-300">Target TVD</Label>
+              <Input type="number" name="targetTVD" value={formData.targetTVD} onChange={handleInputChange} className="font-mono text-cyan-300" />
+            </div>
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-indigo-900/10">
+              <Label className="text-xs text-indigo-300">Target VS</Label>
+              <Input type="number" name="targetVS" value={formData.targetVS} onChange={handleInputChange} className="font-mono text-cyan-300" />
+            </div>
+            <div className="glass-panel rounded-md p-3 group transition-all hover:bg-indigo-900/10">
+              <Label className="text-xs text-indigo-300">Target Inc</Label>
+              <Input type="number" name="targetInc" value={formData.targetInc} onChange={handleInputChange} className="font-mono text-cyan-300" />
+            </div>
             <div className="glass-panel rounded-md p-3 group transition-all hover:bg-indigo-900/10">
               <div className="flex justify-between items-center mb-1">
                 <Label className="text-xs text-indigo-300 flex items-center">
@@ -120,6 +163,7 @@ export default function DirectionalCurveData() {
                   onChange={handleInputChange}
                   className="font-mono text-cyan-300"
                   placeholder="0.00"
+                  readOnly
                 />
                 <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400">ft</span>
               </div>
@@ -159,6 +203,7 @@ export default function DirectionalCurveData() {
                   onChange={handleInputChange}
                   className="font-mono text-cyan-300"
                   placeholder="0.00"
+                  readOnly
                 />
                 <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400">ft</span>
               </div>
