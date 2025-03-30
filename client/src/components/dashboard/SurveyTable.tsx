@@ -208,11 +208,12 @@ export default function SurveyTable({ onAddSurvey, onEditSurvey }: SurveyTablePr
       </div>
       
       {viewMode === 'table' ? (
-        <div className="overflow-x-auto custom-scrollbar">
+        <div className="overflow-x-auto custom-scrollbar" style={{ maxHeight: 'calc(2.5rem * 11 + 3rem)' }}>
           <DataTable 
             columns={columns} 
             data={surveys} 
             className="premium-table"
+            pageSize={10}
           />
         </div>
       ) : (
