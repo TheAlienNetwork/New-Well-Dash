@@ -45,7 +45,7 @@ export default function WellInfo() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'sensorOffset' || name === 'proposedDirection' ? parseFloat(value) || 0 : value
+      [name]: value // Store all values as strings
     }));
   };
 
