@@ -188,6 +188,12 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Listen for gamma data updates
     witsClient.onGammaData((data) => {
       setGammaData(data);
+      
+      // Sync with window.gammaData for email service
+      window.gammaData = data.map((point: GammaData) => ({
+        depth: point.depth,
+        value: point.value
+      }));
     });
     
     witsClient.onGammaDataUpdate((data) => {
@@ -196,9 +202,24 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (index >= 0) {
           const updated = [...prev];
           updated[index] = data;
+          
+          // Sync with window.gammaData for email service
+          window.gammaData = updated.map((point: GammaData) => ({
+            depth: point.depth,
+            value: point.value
+          }));
+          
           return updated;
         } else {
-          return [...prev, data];
+          const newData = [...prev, data];
+          
+          // Sync with window.gammaData for email service
+          window.gammaData = newData.map((point: GammaData) => ({
+            depth: point.depth,
+            value: point.value
+          }));
+          
+          return newData;
         }
       });
     });
@@ -247,6 +268,12 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const response = await apiRequest('GET', `/api/gamma-data/${wellId}`, undefined);
       const data = await response.json();
       setGammaData(data);
+      
+      // Sync with window.gammaData for email service
+      window.gammaData = data.map((point: GammaData) => ({
+        depth: point.depth,
+        value: point.value
+      }));
     } catch (err) {
       console.error('Error fetching gamma data:', err);
     }
