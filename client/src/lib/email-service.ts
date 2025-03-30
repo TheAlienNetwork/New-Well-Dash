@@ -1072,33 +1072,34 @@ export class EmailService {
       
       document.body.removeChild(tempDiv);
         
-        // Prepare attachment files for drag and drop if available
-        if (attachments && attachments.length > 0) {
-          // Construct a message about the attachments with a count and list of file names
-          const fileNames = attachments.map(file => file.name).join(", ");
-          let message = `HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\n`;
-          message += `For best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.\n\n`;
-          message += `${attachments.length} attachment${attachments.length > 1 ? 's' : ''} ready to add: ${fileNames}\n\n`;
-          message += `Please drag and drop these files into your email after pasting the content.`;
+      // Prepare attachment files for drag and drop if available
+      if (attachments && attachments.length > 0) {
+        // Construct a message about the attachments with a count and list of file names
+        const fileNames = attachments.map(file => file.name).join(", ");
+        let message = `HTML content has been copied to clipboard. Please paste it into your email client using Ctrl+V or Cmd+V.\n\n`;
+        message += `For best results, paste as HTML in your email client or use the 'Paste and Match Style' option if available.\n\n`;
+        message += `${attachments.length} attachment${attachments.length > 1 ? 's' : ''} ready to add: ${fileNames}\n\n`;
+        message += `Please drag and drop these files into your email after pasting the content.`;
+        
+        // Show Gmail-specific help message
+        setTimeout(() => {
+          const instructions = [
+            "Gmail compose window has been opened.",
+            "1. Wait for Gmail to load",
+            "2. Click in the email body",
+            "3. Press Ctrl+V (Windows) or Cmd+V (Mac) to paste the formatted content",
+            attachments?.length ? `4. Drag and drop ${attachments.length} attachment(s) into the email` : "",
+            "5. Send when ready"
+          ].filter(Boolean).join("\n\n");
           
-          // Show Gmail-specific help message
-          setTimeout(() => {
-            const instructions = [
-              "Gmail compose window has been opened.",
-              "1. Wait for Gmail to load",
-              "2. Click in the email body",
-              "3. Press Ctrl+V (Windows) or Cmd+V (Mac) to paste the formatted content",
-              attachments?.length ? `4. Drag and drop ${attachments.length} attachment(s) into the email` : "",
-              "5. Send when ready"
-            ].filter(Boolean).join("\n\n");
-            
-            window.alert(instructions);
-          }, 1000);
-        }
+          window.alert(instructions);
+        }, 1000);
       }
     } catch (error) {
       console.error('Error opening email client:', error);
       throw new Error('Failed to open email client');
+    } finally {
+      // Clean up any remaining resources if needed
     }
   }
 
