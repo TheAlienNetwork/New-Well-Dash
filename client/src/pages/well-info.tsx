@@ -53,16 +53,10 @@ export default function WellInfo() {
     e.preventDefault();
     
     try {
-      // Prepare data with proper types
-      const dataToSubmit = {
-        ...formData,
-        // Convert string values to numbers for numeric fields
-        sensorOffset: formData.sensorOffset ? parseFloat(formData.sensorOffset) : 0,
-        proposedDirection: formData.proposedDirection ? parseFloat(formData.proposedDirection) : 0
-      };
-      
-      console.log('Submitting well info:', dataToSubmit);
-      await updateWellInfo(dataToSubmit);
+      // Just send formData directly since our schema now accepts strings
+      // The Zod validation will handle the type conversion
+      console.log('Submitting well info:', formData);
+      await updateWellInfo(formData);
       setIsEditing(false);
       toast({
         title: 'Success',

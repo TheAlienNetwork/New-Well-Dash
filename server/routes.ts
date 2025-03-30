@@ -194,18 +194,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Well info PATCH request received:', req.body);
       
-      // Convert numeric string values to numbers
-      const processedData = { ...req.body };
-      if (typeof processedData.sensorOffset === 'string' && processedData.sensorOffset !== '') {
-        processedData.sensorOffset = parseFloat(processedData.sensorOffset);
-      }
-      if (typeof processedData.proposedDirection === 'string' && processedData.proposedDirection !== '') {
-        processedData.proposedDirection = parseFloat(processedData.proposedDirection);
-      }
-      
-      console.log('Processed data for validation:', processedData);
-      
-      const validatedData = insertWellInfoSchema.partial().parse(processedData);
+      // With our updated schema, we can directly validate the input
+      // The schema will handle the type conversion as needed
+      const validatedData = insertWellInfoSchema.partial().parse(req.body);
       console.log('Validated data:', validatedData);
 
       const updated = await storage.updateWellInfo(wellId, validatedData);

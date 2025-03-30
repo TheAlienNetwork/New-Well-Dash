@@ -28,10 +28,23 @@ export const wellInfo = pgTable("well_info", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertWellInfoSchema = createInsertSchema(wellInfo).omit({
+// Create the base schema
+const baseWellInfoSchema = createInsertSchema(wellInfo).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+// Override the schema to handle string or number inputs for numeric fields
+export const insertWellInfoSchema = baseWellInfoSchema.extend({
+  // Allow either string or number for sensorOffset
+  sensorOffset: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'string' ? val : val.toString()
+  ),
+  // Allow either string or number for proposedDirection, and make it optional
+  proposedDirection: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'string' ? val : val.toString()
+  ).nullish(),
 });
 
 export type InsertWellInfo = z.infer<typeof insertWellInfoSchema>;
