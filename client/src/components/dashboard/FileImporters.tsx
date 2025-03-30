@@ -15,13 +15,13 @@ export function SurveyFileImporter() {
   const { wellInfo } = useWellContext();
   const { addSurvey } = useSurveyContext();
   const { toast } = useToast();
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [importStats, setImportStats] = useState<{ total: number; success: number; errors: number } | null>(null);
-  
+
   // Set up a file change handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -30,7 +30,7 @@ export function SurveyFileImporter() {
       setProgress(0);
     }
   };
-  
+
   // Process the selected file
   const processFile = async () => {
     if (!selectedFile || !wellInfo?.id) {
@@ -41,37 +41,37 @@ export function SurveyFileImporter() {
       });
       return;
     }
-    
+
     setIsLoading(true);
     setProgress(10);
     setImportStats(null);
-    
+
     try {
       // Parse file
       const surveys = await parseSurveyFile(selectedFile, wellInfo.id);
       setProgress(40);
-      
+
       // Stats tracking
       let successCount = 0;
       let errorCount = 0;
-      
+
       // Import survey data
       if (surveys.length > 0) {
         // Process in batches
         const batchSize = 5;
         const totalBatches = Math.ceil(surveys.length / batchSize);
-        
+
         for (let i = 0; i < surveys.length; i += batchSize) {
           const batch = surveys.slice(i, i + batchSize);
-          
+
           // Update progress
           setProgress(40 + Math.floor((i / surveys.length) * 50));
-          
+
           // Process batch in parallel
           const results = await Promise.allSettled(
             batch.map(survey => addSurvey(survey))
           );
-          
+
           // Count successes and failures
           results.forEach(result => {
             if (result.status === 'fulfilled' && result.value) {
@@ -81,13 +81,13 @@ export function SurveyFileImporter() {
             }
           });
         }
-        
+
         setImportStats({
           total: surveys.length,
           success: successCount,
           errors: errorCount
         });
-        
+
         // Show success toast
         toast({
           title: "Survey Import Complete",
@@ -114,9 +114,9 @@ export function SurveyFileImporter() {
       setIsLoading(false);
     }
   };
-  
+
   const allowedFileTypes = ".csv, .xlsx, .xls, .txt";
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -136,7 +136,7 @@ export function SurveyFileImporter() {
             The system will automatically detect column headers.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="survey-file">Select File</Label>
@@ -152,7 +152,7 @@ export function SurveyFileImporter() {
               Supported formats: Excel, CSV, TXT
             </p>
           </div>
-          
+
           {isLoading && (
             <div className="space-y-2">
               <Label>Processing File</Label>
@@ -164,7 +164,7 @@ export function SurveyFileImporter() {
               </p>
             </div>
           )}
-          
+
           {importStats && (
             <Alert className={importStats.errors > 0 ? "bg-red-900/20 border-red-800/50" : "bg-green-900/20 border-green-800/50"}>
               <AlertCircle className="h-4 w-4" />
@@ -174,7 +174,7 @@ export function SurveyFileImporter() {
             </Alert>
           )}
         </div>
-        
+
         <DialogFooter>
           <Button
             variant="outline"
@@ -200,13 +200,13 @@ export function GammaFileImporter() {
   const { wellInfo } = useWellContext();
   const { toast } = useToast();
   const { gammaData } = useSurveyContext();
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [importStats, setImportStats] = useState<{ total: number; success: number; errors: number } | null>(null);
-  
+
   // Set up a file change handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -215,7 +215,7 @@ export function GammaFileImporter() {
       setProgress(0);
     }
   };
-  
+
   // Process the selected file
   const processFile = async () => {
     if (!selectedFile || !wellInfo?.id) {
@@ -226,26 +226,26 @@ export function GammaFileImporter() {
       });
       return;
     }
-    
+
     setIsLoading(true);
     setProgress(10);
     setImportStats(null);
-    
+
     try {
       // Parse file
       const gammaPoints = await parseGammaFile(selectedFile, wellInfo.id);
       setProgress(40);
-      
+
       // Stats tracking
       let successCount = 0;
       let errorCount = 0;
-      
+
       // Import gamma data
       if (gammaPoints.length > 0) {
         // Process in batches
         const batchSize = 20;
         const totalBatches = Math.ceil(gammaPoints.length / batchSize);
-        
+
         // Create a single URL for bulk insert
         const response = await fetch('/api/gamma-data/bulk', {
           method: 'POST',
@@ -257,19 +257,19 @@ export function GammaFileImporter() {
             data: gammaPoints
           }),
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
           successCount = result.inserted || 0;
           errorCount = gammaPoints.length - successCount;
-          
+
           setImportStats({
             total: gammaPoints.length,
             success: successCount,
             errors: errorCount
           });
-          
+
           // Show success toast
           toast({
             title: "Gamma Data Import Complete",
@@ -299,9 +299,9 @@ export function GammaFileImporter() {
       setIsLoading(false);
     }
   };
-  
+
   const allowedFileTypes = ".csv, .xlsx, .xls, .txt, .las";
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -321,7 +321,7 @@ export function GammaFileImporter() {
             The system will automatically detect column headers.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="gamma-file">Select File</Label>
@@ -337,7 +337,7 @@ export function GammaFileImporter() {
               Supported formats: LAS, Excel, CSV, TXT
             </p>
           </div>
-          
+
           {isLoading && (
             <div className="space-y-2">
               <Label>Processing File</Label>
@@ -349,7 +349,7 @@ export function GammaFileImporter() {
               </p>
             </div>
           )}
-          
+
           {importStats && (
             <Alert className={importStats.errors > 0 ? "bg-red-900/20 border-red-800/50" : "bg-green-900/20 border-green-800/50"}>
               <AlertCircle className="h-4 w-4" />
@@ -359,7 +359,7 @@ export function GammaFileImporter() {
             </Alert>
           )}
         </div>
-        
+
         <DialogFooter>
           <Button
             variant="outline"
@@ -380,3 +380,5 @@ export function GammaFileImporter() {
     </Dialog>
   );
 }
+
+// No duplicated functions here - we're importing parseSurveyFile and parseGammaFile from '@/lib/file-importers'
