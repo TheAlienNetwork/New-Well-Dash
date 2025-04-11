@@ -16,7 +16,7 @@ interface SurveyModalProps {
 }
 
 export default function SurveyModal({ open, onOpenChange, survey, mode }: SurveyModalProps) {
-  const { addSurvey, updateSurvey } = useSurveyContext();
+  const { surveys, addSurvey, updateSurvey } = useSurveyContext();
   const { wellInfo } = useWellContext(); // Added to access wellInfo
 
   const [formData, setFormData] = useState({
@@ -66,8 +66,6 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
       }));
     }
   }, [formData.bitDepth, wellInfo?.sensorOffset]);
-
-  const { surveys, addSurvey, updateSurvey } = useSurveyContext();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
