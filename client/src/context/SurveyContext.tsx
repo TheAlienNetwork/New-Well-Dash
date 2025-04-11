@@ -295,20 +295,39 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Process numeric fields to ensure they're all strings
       const processedSurvey: Record<string, any> = {};
       
-      // Always process the survey with proper calculations
+      // Parse incoming survey values
       const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md || 0);
       const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc || 0);
       const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi || 0);
       const proposedDirection = wellInfo ? Number(wellInfo.proposedDirection || 0) : 0;
 
-      // Get the previous survey for calculations if it exists
-      const prevSurvey = surveys.length > 0 ? surveys[surveys.length - 1] : null;
-
-      // Calculate survey values based on whether there's a previous survey
-      if (prevSurvey) {
-        // Convert previous survey values with proper type handling
-        const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md || 0);
-        const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc || 0);
+      if (surveys.length > 0) {
+        // Get the previous survey for calculations
+        const prevSurvey = surveys[surveys.length - 1];
+        
+        // Convert previous survey values
+        const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md);
+        const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc);
+        const prevAzi = typeof prevSurvey.azi === 'string' ? parseFloat(prevSurvey.azi) : Number(prevSurvey.azi);
+        const prevTvd = typeof prevSurvey.tvd === 'string' ? parseFloat(prevSurvey.tvd) : Number(prevSurvey.tvd);
+        const prevNS = typeof prevSurvey.northSouth === 'string' ? parseFloat(prevSurvey.northSouth) : Number(prevSurvey.northSouth);
+        const prevEW = typeof prevSurvey.eastWest === 'string' ? parseFloat(prevSurvey.eastWest) : Number(prevSurvey.eastWest);
+        
+        // Calculate all values using imported functions
+        const tvd = calculateTVD(md, inc, prevMd, prevTvd);
+        const { northSouth, isNorth } = calculateNorthSouth(md, inc, azi, prevMd, prevNS, prevSurvey.isNorth);
+        const { eastWest, isEast } = calculateEastWest(md, inc, azi, prevMd, prevEW, prevSurvey.isEast);
+        const vs = calculateVS(northSouth, eastWest, proposedDirection);
+        const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
+        
+        // Add calculated values to processed survey
+        processedSurvey.tvd = tvd.toFixed(2);
+        processedSurvey.northSouth = northSouth.toFixed(2);
+        processedSurvey.isNorth = isNorth;
+        processedSurvey.eastWest = eastWest.toFixed(2);
+        processedSurvey.isEast = isEast;
+        processedSurvey.vs = vs.toFixed(2);
+        processedSurvey.dls = dls.toFixed(2);
         const prevAzi = typeof prevSurvey.azi === 'string' ? parseFloat(prevSurvey.azi) : Number(prevSurvey.azi || 0);
         const prevTvd = typeof prevSurvey.tvd === 'string' ? parseFloat(prevSurvey.tvd) : Number(prevSurvey.tvd || 0);
         const prevNS = typeof prevSurvey.northSouth === 'string' ? parseFloat(prevSurvey.northSouth) : Number(prevSurvey.northSouth || 0);
