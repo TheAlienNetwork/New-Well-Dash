@@ -357,7 +357,7 @@ export default function WitsParametersPage() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .futuristic-border {
           border: 1px solid rgba(52, 152, 219, 0.3);
           position: relative;
