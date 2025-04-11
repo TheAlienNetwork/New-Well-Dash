@@ -328,19 +328,6 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         processedSurvey.isEast = isEast;
         processedSurvey.vs = vs.toFixed(2);
         processedSurvey.dls = dls.toFixed(2);
-        const prevAzi = typeof prevSurvey.azi === 'string' ? parseFloat(prevSurvey.azi) : Number(prevSurvey.azi || 0);
-        const prevTvd = typeof prevSurvey.tvd === 'string' ? parseFloat(prevSurvey.tvd) : Number(prevSurvey.tvd || 0);
-        const prevNS = typeof prevSurvey.northSouth === 'string' ? parseFloat(prevSurvey.northSouth) : Number(prevSurvey.northSouth || 0);
-        const prevEW = typeof prevSurvey.eastWest === 'string' ? parseFloat(prevSurvey.eastWest) : Number(prevSurvey.eastWest || 0);
-        const prevIsNorth = Boolean(prevSurvey.isNorth);
-        const prevIsEast = Boolean(prevSurvey.isEast);
-        
-        // Calculate all values
-        const tvd = calculateTVD(md, inc, prevMd, prevTvd);
-        const { northSouth, isNorth } = calculateNorthSouth(md, inc, azi, prevMd, prevNS, prevIsNorth);
-        const { eastWest, isEast } = calculateEastWest(md, inc, azi, prevMd, prevEW, prevIsEast);
-        const vs = calculateVS(northSouth, eastWest, proposedDirection);
-        const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
         
         // Add calculated values to survey with proper formatting
         processedSurvey.tvd = tvd.toFixed(2);
