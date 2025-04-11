@@ -67,6 +67,8 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
     }
   }, [formData.bitDepth, wellInfo?.sensorOffset]);
 
+  const { surveys, addSurvey, updateSurvey } = useSurveyContext();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -76,12 +78,14 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
     const azi = Number(formData.azi);
 
     // Get the last survey for calculations
-    const { surveys } = useSurveyContext();
     const prevSurvey = surveys[surveys.length - 1];
 
     let surveyData: any = {
       ...formData,
-      wellId: wellInfo?.id || 1
+      wellId: wellInfo?.id || 1,
+      md: md.toString(),
+      inc: inc.toString(),
+      azi: azi.toString()
     };
 
     if (prevSurvey) {
@@ -132,12 +136,16 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
       };
     }
 
-    if (mode === 'edit' && survey) {
-      await updateSurvey(survey.id!, surveyData);
-    } else {
-      await addSurvey(surveyData);
+    try {
+      if (mode === 'edit' && survey) {
+        await updateSurvey(survey.id!, surveyData);
+      } else {
+        await addSurvey(surveyData);
+      }
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error saving survey:', error);
     }
-    onOpenChange(false);
   };
 
   return (
