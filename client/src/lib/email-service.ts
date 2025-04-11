@@ -79,21 +79,24 @@ class EmailService {
     attachments?: File[];
     imageDataUrl?: string;
   }) {
-    // Create mailto URL with all components
-    let mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}`;
-    
-    // Add HTML body if available
-    if (body) {
-      mailtoUrl += `&body=${encodeURIComponent(body)}`;
-    }
+    // Create temporary div to hold HTML content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = body;
+    document.body.appendChild(tempDiv);
 
-    // Create a temporary link and click it to open email client
-    const tempLink = document.createElement('a');
-    tempLink.href = mailtoUrl;
-    tempLink.target = '_blank';
-    document.body.appendChild(tempLink);
-    tempLink.click();
-    document.body.removeChild(tempLink);
+    // Select and copy the content
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(tempDiv);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    document.execCommand('copy');
+    selection?.removeAllRanges();
+    document.body.removeChild(tempDiv);
+
+    // Create and open mailto link
+    const mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}`;
+    window.location.href = mailtoUrl;
 
     // Show instructions dialog
     const dialog = document.createElement('div');
