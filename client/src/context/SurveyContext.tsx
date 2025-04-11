@@ -4,7 +4,16 @@ import { Survey, CurveData, GammaData, InsertSurvey } from '@shared/schema';
 import { witsClient } from '@/lib/wits-client';
 import { useWellContext } from './WellContext';
 import { useToast } from '@/hooks/use-toast';
-import { generateSurveyAnalysis, projectValues } from '@/lib/survey-calculations';
+import { 
+  generateSurveyAnalysis, 
+  projectValues, 
+  calculateSurveyValues,
+  calculateTVD,
+  calculateNorthSouth,
+  calculateEastWest,
+  calculateVS,
+  calculateDLS
+} from '@/lib/survey-calculations';
 
 interface SurveyContextType {
   surveys: Survey[];
@@ -286,20 +295,77 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Process numeric fields to ensure they're all strings
       const processedSurvey: Record<string, any> = {};
       
+      // Auto-calculate TVD, N/S, E/W, VS, and DLS if we have the necessary data
+      if (wellInfo && surveys.length > 0) {
+        // Get the reference survey to calculate from (latest survey)
+        const prevSurvey = surveys[surveys.length - 1];
+        const proposedDirection = Number(wellInfo.proposedDirection || 0);
+        
+        // Convert string values to numbers for calculation
+        const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md);
+        const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc);
+        const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi);
+        
+        const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md);
+        const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc);
+        const prevAzi = typeof prevSurvey.azi === 'string' ? parseFloat(prevSurvey.azi) : Number(prevSurvey.azi);
+        const prevTvd = typeof prevSurvey.tvd === 'string' ? parseFloat(prevSurvey.tvd) : Number(prevSurvey.tvd || 0);
+        const prevNS = typeof prevSurvey.northSouth === 'string' ? parseFloat(prevSurvey.northSouth) : Number(prevSurvey.northSouth || 0);
+        const prevEW = typeof prevSurvey.eastWest === 'string' ? parseFloat(prevSurvey.eastWest) : Number(prevSurvey.eastWest || 0);
+        const prevIsNorth = Boolean(prevSurvey.isNorth);
+        const prevIsEast = Boolean(prevSurvey.isEast);
+        
+        // Calculate all values
+        const tvd = calculateTVD(md, inc, prevMd, prevTvd);
+        const { northSouth, isNorth } = calculateNorthSouth(md, inc, azi, prevMd, prevNS, prevIsNorth);
+        const { eastWest, isEast } = calculateEastWest(md, inc, azi, prevMd, prevEW, prevIsEast);
+        const vs = calculateVS(northSouth, eastWest, proposedDirection);
+        const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
+        
+        // Add calculated values to survey
+        processedSurvey.tvd = String(tvd);
+        processedSurvey.northSouth = String(northSouth);
+        processedSurvey.isNorth = isNorth;
+        processedSurvey.eastWest = String(eastWest);
+        processedSurvey.isEast = isEast;
+        processedSurvey.vs = String(vs);
+        processedSurvey.dls = String(dls);
+      } else if (wellInfo && surveys.length === 0) {
+        // For the first survey, set some initial values
+        const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md);
+        const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc);
+        
+        // For first survey, TVD is approximately equal to MD (with inclination adjustment)
+        const tvd = md * Math.cos(inc * Math.PI / 180);
+        
+        // Initial values for other fields
+        processedSurvey.tvd = String(tvd);
+        processedSurvey.northSouth = "0";
+        processedSurvey.isNorth = true;
+        processedSurvey.eastWest = "0";
+        processedSurvey.isEast = true;
+        processedSurvey.vs = "0";
+        processedSurvey.dls = "0";
+      }
+      
       // Process the survey data to ensure correct types for the API
       Object.entries(survey).forEach(([key, value]) => {
         if (key === 'wellId') {
           // Keep wellId as a number
           processedSurvey[key] = typeof value === 'string' ? parseInt(value) : value;
         } else if (key === 'isNorth' || key === 'isEast') {
-          // Keep boolean values
-          processedSurvey[key] = value;
+          // Keep boolean values (if not already set by auto-calculation)
+          if (processedSurvey[key] === undefined) {
+            processedSurvey[key] = value;
+          }
         } else if (typeof value === 'number') {
           // Convert numbers to strings for numeric fields
           processedSurvey[key] = String(value);
         } else {
-          // Keep other values as is
-          processedSurvey[key] = value;
+          // Keep other values as is (if not already set by auto-calculation)
+          if (processedSurvey[key] === undefined) {
+            processedSurvey[key] = value;
+          }
         }
       });
       
@@ -352,20 +418,92 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Process numeric fields to ensure they're all strings
       const processedSurvey: Record<string, any> = {};
       
+      // Auto-calculate TVD, N/S, E/W, VS, and DLS if the relevant fields (md, inc, azi) are updated
+      if (wellInfo && (survey.md !== undefined || survey.inc !== undefined || survey.azi !== undefined)) {
+        // Find the current survey being updated
+        const currentSurveyData = surveys.find(s => s.id === id);
+        if (currentSurveyData) {
+          // Find the previous survey, if any
+          const currentIndex = surveys.findIndex(s => s.id === id);
+          const prevSurvey = currentIndex > 0 ? surveys[currentIndex - 1] : null;
+          
+          // Get the proposed direction from well info
+          const proposedDirection = Number(wellInfo.proposedDirection || 0);
+          
+          // Prepare values from current survey, overridden by any updates
+          const md = survey.md !== undefined 
+            ? (typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md))
+            : (typeof currentSurveyData.md === 'string' ? parseFloat(currentSurveyData.md) : Number(currentSurveyData.md));
+          
+          const inc = survey.inc !== undefined
+            ? (typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc))
+            : (typeof currentSurveyData.inc === 'string' ? parseFloat(currentSurveyData.inc) : Number(currentSurveyData.inc));
+          
+          const azi = survey.azi !== undefined
+            ? (typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi))
+            : (typeof currentSurveyData.azi === 'string' ? parseFloat(currentSurveyData.azi) : Number(currentSurveyData.azi));
+          
+          if (prevSurvey) {
+            // If there's a previous survey, calculate from there
+            const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md);
+            const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc);
+            const prevAzi = typeof prevSurvey.azi === 'string' ? parseFloat(prevSurvey.azi) : Number(prevSurvey.azi);
+            const prevTvd = typeof prevSurvey.tvd === 'string' ? parseFloat(prevSurvey.tvd) : Number(prevSurvey.tvd || 0);
+            const prevNS = typeof prevSurvey.northSouth === 'string' ? parseFloat(prevSurvey.northSouth) : Number(prevSurvey.northSouth || 0);
+            const prevEW = typeof prevSurvey.eastWest === 'string' ? parseFloat(prevSurvey.eastWest) : Number(prevSurvey.eastWest || 0);
+            const prevIsNorth = Boolean(prevSurvey.isNorth);
+            const prevIsEast = Boolean(prevSurvey.isEast);
+            
+            // Calculate all values
+            const tvd = calculateTVD(md, inc, prevMd, prevTvd);
+            const { northSouth, isNorth } = calculateNorthSouth(md, inc, azi, prevMd, prevNS, prevIsNorth);
+            const { eastWest, isEast } = calculateEastWest(md, inc, azi, prevMd, prevEW, prevIsEast);
+            const vs = calculateVS(northSouth, eastWest, proposedDirection);
+            const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
+            
+            // Add calculated values to survey
+            processedSurvey.tvd = String(tvd);
+            processedSurvey.northSouth = String(northSouth);
+            processedSurvey.isNorth = isNorth;
+            processedSurvey.eastWest = String(eastWest);
+            processedSurvey.isEast = isEast;
+            processedSurvey.vs = String(vs);
+            processedSurvey.dls = String(dls);
+          } else {
+            // For the first survey, set some initial values
+            // For first survey, TVD is approximately equal to MD (with inclination adjustment)
+            const tvd = md * Math.cos(inc * Math.PI / 180);
+            
+            // Initial values for other fields
+            processedSurvey.tvd = String(tvd);
+            processedSurvey.northSouth = "0";
+            processedSurvey.isNorth = true;
+            processedSurvey.eastWest = "0";
+            processedSurvey.isEast = true;
+            processedSurvey.vs = "0";
+            processedSurvey.dls = "0";
+          }
+        }
+      }
+      
       // Process the survey data to ensure correct types for the API
       Object.entries(survey).forEach(([key, value]) => {
         if (key === 'wellId') {
           // Keep wellId as a number
           processedSurvey[key] = typeof value === 'string' ? parseInt(value) : value;
         } else if (key === 'isNorth' || key === 'isEast') {
-          // Keep boolean values
-          processedSurvey[key] = value;
+          // Keep boolean values (if not already set by auto-calculation)
+          if (processedSurvey[key] === undefined) {
+            processedSurvey[key] = value;
+          }
         } else if (typeof value === 'number') {
           // Convert numbers to strings for numeric fields
           processedSurvey[key] = String(value);
         } else {
-          // Keep other values as is
-          processedSurvey[key] = value;
+          // Keep other values as is (if not already set by auto-calculation)
+          if (processedSurvey[key] === undefined) {
+            processedSurvey[key] = value;
+          }
         }
       });
       
