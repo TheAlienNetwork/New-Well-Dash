@@ -3,6 +3,7 @@ import { useSurveyContext } from '@/context/SurveyContext';
 import { useWellContext } from '@/context/WellContext';
 import Plotly from 'plotly.js';
 import createPlotlyComponent from 'react-plotly.js/factory';
+import { Data } from 'plotly.js';
 
 // Create a Plotly React component
 const Plot = createPlotlyComponent(Plotly);
@@ -66,7 +67,7 @@ const WellboreTrajectory = () => {
     if (!data || !plotRef.current) return;
 
     // Main wellbore trajectory
-    const mainTrace = {
+    const mainTrace: Partial<Plotly.PlotData> = {
       type: 'scatter3d',
       mode: 'lines',
       x: data.nsData,
@@ -80,7 +81,7 @@ const WellboreTrajectory = () => {
     };
 
     // Survey points
-    const surveyPointsTrace = {
+    const surveyPointsTrace: Partial<Plotly.PlotData> = {
       type: 'scatter3d',
       mode: 'markers',
       x: data.nsData,
@@ -148,7 +149,7 @@ const WellboreTrajectory = () => {
           zeroline: false,
           gridcolor: 'rgba(255, 255, 255, 0.1)',
           tickfont: { color: 'rgba(255, 255, 255, 0.7)' },
-          autorange: 'reversed',
+          autorange: 'reversed' as 'reversed',
         },
         camera: {
           eye: { x: 1.5, y: 1.5, z: 1 },
@@ -168,7 +169,7 @@ const WellboreTrajectory = () => {
       }
     };
 
-    const plotData = [mainTrace, surveyPointsTrace];
+    const plotData = [mainTrace, surveyPointsTrace] as Plotly.Data[];
     const config = {
       responsive: true,
       displayModeBar: true,

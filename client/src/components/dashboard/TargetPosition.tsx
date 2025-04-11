@@ -30,8 +30,8 @@ export default function TargetPosition({ projections, verticalPosition: initialV
   const { wellInfo } = useWellContext();
   
   const [includeInEmail, setIncludeInEmail] = useState(curveData?.includeTargetPosition || false);
-  const [verticalInput, setVerticalInput] = useState("");
-  const [horizontalInput, setHorizontalInput] = useState("");
+  const [verticalInput, setVerticalInput] = useState("0");
+  const [horizontalInput, setHorizontalInput] = useState("0");
   const [verticalPosition, setVerticalPosition] = useState<number | undefined>(initialVertical);
   const [horizontalPosition, setHorizontalPosition] = useState<number | undefined>(initialHorizontal);
   const [isAbove, setIsAbove] = useState(projections?.isAbove || false);
@@ -92,10 +92,10 @@ export default function TargetPosition({ projections, verticalPosition: initialV
       updateCurveData({
         id: curveData.id,
         wellId: curveData.wellId,
-        aboveTarget: verticalOffset < 0,
-        belowTarget: verticalOffset > 0,
-        leftTarget: horizontalOffset < 0,
-        rightTarget: horizontalOffset > 0
+        aboveTarget: String(verticalOffset < 0),
+        belowTarget: String(verticalOffset > 0),
+        leftTarget: String(horizontalOffset < 0),
+        rightTarget: String(horizontalOffset > 0)
       });
     }
     

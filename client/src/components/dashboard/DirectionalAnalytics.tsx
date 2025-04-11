@@ -112,12 +112,11 @@ const DirectionalAnalytics = () => {
     let targetTVD = 0;
     let remainingDist = 0;
     
-    if (wellInfo.targetDepth) {
-      targetTVD = Number(wellInfo.targetDepth);
-      if (latestSurvey && latestSurvey.tvd) {
-        const latestTVD = typeof latestSurvey.tvd === 'string' ? parseFloat(latestSurvey.tvd) : Number(latestSurvey.tvd);
-        remainingDist = targetTVD - latestTVD;
-      }
+    if (latestSurvey && latestSurvey.tvd) {
+      // For demo purposes, use a fixed target depth 500ft deeper than current
+      targetTVD = (typeof latestSurvey.tvd === 'string' ? parseFloat(latestSurvey.tvd) : Number(latestSurvey.tvd)) + 500;
+      const latestTVD = typeof latestSurvey.tvd === 'string' ? parseFloat(latestSurvey.tvd) : Number(latestSurvey.tvd);
+      remainingDist = targetTVD - latestTVD;
     }
     
     // Estimate slides needed based on build rate and remaining distance
@@ -131,9 +130,10 @@ const DirectionalAnalytics = () => {
     
     // Estimated position shift needed to reach target
     let remainingShift = 0;
-    if (latestSurvey && (latestSurvey.vs || latestSurvey.vs === 0)) {
-      const targetVS = Number(wellInfo.proposedVerticalSection || 0);
-      const currentVS = typeof latestSurvey.vs === 'string' ? parseFloat(latestSurvey.vs) : Number(latestSurvey.vs);
+    if (latestSurvey && (latestSurvey.vs !== undefined)) {
+      // For demo purposes, assume we want to be at VS=0
+      const targetVS = 0;
+      const currentVS = typeof latestSurvey.vs === 'string' ? parseFloat(latestSurvey.vs) : Number(latestSurvey.vs || 0);
       remainingShift = Math.abs(targetVS - currentVS);
     }
     
