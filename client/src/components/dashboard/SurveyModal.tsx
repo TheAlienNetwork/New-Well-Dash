@@ -69,10 +69,68 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const surveyData = {
+    
+    // Get values needed for calculations
+    const md = Number(formData.md);
+    const inc = Number(formData.inc);
+    const azi = Number(formData.azi);
+    
+    // Get the last survey for calculations
+    const { surveys } = useSurveyContext();
+    const prevSurvey = surveys[surveys.length - 1];
+    
+    let surveyData: any = {
       ...formData,
-      wellId: 1 // This needs a proper wellId source.  The original used wellInfo.id.
+      wellId: 1
     };
+
+    if (prevSurvey) {
+      // Calculate all values using the previous survey as reference
+      const prevMd = Number(prevSurvey.md);
+      const prevInc = Number(prevSurvey.inc);
+      const prevAzi = Number(prevSurvey.azi);
+      const prevTvd = Number(prevSurvey.tvd);
+      const prevNS = Number(prevSurvey.northSouth);
+      const prevEW = Number(prevSurvey.eastWest);
+      
+      const proposedDirection = Number(wellInfo?.proposedDirection || 0);
+
+      // Calculate new values
+      const tvd = calculateTVD(md, inc, prevMd, prevTvd);
+      const { northSouth, isNorth } = calculateNorthSouth(md, inc, azi, prevMd, prevNS, prevSurvey.isNorth);
+      const { eastWest, isEast } = calculateEastWest(md, inc, azi, prevMd, prevEW, prevSurvey.isEast);
+      const vs = calculateVS(northSouth, eastWest, proposedDirection);
+      const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
+
+      // Add calculated values to survey data
+      surveyData = {
+        ...surveyData,
+        tvd: tvd.toFixed(2),
+        northSouth: northSouth.toFixed(2),
+        isNorth,
+        eastWest: eastWest.toFixed(2),
+        isEast,
+        vs: vs.toFixed(2),
+        dls: dls.toFixed(2)
+      };
+    } else {
+      // First survey - calculate initial values
+      const tvd = md * Math.cos(inc * Math.PI / 180);
+      const northSouth = md * Math.sin(inc * Math.PI / 180) * Math.cos(azi * Math.PI / 180);
+      const eastWest = md * Math.sin(inc * Math.PI / 180) * Math.sin(azi * Math.PI / 180);
+      const vs = calculateVS(Math.abs(northSouth), Math.abs(eastWest), Number(wellInfo?.proposedDirection || 0));
+
+      surveyData = {
+        ...surveyData,
+        tvd: tvd.toFixed(2),
+        northSouth: Math.abs(northSouth).toFixed(2),
+        isNorth: northSouth >= 0,
+        eastWest: Math.abs(eastWest).toFixed(2),
+        isEast: eastWest >= 0,
+        vs: vs.toFixed(2),
+        dls: "0.00"
+      };
+    }
 
     if (mode === 'edit' && survey) {
       await updateSurvey(survey.id!, surveyData);
