@@ -131,7 +131,7 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (surveys.length > 0) {
       try {
         const projection = projectValues(surveys);
-
+        
         if (projection) {
           setProjections(projection);
 
@@ -142,13 +142,13 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             // Make sure we're not concatenating numbers - convert to strings separately
             const projInc = typeof projection.projectedInc === 'number' ? projection.projectedInc : 0;
             const projAz = typeof projection.projectedAz === 'number' ? projection.projectedAz : 0;
-
+            
             const curveUpdateData = {
               id: curveData.id,
               projectedInc: String(projInc),
               projectedAz: String(projAz)
             };
-
+            
             updateCurveData(curveUpdateData);
           }
         }
@@ -197,37 +197,37 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Listen for gamma data updates
     witsClient.onGammaData((data) => {
       setGammaData(data);
-
+      
       // Sync with window.gammaData for email service
       window.gammaData = data.map((point: GammaData) => ({
         depth: point.depth,
         value: point.value
       }));
     });
-
+    
     witsClient.onGammaDataUpdate((data) => {
       setGammaData(prev => {
         const index = prev.findIndex(g => g.id === data.id);
         if (index >= 0) {
           const updated = [...prev];
           updated[index] = data;
-
+          
           // Sync with window.gammaData for email service
           window.gammaData = updated.map((point: GammaData) => ({
             depth: point.depth,
             value: point.value
           }));
-
+          
           return updated;
         } else {
           const newData = [...prev, data];
-
+          
           // Sync with window.gammaData for email service
           window.gammaData = newData.map((point: GammaData) => ({
             depth: point.depth,
             value: point.value
           }));
-
+          
           return newData;
         }
       });
@@ -277,7 +277,7 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const response = await apiRequest('GET', `/api/gamma-data/${wellId}`, undefined);
       const data = await response.json();
       setGammaData(data);
-
+      
       // Sync with window.gammaData for email service
       window.gammaData = data.map((point: GammaData) => ({
         depth: point.depth,
@@ -291,11 +291,20 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const addSurvey = async (survey: InsertSurvey): Promise<Survey | null> => {
     try {
       setLoading(true);
-
+      
+      // Process numeric fields to ensure they're all strings
+      const processedSurvey: Record<string, any> = {};
+      
+      // Parse incoming survey values
+      const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md || 0);
+      const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc || 0);
+      const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi || 0);
       const proposedDirection = wellInfo ? Number(wellInfo.proposedDirection || 0) : 0;
-      const prevSurvey = surveys.length > 0 ? surveys[surveys.length - 1] : null;
-      const processedSurvey = processSurveyData(survey, prevSurvey, proposedDirection);
 
+      if (surveys.length > 0) {
+        // Get the previous survey for calculations
+        const prevSurvey = surveys[surveys.length - 1];
+        
         // Convert previous survey values
         const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md);
         const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc);
@@ -303,14 +312,14 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const prevTvd = typeof prevSurvey.tvd === 'string' ? parseFloat(prevSurvey.tvd) : Number(prevSurvey.tvd);
         const prevNS = typeof prevSurvey.northSouth === 'string' ? parseFloat(prevSurvey.northSouth) : Number(prevSurvey.northSouth);
         const prevEW = typeof prevSurvey.eastWest === 'string' ? parseFloat(prevSurvey.eastWest) : Number(prevSurvey.eastWest);
-
+        
         // Calculate all values using imported functions
         const tvd = calculateTVD(md, inc, prevMd, prevTvd);
         const { northSouth, isNorth } = calculateNorthSouth(md, inc, azi, prevMd, prevNS, prevSurvey.isNorth);
         const { eastWest, isEast } = calculateEastWest(md, inc, azi, prevMd, prevEW, prevSurvey.isEast);
         const vs = calculateVS(northSouth, eastWest, proposedDirection);
         const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
-
+        
         // Add calculated values to processed survey with proper formatting
         processedSurvey.tvd = tvd.toFixed(2);
         processedSurvey.northSouth = northSouth.toFixed(2);
@@ -321,24 +330,21 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         processedSurvey.dls = dls.toFixed(2);
       } else {
         // For first survey, calculate initial values
-        const tvd = md * Math.cos((inc * Math.PI) / 180);
-        const ns = md * Math.sin((inc * Math.PI) / 180) * Math.cos((azi * Math.PI) / 180);
-        const ew = md * Math.sin((inc * Math.PI) / 180) * Math.sin((azi * Math.PI) / 180);
-        const vs = calculateVS(Math.abs(ns), Math.abs(ew), proposedDirection);
-
+        const tvd = md * Math.cos(inc * Math.PI / 180);
+        const northSouth = md * Math.sin(inc * Math.PI / 180) * Math.cos(azi * Math.PI / 180);
+        const eastWest = md * Math.sin(inc * Math.PI / 180) * Math.sin(azi * Math.PI / 180);
+        const vs = calculateVS(Math.abs(northSouth), Math.abs(eastWest), proposedDirection);
+        
         // Add calculated values with proper formatting
         processedSurvey.tvd = tvd.toFixed(2);
-        processedSurvey.northSouth = Math.abs(ns).toFixed(2);
-        processedSurvey.isNorth = ns >= 0;
-        processedSurvey.eastWest = Math.abs(ew).toFixed(2);
-        processedSurvey.isEast = ew >= 0;
+        processedSurvey.northSouth = Math.abs(northSouth).toFixed(2);
+        processedSurvey.isNorth = northSouth >= 0;
+        processedSurvey.eastWest = Math.abs(eastWest).toFixed(2);
+        processedSurvey.isEast = eastWest >= 0;
         processedSurvey.vs = vs.toFixed(2);
         processedSurvey.dls = "0.00";
-        processedSurvey.md = md.toString();
-        processedSurvey.inc = inc.toString();
-        processedSurvey.azi = azi.toString();
       }
-
+      
       // Process the survey data to ensure correct types for the API
       Object.entries(survey).forEach(([key, value]) => {
         if (key === 'wellId') {
@@ -359,11 +365,11 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         }
       });
-
+      
       console.log('Sending survey data:', processedSurvey);
       const response = await apiRequest('POST', '/api/surveys', processedSurvey);
       const newSurvey = await response.json();
-
+      
       if (response.status === 400) {
         console.error('Error adding survey:', newSurvey);
         toast({
@@ -373,33 +379,22 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
         return null;
       }
-
+      
       // Update surveys list with the new survey
       setSurveys(prevSurveys => [...prevSurveys, newSurvey]);
-
+      
       // Update latest survey
       setLatestSurvey(newSurvey);
-
+      
       // Set the current survey to the newly added one
       setCurrentSurvey(newSurvey);
-
+      
       toast({
         title: "Success",
         description: "Survey added successfully",
       });
-
+      
       return newSurvey;
-    } catch (err) {
-      console.error('Error adding survey:', err);
-      toast({
-        title: "Error",
-        description: "Failed to add survey",
-        variant: "destructive"
-      });
-      return null;
-    } finally {
-      setLoading(false);
-    }
     } catch (err) {
       console.error('Error adding survey:', err);
       toast({
@@ -416,10 +411,10 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const updateSurvey = async (id: number, survey: Partial<InsertSurvey>): Promise<Survey | null> => {
     try {
       setLoading(true);
-
+      
       // Process numeric fields to ensure they're all strings
       const processedSurvey: Record<string, any> = {};
-
+      
       // Auto-calculate TVD, N/S, E/W, VS, and DLS if the relevant fields (md, inc, azi) are updated
       if (wellInfo && (survey.md !== undefined || survey.inc !== undefined || survey.azi !== undefined)) {
         // Find the current survey being updated
@@ -428,23 +423,23 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           // Find the previous survey, if any
           const currentIndex = surveys.findIndex(s => s.id === id);
           const prevSurvey = currentIndex > 0 ? surveys[currentIndex - 1] : null;
-
+          
           // Get the proposed direction from well info
           const proposedDirection = Number(wellInfo.proposedDirection || 0);
-
+          
           // Prepare values from current survey, overridden by any updates
           const md = survey.md !== undefined 
             ? (typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md))
             : (typeof currentSurveyData.md === 'string' ? parseFloat(currentSurveyData.md) : Number(currentSurveyData.md));
-
+          
           const inc = survey.inc !== undefined
             ? (typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc))
             : (typeof currentSurveyData.inc === 'string' ? parseFloat(currentSurveyData.inc) : Number(currentSurveyData.inc));
-
+          
           const azi = survey.azi !== undefined
             ? (typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi))
             : (typeof currentSurveyData.azi === 'string' ? parseFloat(currentSurveyData.azi) : Number(currentSurveyData.azi));
-
+          
           if (prevSurvey) {
             // If there's a previous survey, calculate from there
             const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md);
@@ -455,14 +450,14 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             const prevEW = typeof prevSurvey.eastWest === 'string' ? parseFloat(prevSurvey.eastWest) : Number(prevSurvey.eastWest || 0);
             const prevIsNorth = Boolean(prevSurvey.isNorth);
             const prevIsEast = Boolean(prevSurvey.isEast);
-
+            
             // Calculate all values with proper type handling
             const tvd = calculateTVD(md, inc, prevMd, prevTvd);
             const { northSouth, isNorth } = calculateNorthSouth(md, inc, azi, prevMd, prevNS, prevIsNorth);
             const { eastWest, isEast } = calculateEastWest(md, inc, azi, prevMd, prevEW, prevIsEast);
             const vs = calculateVS(northSouth, eastWest, proposedDirection);
             const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
-
+            
             // Add calculated values to survey with proper formatting
             processedSurvey.tvd = tvd.toFixed(2);
             processedSurvey.northSouth = northSouth.toFixed(2);
@@ -476,16 +471,16 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md || 0);
             const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc || 0);
             const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi || 0);
-
+            
             // Calculate TVD for first survey
             const tvd = md * Math.cos(inc * Math.PI / 180);
-
+            
             // Use wellInfo's proposed direction for VS calculation if available
             const proposedDirection = wellInfo?.proposedDirection ? Number(wellInfo.proposedDirection) : 0;
-
+            
             // Calculate VS using 0 for N/S and E/W since it's first survey
             const vs = calculateVS(0, 0, proposedDirection);
-
+            
             // Initial values for other fields with proper string conversion
             processedSurvey.tvd = tvd.toFixed(2);
             processedSurvey.northSouth = "0.00";
@@ -497,7 +492,7 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         }
       }
-
+      
       // Process the survey data to ensure correct types for the API
       Object.entries(survey).forEach(([key, value]) => {
         if (key === 'wellId') {
@@ -518,11 +513,11 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         }
       });
-
+      
       console.log('Sending update survey data:', processedSurvey);
       const response = await apiRequest('PATCH', `/api/surveys/${id}`, processedSurvey);
       const updatedSurvey = await response.json();
-
+      
       if (response.status === 400) {
         console.error('Error updating survey:', updatedSurvey);
         toast({
@@ -532,27 +527,27 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
         return null;
       }
-
+      
       // Update surveys list with the updated survey
       setSurveys(prevSurveys => prevSurveys.map(s => 
         s.id === id ? updatedSurvey : s
       ));
-
+      
       // Update current survey if it's the one being edited
       if (currentSurvey && currentSurvey.id === id) {
         setCurrentSurvey(updatedSurvey);
       }
-
+      
       // Update latest survey if it's the one being edited
       if (latestSurvey && latestSurvey.id === id) {
         setLatestSurvey(updatedSurvey);
       }
-
+      
       toast({
         title: "Success",
         description: "Survey updated successfully",
       });
-
+      
       return updatedSurvey;
     } catch (err) {
       console.error('Error updating survey:', err);
@@ -571,20 +566,20 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       setLoading(true);
       await apiRequest('DELETE', `/api/surveys/${id}`, undefined);
-
+      
       // Remove survey from surveys list
       setSurveys(prevSurveys => prevSurveys.filter(s => s.id !== id));
-
+      
       // If current survey is the one being deleted, set it to null
       if (currentSurvey && currentSurvey.id === id) {
         setCurrentSurvey(null);
       }
-
+      
       toast({
         title: "Success",
         description: "Survey deleted successfully",
       });
-
+      
       return true;
     } catch (err) {
       console.error('Error deleting survey:', err);
@@ -602,10 +597,10 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const updateCurveData = async (data: Partial<CurveData>): Promise<CurveData | null> => {
     try {
       const id = data.id || (curveData?.id || 0);
-
+      
       // Convert numeric values to strings to match the schema validation
       const processedData: Record<string, any> = {};
-
+      
       // Process the data to ensure correct types for the API
       Object.entries(data).forEach(([key, value]) => {
         if (key === 'id' || key === 'wellId') {
@@ -622,7 +617,7 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           processedData[key] = value;
         }
       });
-
+      
       console.log('Sending PATCH data:', processedData);
       const response = await apiRequest('PATCH', `/api/curve-data/${id}`, processedData);
       const updatedCurve = await response.json();

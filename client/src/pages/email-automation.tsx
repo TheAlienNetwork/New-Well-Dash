@@ -75,17 +75,9 @@ export default function EmailAutomation() {
     name: '',
     emails: ''
   });
-
-  // Capture screenshot of an element with handling for scrolling content
+  
+  // Create a ref for the email body preview element
   const emailPreviewRef = useRef<HTMLDivElement>(null);
-  const [previewHeight, setPreviewHeight] = useState<number>(0);
-
-  useEffect(() => {
-    if (emailPreviewRef.current) {
-      const content = emailPreviewRef.current;
-      setPreviewHeight(content.scrollHeight);
-    }
-  }, [latestSurvey, showEmailPreviewDialog]);
 
   const [emailSettings, setEmailSettings] = useState({
     selectedDistro: 0,
@@ -97,7 +89,7 @@ export default function EmailAutomation() {
     additionalNote: '',
     attachmentFolder: ''
   });
-
+  
   const [attachments, setAttachments] = useState<File[]>([]);
   const [showAttachmentDialog, setShowAttachmentDialog] = useState(false);
 
@@ -117,7 +109,7 @@ export default function EmailAutomation() {
       }));
     }
   }, [latestSurvey, wellInfo]);
-
+  
   // Make gamma data available globally for the email image generation
   useEffect(() => {
     if (gammaData && gammaData.length > 0) {
@@ -370,7 +362,7 @@ export default function EmailAutomation() {
   const previewEmail = () => {
     setShowEmailPreviewDialog(true);
   };
-
+  
   // Copy HTML Email to clipboard (async function)
   const copyHtmlToClipboard = async () => {
     try {
@@ -407,13 +399,13 @@ export default function EmailAutomation() {
         } : undefined,
         additionalNote: emailSettings.additionalNote || undefined
       });
-
+      
       const tempDiv = document.createElement('div');
       tempDiv.style.position = 'fixed';
       tempDiv.style.left = '-9999px';
       tempDiv.innerHTML = content;
       document.body.appendChild(tempDiv);
-
+      
       // Create a selection and copy to clipboard
       const selection = window.getSelection();
       if (selection) {
@@ -421,14 +413,14 @@ export default function EmailAutomation() {
         const range = document.createRange();
         range.selectNodeContents(tempDiv);
         selection.addRange(range);
-
+        
         // Copy the HTML content to clipboard
         document.execCommand('copy');
         selection.removeAllRanges();
       }
-
+      
       document.body.removeChild(tempDiv);
-
+      
       toast({
         title: 'Copied!',
         description: 'HTML email content copied to clipboard'
@@ -561,7 +553,7 @@ export default function EmailAutomation() {
                   </div>
                 </div>
               </div>
-
+              
               {/* File Attachments */}
               <div className="space-y-3 border border-neutral-border rounded-md p-3 bg-gradient-to-b from-neutral-background/60 to-neutral-background/20">
                 <div className="flex justify-between items-center">
@@ -621,7 +613,7 @@ export default function EmailAutomation() {
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-
+                    
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -641,7 +633,7 @@ export default function EmailAutomation() {
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-
+                    
                     {attachments.length > 0 && (
                       <TooltipProvider>
                         <Tooltip>
@@ -661,7 +653,7 @@ export default function EmailAutomation() {
                         </Tooltip>
                       </TooltipProvider>
                     )}
-
+                    
                     <input 
                       id="folder-input"
                       type="file"
@@ -678,10 +670,10 @@ export default function EmailAutomation() {
                             ...prev,
                             attachmentFolder: folderPath
                           }));
-
+                          
                           // Add files to attachment list
                           setAttachments(prev => [...prev, ...Array.from(files)]);
-
+                          
                           toast({
                             title: "Folder Selected",
                             description: `${files.length} files from "${folderPath}" will be included`
@@ -691,7 +683,7 @@ export default function EmailAutomation() {
                     />
                   </div>
                 </div>
-
+                
                 {/* Attachment List */}
                 {attachments.length > 0 ? (
                   <div className="mt-3 max-h-32 overflow-y-auto custom-scrollbar pr-1">
@@ -700,7 +692,7 @@ export default function EmailAutomation() {
                         // Determine file type icon based on extension
                         const ext = file.name.split('.').pop()?.toLowerCase();
                         let fileIcon = <FileSpreadsheet className="h-3 w-3 mr-2 text-cyan-400" />;
-
+                        
                         if (ext === 'pdf') {
                           fileIcon = <FileSpreadsheet className="h-3 w-3 mr-2 text-red-400" />;
                         } else if (['xls', 'xlsx'].includes(ext || '')) {
@@ -710,7 +702,7 @@ export default function EmailAutomation() {
                         } else if (['jpg', 'jpeg', 'png'].includes(ext || '')) {
                           fileIcon = <FileSpreadsheet className="h-3 w-3 mr-2 text-purple-400" />;
                         }
-
+                        
                         return (
                           <div key={index} className="flex items-center justify-between bg-navy-800/50 text-xs p-2 rounded group hover:bg-navy-700/70 transition-colors">
                             <div className="flex items-center">
@@ -1000,8 +992,7 @@ export default function EmailAutomation() {
                 <div className="text-sm text-gray-400">Email Body:</div>
                 <div 
                   ref={emailPreviewRef}
-                  style={{ height: showEmailPreviewDialog ? `${previewHeight}px` : 'auto' }}
-                  className="bg-neutral-950 text-white rounded-md border border-gray-700 p-3 overflow-hidden" 
+                  className="bg-neutral-950 text-white rounded-md border border-gray-700 p-3 max-h-[500px] overflow-y-auto" 
                   dangerouslySetInnerHTML={{ __html: latestSurvey && wellInfo ? emailService.generateHtmlBody({
                   survey: latestSurvey,
                   wellName: wellInfo.wellName,
@@ -1085,13 +1076,13 @@ export default function EmailAutomation() {
                     } : undefined,
                     additionalNote: emailSettings.additionalNote || undefined
                 });
-
+                
                 const tempDiv = document.createElement('div');
                 tempDiv.style.position = 'fixed';
                 tempDiv.style.left = '-9999px';
                 tempDiv.innerHTML = content;
                 document.body.appendChild(tempDiv);
-
+                
                 // Create a selection and copy to clipboard
                 const selection = window.getSelection();
                 if (selection) {
@@ -1099,14 +1090,14 @@ export default function EmailAutomation() {
                   const range = document.createRange();
                   range.selectNodeContents(tempDiv);
                   selection.addRange(range);
-
+                  
                   // Copy the HTML content to clipboard
                   document.execCommand('copy');
                   selection.removeAllRanges();
                 }
-
+                
                 document.body.removeChild(tempDiv);
-
+                
                 toast({
                   title: 'Copied!',
                   description: 'HTML email content copied to clipboard'
@@ -1137,10 +1128,10 @@ export default function EmailAutomation() {
                     });
                     return;
                   }
-
+                  
                   // Capture the email preview as an image
-                  const imageDataUrl = await emailService.captureElementScreenshot(emailPreviewRef.current, previewHeight);
-
+                  const imageDataUrl = await emailService.captureElementScreenshot(emailPreviewRef.current);
+                  
                   if (!imageDataUrl) {
                     toast({
                       title: 'Error',
@@ -1149,10 +1140,10 @@ export default function EmailAutomation() {
                     });
                     return;
                   }
-
+                  
                   // Find the selected distribution
                   const selectedDistro = distributions.find(d => d.id === emailSettings.selectedDistro);
-
+                  
                   if (!selectedDistro) {
                     toast({
                       title: 'Error',
@@ -1161,14 +1152,14 @@ export default function EmailAutomation() {
                     });
                     return;
                   }
-
+                  
                   // Prepare email subject
                   const formattedDate = new Date().toLocaleDateString('en-US', { 
                     year: 'numeric', month: 'short', day: 'numeric' 
                   });
-
+                  
                   const subject = `[NWT] Survey Report #${latestSurvey?.index} | ${wellInfo?.wellName} | ${Number(latestSurvey?.md || 0).toFixed(2)}ft | ${formattedDate}`;
-
+                  
                   // Open email client with the image in clipboard
                   emailService.openEmailClient({
                     to: selectedDistro.emails,
@@ -1177,7 +1168,7 @@ export default function EmailAutomation() {
                     attachments: attachments,
                     imageDataUrl
                   });
-
+                  
                   toast({
                     title: 'Success',
                     description: 'Email preview captured and copied to clipboard for pasting into Outlook',
