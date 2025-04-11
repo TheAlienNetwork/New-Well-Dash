@@ -689,7 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { recipients, subject, body, attachments } = req.body;
 
-      // Spawn Python process to handle Outlook automation
+      // Spawn Python process with output handling
       const pythonProcess = spawn('python', [
         path.join(__dirname, 'outlook_automation.py'),
         JSON.stringify({
@@ -699,6 +699,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           attachments: attachments || []
         })
       ]);
+
+      let outputData = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        outputData += data.toString();
+      });
+
+      pythonProcess.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(outputData);
+            res.json(result);
+          } catch (e) {
+            res.status(500).json({ error: 'Failed to parse Python output' });
+          }
+        } else {
+          res.status(500).json({ error: 'Outlook automation failed' });
+        }
+      });
 
       pythonProcess.on('error', (err) => {
         console.error('Failed to start Python process:', err);
