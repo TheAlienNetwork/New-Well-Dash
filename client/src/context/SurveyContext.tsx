@@ -320,16 +320,7 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const vs = calculateVS(northSouth, eastWest, proposedDirection);
         const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
         
-        // Add calculated values to processed survey
-        processedSurvey.tvd = tvd.toFixed(2);
-        processedSurvey.northSouth = northSouth.toFixed(2);
-        processedSurvey.isNorth = isNorth;
-        processedSurvey.eastWest = eastWest.toFixed(2);
-        processedSurvey.isEast = isEast;
-        processedSurvey.vs = vs.toFixed(2);
-        processedSurvey.dls = dls.toFixed(2);
-        
-        // Add calculated values to survey with proper formatting
+        // Add calculated values to processed survey with proper formatting
         processedSurvey.tvd = tvd.toFixed(2);
         processedSurvey.northSouth = northSouth.toFixed(2);
         processedSurvey.isNorth = isNorth;
