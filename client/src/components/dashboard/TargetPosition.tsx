@@ -30,8 +30,8 @@ export default function TargetPosition({ projections, verticalPosition: initialV
   const { wellInfo } = useWellContext();
   
   const [includeInEmail, setIncludeInEmail] = useState(curveData?.includeTargetPosition || false);
-  const [verticalInput, setVerticalInput] = useState("0");
-  const [horizontalInput, setHorizontalInput] = useState("0");
+  const [verticalInput, setVerticalInput] = useState<string>("0");
+  const [horizontalInput, setHorizontalInput] = useState<string>("0");
   const [verticalPosition, setVerticalPosition] = useState<number | undefined>(initialVertical);
   const [horizontalPosition, setHorizontalPosition] = useState<number | undefined>(initialHorizontal);
   const [isAbove, setIsAbove] = useState(projections?.isAbove || false);

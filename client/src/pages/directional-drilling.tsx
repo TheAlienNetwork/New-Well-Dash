@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import SurveyTable from '@/components/dashboard/SurveyTable';
 import DirectionalCurveData from '@/components/dashboard/DirectionalCurveData';
+import TargetPosition from '@/components/dashboard/TargetPosition';
+import WellboreTrajectory from '@/components/dashboard/WellboreTrajectory';
+import DirectionalAnalytics from '@/components/dashboard/DirectionalAnalytics';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { useWellContext } from '@/context/WellContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { calculateSlideRequirements, projectValues } from '@/lib/survey-calculations';
@@ -152,17 +156,47 @@ export default function DirectionalDrilling() {
 
   return (
     <div className="space-y-6">
-      {/* Directional Driller Section */}
-      <div className="bg-neutral-surface rounded-lg overflow-hidden futuristic-border">
-        <div className="p-4 bg-primary-dark flex justify-between items-center">
-          <h2 className="font-heading text-lg font-semibold flex items-center">
-            <Compass className="h-5 w-5 mr-2" />
-            Direction Driller Controls
+      {/* Top Row: Target Position, Curve Data, and Analytics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Target Position */}
+        <div>
+          <TargetPosition 
+            projections={projections} 
+            verticalPosition={projections?.verticalPosition} 
+            horizontalPosition={projections?.horizontalPosition} 
+          />
+        </div>
+        
+        {/* Directional Curve Data */}
+        <div className="md:col-span-2">
+          <DirectionalCurveData />
+        </div>
+      </div>
+      
+      {/* Middle Row: Wellbore Trajectory & Directional Analytics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 3D Wellbore Trajectory */}
+        <div>
+          <WellboreTrajectory />
+        </div>
+        
+        {/* AI Directional Analytics */}
+        <div>
+          <DirectionalAnalytics />
+        </div>
+      </div>
+      
+      {/* Directional Driller Controls */}
+      <div className="premium-card overflow-hidden">
+        <div className="p-4 bg-gradient-to-r from-gray-900/90 to-gray-800/90 flex justify-between items-center border-b border-gray-700/30">
+          <h2 className="font-heading text-lg font-semibold flex items-center text-white">
+            <Compass className="h-5 w-5 mr-2 text-cyan-400" />
+            Directional Driller Controls
           </h2>
           <div>
-            <Badge className="bg-secondary-purple/20 text-xs px-2 py-1 rounded">
-              <div className="h-2 w-2 rounded-full bg-secondary-purple pulse mr-2"></div>
-              Directional Mode
+            <Badge variant="outline" className="bg-gray-800/50 text-cyan-300 border-cyan-500/30 flex items-center">
+              <div className="h-2 w-2 rounded-full bg-cyan-400 pulse-effect mr-2"></div>
+              <span>Directional Mode</span>
             </Badge>
           </div>
         </div>
@@ -415,11 +449,4 @@ export default function DirectionalDrilling() {
   );
 }
 
-// Create a Badge component since it's used in this file but wasn't imported
-function Badge({ className, children }: { className?: string, children: React.ReactNode }) {
-  return (
-    <span className={`inline-flex items-center rounded ${className}`}>
-      {children}
-    </span>
-  );
-}
+
