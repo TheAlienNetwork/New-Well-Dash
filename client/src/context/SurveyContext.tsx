@@ -454,34 +454,44 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             const prevIsNorth = Boolean(prevSurvey.isNorth);
             const prevIsEast = Boolean(prevSurvey.isEast);
             
-            // Calculate all values
+            // Calculate all values with proper type handling
             const tvd = calculateTVD(md, inc, prevMd, prevTvd);
             const { northSouth, isNorth } = calculateNorthSouth(md, inc, azi, prevMd, prevNS, prevIsNorth);
             const { eastWest, isEast } = calculateEastWest(md, inc, azi, prevMd, prevEW, prevIsEast);
             const vs = calculateVS(northSouth, eastWest, proposedDirection);
             const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
             
-            // Add calculated values to survey
-            processedSurvey.tvd = String(tvd);
-            processedSurvey.northSouth = String(northSouth);
+            // Add calculated values to survey with proper formatting
+            processedSurvey.tvd = tvd.toFixed(2);
+            processedSurvey.northSouth = northSouth.toFixed(2);
             processedSurvey.isNorth = isNorth;
-            processedSurvey.eastWest = String(eastWest);
+            processedSurvey.eastWest = eastWest.toFixed(2);
             processedSurvey.isEast = isEast;
-            processedSurvey.vs = String(vs);
-            processedSurvey.dls = String(dls);
+            processedSurvey.vs = vs.toFixed(2);
+            processedSurvey.dls = dls.toFixed(2);
           } else {
             // For the first survey, set some initial values
-            // For first survey, TVD is approximately equal to MD (with inclination adjustment)
+            const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md || 0);
+            const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc || 0);
+            const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi || 0);
+            
+            // Calculate TVD for first survey
             const tvd = md * Math.cos(inc * Math.PI / 180);
             
-            // Initial values for other fields
-            processedSurvey.tvd = String(tvd);
-            processedSurvey.northSouth = "0";
+            // Use wellInfo's proposed direction for VS calculation if available
+            const proposedDirection = wellInfo?.proposedDirection ? Number(wellInfo.proposedDirection) : 0;
+            
+            // Calculate VS using 0 for N/S and E/W since it's first survey
+            const vs = calculateVS(0, 0, proposedDirection);
+            
+            // Initial values for other fields with proper string conversion
+            processedSurvey.tvd = tvd.toFixed(2);
+            processedSurvey.northSouth = "0.00";
             processedSurvey.isNorth = true;
-            processedSurvey.eastWest = "0";
+            processedSurvey.eastWest = "0.00";
             processedSurvey.isEast = true;
-            processedSurvey.vs = "0";
-            processedSurvey.dls = "0";
+            processedSurvey.vs = vs.toFixed(2);
+            processedSurvey.dls = "0.00";
           }
         }
       }
