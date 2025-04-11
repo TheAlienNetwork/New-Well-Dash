@@ -1063,9 +1063,27 @@ export class EmailService {
     `;
   }
 
-  openEmailClient(options: EmailOptions): void {
+  async openEmailClient(options: EmailOptions): Promise<void> {
     try {
       const { to, subject, body, attachments, imageDataUrl } = options;
+      
+      // Use Outlook automation API
+      const response = await fetch('/api/outlook-compose', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipients: to,
+          subject,
+          body: body,
+          attachments: attachments?.map(file => file.path)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to open Outlook');
+      }
       
       // Check if we have a screenshot image
       if (imageDataUrl) {

@@ -13,6 +13,10 @@ import {
   insertDrillingParamSchema
 } from "@shared/schema";
 import { witsManager } from './wits/wits-manager';
+import { eq } from 'drizzle-orm';
+import { db } from './db';
+import { spawn } from 'child_process';
+import path from 'path';
 
 // Interval-based data simulator for demo purposes
 let witsSimulationInterval: NodeJS.Timeout | null = null;
@@ -45,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (data.type === 'wits_config') {
           console.log('WITS configuration received:', data);
-          
+
           // Extract configuration from the message
           const config = data.data?.config;
           if (config) {
@@ -53,7 +57,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const { host, port } = config;
               // Connect to WITS server
               await witsManager.connectWits(host, port);
-              
+
               // Send success response
               ws.send(JSON.stringify({
                 type: 'wits_config_response',
@@ -70,20 +74,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-        
+
         if (data.type === 'wits_simulation_toggle') {
           const isSimulated = data.data?.isSimulated;
           console.log('WITS simulation toggle:', isSimulated ? 'SIMULATED' : 'REAL');
-          
+
           if (isSimulated === true) {
             // Enable simulation mode
             if (!witsSimulationInterval) {
               startWitsSimulation();
             }
-            
+
             // Tell WITS client to use simulation mode
             witsManager.witsClient.setSimulationMode(true);
-            
+
             // Update status for all clients
             broadcastMessage({
               type: 'wits_status',
@@ -94,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 isSimulated: true
               }
             });
-            
+
             ws.send(JSON.stringify({
               type: 'wits_simulation_toggle_response',
               status: 'success',
@@ -106,10 +110,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               clearInterval(witsSimulationInterval);
               witsSimulationInterval = null;
             }
-            
+
             // Tell WITS client to use real mode
             witsManager.witsClient.setSimulationMode(false);
-            
+
             // Update status for all clients
             const status = witsManager.getStatus();
             broadcastMessage({
@@ -119,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 isSimulated: false
               }
             });
-            
+
             ws.send(JSON.stringify({
               type: 'wits_simulation_toggle_response',
               status: 'success',
@@ -191,9 +195,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   router.patch('/well-info/:id', async (req: Request, res: Response) => {
     try {
       const wellId = parseInt(req.params.id);
-      
+
       console.log('Well info PATCH request received:', req.body);
-      
+
       // With our updated schema, we can directly validate the input
       // The schema will handle the type conversion as needed
       const validatedData = insertWellInfoSchema.partial().parse(req.body);
@@ -245,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         toolFace: z.string().nullable().optional(),
         notes: z.string().nullable().optional()
       }).parse(req.body);
-      
+
       const survey = await storage.createSurvey(validatedData);
       res.status(201).json(survey);
 
@@ -262,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   router.patch('/surveys/:id', async (req: Request, res: Response) => {
     try {
       const surveyId = parseInt(req.params.id);
-      
+
       // Use the same approach as in POST but make all fields optional
       const validatedData = z.object({
         md: z.string().optional(),
@@ -428,33 +432,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to create gamma data' });
     }
   });
-  
+
   // Bulk gamma data import
   router.post('/gamma-data/bulk', async (req: Request, res: Response) => {
     try {
       const { wellId, data } = req.body;
-      
+
       if (!Array.isArray(data) || !wellId) {
         return res.status(400).json({ error: 'Invalid request format. Expected wellId and data array.' });
       }
-      
+
       // Process in batches
       const results = [];
       let inserted = 0;
-      
+
       for (const item of data) {
         try {
           const validatedData = insertGammaDataSchema.parse({
             ...item,
             wellId: parseInt(wellId) // Ensure wellId is set correctly
           });
-          
+
           const gammaPoint = await storage.createGammaData(validatedData);
-          
+
           if (gammaPoint) {
             inserted++;
             results.push(gammaPoint);
-            
+
             // Broadcast update to all connected clients
             broadcastGammaDataUpdate(gammaPoint);
           }
@@ -463,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue with next item even if this one failed
         }
       }
-      
+
       res.status(201).json({ 
         message: `Successfully imported ${inserted} of ${data.length} gamma points`,
         inserted,
@@ -680,6 +684,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Outlook automation endpoint
+  router.post('/api/outlook-compose', async (req, res) => {
+    try {
+      const { recipients, subject, body, attachments } = req.body;
+
+      // Spawn Python process to handle Outlook automation
+      const pythonProcess = spawn('python', [
+        path.join(__dirname, 'outlook_automation.py'),
+        JSON.stringify({
+          recipients,
+          subject,
+          body,
+          attachments: attachments || []
+        })
+      ]);
+
+      pythonProcess.on('error', (err) => {
+        console.error('Failed to start Python process:', err);
+        res.status(500).json({ error: 'Failed to start Outlook automation' });
+      });
+
+      pythonProcess.on('exit', (code) => {
+        if (code === 0) {
+          res.json({ success: true });
+        } else {
+          res.status(500).json({ error: 'Outlook automation failed' });
+        }
+      });
+    } catch (error) {
+      console.error('Error in Outlook automation:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // Mount the router
   app.use('/api', router);
 
@@ -799,9 +837,9 @@ function startWitsSimulation() {
   if (witsSimulationInterval) {
     clearInterval(witsSimulationInterval);
   }
-  
+
   console.log('Starting WITS simulation');
-  
+
   interface ChannelConfig {
     name: string;
     min: number;
@@ -809,7 +847,7 @@ function startWitsSimulation() {
     unit: string;
     increment: number;
   }
-  
+
   const channelMap: Record<string, ChannelConfig> = {
     '1': { name: 'Bit Depth', min: 8500, max: 12000, unit: 'ft', increment: 0.1 },
     '2': { name: 'Weight on Bit', min: 10, max: 35, unit: 'klbs', increment: 0.5 },
@@ -824,17 +862,17 @@ function startWitsSimulation() {
     '11': { name: 'Gamma', min: 20, max: 150, unit: 'API', increment: 5 },
     '12': { name: 'MWD Azimuth', min: 0, max: 359, unit: '°', increment: 2 }
   };
-  
+
   // Store the current simulated values
   const currentValues: Record<number, number> = {};
-  
+
   // Initialize with random values within range
   Object.keys(channelMap).forEach(key => {
     const channel = parseInt(key);
     const config = channelMap[key];
     currentValues[channel] = config.min + Math.random() * (config.max - config.min);
   });
-  
+
   // Send initial values
   Object.keys(currentValues).forEach(key => {
     const channelStr = key.toString();
@@ -852,7 +890,7 @@ function startWitsSimulation() {
       }
     });
   });
-  
+
   // Broadcast a fake status message
   broadcastMessage({
     type: 'wits_status',
@@ -862,36 +900,36 @@ function startWitsSimulation() {
       lastData: new Date()
     }
   });
-  
+
   // Update the values and broadcast at a regular interval
   witsSimulationInterval = setInterval(() => {
     // Generate random channels to update (not all at once)
     const channelsToUpdate = Math.floor(Math.random() * 4) + 1; // 1-4 channels
     const channelsArr = Object.keys(channelMap).map(k => parseInt(k));
-    
+
     // Shuffle and take a subset
-    const shuffled = channelsArr.sort(() => 0.5 - Math.random());
+    const shuffled = channelsArr.sort(() => 0.5- Math.random());
     const selectedChannels = shuffled.slice(0, channelsToUpdate);
-    
+
     // Update each selected channel
     selectedChannels.forEach(channel => {
       const channelStr = channel.toString();
       const config = channelMap[channelStr];
-      
+
       if (!config) {
         console.error(`Invalid channel config for channel ${channel}`);
         return; // Skip this channel
       }
-      
+
       // Add some randomness to the change direction with bias toward the middle of the range
       const mean = (config.max + config.min) / 2;
       const deviation = (config.max - config.min) / 4;
       const target = mean + ((Math.random() * 2 - 1) * deviation);
-      
+
       // Move current value toward the target
       const currentValue = currentValues[channel];
       let newValue;
-      
+
       if (Math.abs(target - currentValue) < config.increment) {
         newValue = target;
       } else if (target > currentValue) {
@@ -899,13 +937,13 @@ function startWitsSimulation() {
       } else {
         newValue = currentValue - config.increment;
       }
-      
+
       // Ensure within range
       newValue = Math.max(config.min, Math.min(config.max, newValue));
-      
+
       // Update the stored value
       currentValues[channel] = newValue;
-      
+
       // Send the update
       broadcastMessage({
         type: 'wits_data',
@@ -918,7 +956,7 @@ function startWitsSimulation() {
           unit: config.unit
         }
       });
-      
+
       // Special processing for key channels
       if (channel === 11) { // Gamma
         const gammaData = {
@@ -933,7 +971,7 @@ function startWitsSimulation() {
           })
           .catch(console.error);
       }
-      
+
       // Create a drilling parameter for each channel
       const param = {
         name: config.name,
@@ -942,20 +980,20 @@ function startWitsSimulation() {
         timestamp: new Date(),
         wellId: 1
       };
-      
+
       storage.createDrillingParam(param)
         .then(stored => {
           broadcastDrillingParamUpdate(stored);
         })
         .catch(console.error);
     });
-    
+
     // Periodic survey generation (roughly every 5 minutes in real time, but every 30 seconds in simulation)
     if (Math.random() < 0.01) { // ~1% chance each interval
       const incValue = currentValues[10] || 45; // Use MWD inclination if available
       const aziValue = currentValues[12] || 180; // Use MWD azimuth if available
       const mdValue = currentValues[1] || 10000; // Use bit depth if available
-      
+
       const surveyData = {
         wellId: 1,
         md: mdValue.toFixed(2),
@@ -964,7 +1002,7 @@ function startWitsSimulation() {
         bitDepth: mdValue.toFixed(2),
         timestamp: new Date()
       };
-      
+
       storage.createSurvey(surveyData)
         .then(survey => {
           broadcastSurveyUpdate('created', survey);
@@ -976,7 +1014,7 @@ function startWitsSimulation() {
         })
         .catch(console.error);
     }
-    
+
     // Update status timestamp
     broadcastMessage({
       type: 'wits_status',
