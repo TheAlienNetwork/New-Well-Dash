@@ -46,7 +46,8 @@ import {
   FolderSync,
   AlertCircle,
   ClipboardCopy,
-  Copy
+  Copy,
+  Camera
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -74,6 +75,9 @@ export default function EmailAutomation() {
     name: '',
     emails: ''
   });
+  
+  // Create a ref for the email body preview element
+  const emailPreviewRef = useRef<HTMLDivElement>(null);
 
   const [emailSettings, setEmailSettings] = useState({
     selectedDistro: 0,
@@ -986,7 +990,10 @@ export default function EmailAutomation() {
 
               <div className="space-y-1">
                 <div className="text-sm text-gray-400">Email Body:</div>
-                <div className="bg-neutral-950 text-white rounded-md border border-gray-700 p-3 max-h-[500px] overflow-y-auto" dangerouslySetInnerHTML={{ __html: latestSurvey && wellInfo ? emailService.generateHtmlBody({
+                <div 
+                  ref={emailPreviewRef}
+                  className="bg-neutral-950 text-white rounded-md border border-gray-700 p-3 max-h-[500px] overflow-y-auto" 
+                  dangerouslySetInnerHTML={{ __html: latestSurvey && wellInfo ? emailService.generateHtmlBody({
                   survey: latestSurvey,
                   wellName: wellInfo.wellName,
                   rigName: wellInfo.rigName,
@@ -1108,6 +1115,78 @@ export default function EmailAutomation() {
             >
               <ClipboardCopy className="h-4 w-4 mr-2" />
               Copy to Clipboard
+            </Button>
+            <Button 
+              type="button" 
+              onClick={async () => {
+                try {
+                  if (!emailPreviewRef.current) {
+                    toast({
+                      title: 'Error',
+                      description: 'Email preview element not found',
+                      variant: 'destructive'
+                    });
+                    return;
+                  }
+                  
+                  // Capture the email preview as an image
+                  const imageDataUrl = await emailService.captureElementScreenshot(emailPreviewRef.current);
+                  
+                  if (!imageDataUrl) {
+                    toast({
+                      title: 'Error',
+                      description: 'Failed to capture email preview',
+                      variant: 'destructive'
+                    });
+                    return;
+                  }
+                  
+                  // Find the selected distribution
+                  const selectedDistro = distributions.find(d => d.id === emailSettings.selectedDistro);
+                  
+                  if (!selectedDistro) {
+                    toast({
+                      title: 'Error',
+                      description: 'Please select a distribution list',
+                      variant: 'destructive'
+                    });
+                    return;
+                  }
+                  
+                  // Prepare email subject
+                  const formattedDate = new Date().toLocaleDateString('en-US', { 
+                    year: 'numeric', month: 'short', day: 'numeric' 
+                  });
+                  
+                  const subject = `[NWT] Survey Report #${latestSurvey?.index} | ${wellInfo?.wellName} | ${Number(latestSurvey?.md || 0).toFixed(2)}ft | ${formattedDate}`;
+                  
+                  // Open email client with the image in clipboard
+                  emailService.openEmailClient({
+                    to: selectedDistro.emails,
+                    subject,
+                    body: '', // Empty body since we're using the image
+                    attachments: attachments,
+                    imageDataUrl
+                  });
+                  
+                  toast({
+                    title: 'Success',
+                    description: 'Email preview captured and copied to clipboard for pasting into Outlook',
+                    duration: 5000
+                  });
+                } catch (error) {
+                  console.error('Error preparing email with screenshot:', error);
+                  toast({
+                    title: 'Error',
+                    description: 'Failed to prepare email with screenshot',
+                    variant: 'destructive'
+                  });
+                }
+              }}
+              className="bg-cyan-700 hover:bg-cyan-600"
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Email as Image
             </Button>
             <Button 
               type="button" 

@@ -1249,7 +1249,9 @@ export class EmailService {
       to: emailAddresses,
       subject,
       body: body + additionalNoteText + attachmentsInfo,
-      attachments: data.attachments
+      attachments: data.attachments,
+      // Pass the image URL if it's included in the data
+      imageDataUrl: data.gammaImageUrl
     });
     
     // No need for additional alert about attachments since it's already handled in openEmailClient
