@@ -69,19 +69,19 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Get values needed for calculations
     const md = Number(formData.md);
     const inc = Number(formData.inc);
     const azi = Number(formData.azi);
-    
+
     // Get the last survey for calculations
     const { surveys } = useSurveyContext();
     const prevSurvey = surveys[surveys.length - 1];
-    
+
     let surveyData: any = {
       ...formData,
-      wellId: 1
+      wellId: wellInfo?.id || 1
     };
 
     if (prevSurvey) {
@@ -92,7 +92,7 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
       const prevTvd = Number(prevSurvey.tvd);
       const prevNS = Number(prevSurvey.northSouth);
       const prevEW = Number(prevSurvey.eastWest);
-      
+
       const proposedDirection = Number(wellInfo?.proposedDirection || 0);
 
       // Calculate new values
@@ -293,4 +293,25 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
       </DialogContent>
     </Dialog>
   );
+}
+
+// Placeholder functions - replace with actual implementations
+function calculateTVD(md: number, inc: number, prevMd: number, prevTvd: number): number {
+  return 0;
+}
+
+function calculateNorthSouth(md: number, inc: number, azi: number, prevMd: number, prevNS: number, isNorth: boolean): { northSouth: number; isNorth: boolean } {
+  return { northSouth: 0, isNorth: true };
+}
+
+function calculateEastWest(md: number, inc: number, azi: number, prevMd: number, prevEW: number, isEast: boolean): { eastWest: number; isEast: boolean } {
+  return { eastWest: 0, isEast: true };
+}
+
+function calculateVS(northSouth: number, eastWest: number, proposedDirection: number): number {
+  return 0;
+}
+
+function calculateDLS(inc: number, azi: number, prevInc: number, prevAzi: number, md: number, prevMd: number): number {
+  return 0;
 }
