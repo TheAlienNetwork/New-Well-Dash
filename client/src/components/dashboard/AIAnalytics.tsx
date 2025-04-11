@@ -10,11 +10,18 @@ import {
   AlertTriangle,
   XCircle,
   LineChart,
-  AlertCircle
+  AlertCircle,
+  ChevronUp,
+  ChevronDown,
+  ArrowRight,
+  BarChart,
+  CircleDot,
+  List
 } from 'lucide-react';
 
 export default function AIAnalytics() {
   const { 
+    surveys,
     latestSurvey, 
     aiAnalysis, 
     projections
@@ -34,6 +41,70 @@ export default function AIAnalytics() {
     if (status === 'Failed') return <XCircle className="h-3 w-3 mr-1" />;
     return <AlertCircle className="h-3 w-3 mr-1" />;
   };
+  
+  // Calculate directional statistics from survey data
+  const calculateDirectionalStats = () => {
+    if (!surveys || surveys.length === 0) {
+      return {
+        avgInc: 0,
+        avgAz: 0,
+        incChange: 0,
+        passedCount: 0,
+        warningCount: 0,
+        failedCount: 0,
+        totalCount: 0
+      };
+    }
+    
+    // Calculate average inclination and azimuth
+    const incValues = surveys.map(s => typeof s.inc === 'string' ? parseFloat(s.inc) : Number(s.inc));
+    const azValues = surveys.map(s => typeof s.azi === 'string' ? parseFloat(s.azi) : Number(s.azi));
+    
+    const avgInc = incValues.reduce((sum, val) => sum + val, 0) / incValues.length;
+    
+    // For azimuth, we need to handle circular averaging correctly
+    const sinSum = azValues.reduce((sum, val) => sum + Math.sin(val * Math.PI / 180), 0);
+    const cosSum = azValues.reduce((sum, val) => sum + Math.cos(val * Math.PI / 180), 0);
+    const avgAz = (Math.atan2(sinSum, cosSum) * 180 / Math.PI + 360) % 360;
+    
+    // Calculate inclination change from previous survey
+    let incChange = 0;
+    if (surveys.length >= 2 && latestSurvey) {
+      const prevSurvey = surveys[surveys.length - 2];
+      const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc);
+      const currentInc = typeof latestSurvey.inc === 'string' ? parseFloat(latestSurvey.inc) : Number(latestSurvey.inc);
+      incChange = currentInc - prevInc;
+    }
+    
+    // Count survey quality metrics
+    const passedCount = surveys.filter(s => {
+      const dls = typeof s.dls === 'string' ? parseFloat(s.dls) : Number(s.dls);
+      return dls < 1.5;
+    }).length;
+    
+    const warningCount = surveys.filter(s => {
+      const dls = typeof s.dls === 'string' ? parseFloat(s.dls) : Number(s.dls);
+      return dls >= 1.5 && dls < 3;
+    }).length;
+    
+    const failedCount = surveys.filter(s => {
+      const dls = typeof s.dls === 'string' ? parseFloat(s.dls) : Number(s.dls);
+      return dls >= 3;
+    }).length;
+    
+    return {
+      avgInc,
+      avgAz,
+      incChange,
+      passedCount,
+      warningCount,
+      failedCount,
+      totalCount: surveys.length
+    };
+  };
+  
+  // Get directional statistics
+  const stats = calculateDirectionalStats();
 
   return (
     <div className="futuristic-container h-full flex flex-col">
@@ -169,6 +240,134 @@ export default function AIAnalytics() {
           </div>
         )}
 
+        {/* Directional Statistics - NEW SECTION */}
+        <div className="glass-panel p-3 space-y-3 border border-cyan-500/20">
+          <div className="flex items-center">
+            <div className="h-8 w-8 flex items-center justify-center bg-indigo-500/10 rounded-full text-indigo-400 mr-3 border border-indigo-500/20">
+              <BarChart className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-navy-100">DIRECTIONAL STATISTICS</h3>
+              <p className="text-xs text-navy-200 font-mono">Calculated from {stats.totalCount} surveys</p>
+            </div>
+          </div>
+          <div className="pl-11">
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10">
+                <div className="flex items-center justify-between">
+                  <p className="text-navy-200 font-mono">Average Inclination</p>
+                  <p className="font-mono text-cyan-400">{stats.avgInc.toFixed(2)}°</p>
+                </div>
+              </div>
+              <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10">
+                <div className="flex items-center justify-between">
+                  <p className="text-navy-200 font-mono">Average Azimuth</p>
+                  <p className="font-mono text-blue-400">{stats.avgAz.toFixed(2)}°</p>
+                </div>
+              </div>
+              
+              {stats.incChange !== 0 && (
+                <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10 col-span-2">
+                  <div className="flex items-center">
+                    <p className="text-navy-200 font-mono">Inclination Change</p>
+                    <div className="ml-auto flex items-center font-mono">
+                      {stats.incChange > 0 ? (
+                        <ChevronUp className="h-4 w-4 text-emerald-400 mr-1" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-amber-400 mr-1" />
+                      )}
+                      <span className={stats.incChange > 0 ? "text-emerald-400" : "text-amber-400"}>
+                        {Math.abs(stats.incChange).toFixed(2)}°
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {latestSurvey && (
+                <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10 col-span-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-navy-200 font-mono">Current DLS</p>
+                    <div className="flex items-center">
+                      <CircleDot className="h-4 w-4 text-purple-400 mr-2" />
+                      <span className="font-mono text-purple-400">
+                        {typeof latestSurvey.dls === 'string' 
+                          ? parseFloat(latestSurvey.dls).toFixed(2) 
+                          : Number(latestSurvey.dls).toFixed(2)}°/100ft
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Survey Quality Metrics - NEW SECTION */}
+        <div className="glass-panel p-3 space-y-3 border border-cyan-500/20">
+          <div className="flex items-center">
+            <div className="h-8 w-8 flex items-center justify-center bg-blue-500/10 rounded-full text-blue-400 mr-3 border border-blue-500/20">
+              <List className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-navy-100">SURVEY QUALITY METRICS</h3>
+              <p className="text-xs text-navy-200 font-mono">Algorithmic validation results</p>
+            </div>
+          </div>
+          <div className="pl-11">
+            <div className="text-xs space-y-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-navy-900/50 p-2 rounded border border-cyan-500/10 col-span-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-navy-200 font-mono">Total Surveys Taken</p>
+                    <p className="font-mono text-white">{stats.totalCount}</p>
+                  </div>
+                  <div className="flex items-center space-x-1 mt-2 bg-navy-800/50 h-4 rounded overflow-hidden">
+                    <div className="h-full bg-emerald-500" style={{width: `${(stats.passedCount / Math.max(stats.totalCount, 1)) * 100}%`}}></div>
+                    <div className="h-full bg-amber-500" style={{width: `${(stats.warningCount / Math.max(stats.totalCount, 1)) * 100}%`}}></div>
+                    <div className="h-full bg-rose-500" style={{width: `${(stats.failedCount / Math.max(stats.totalCount, 1)) * 100}%`}}></div>
+                  </div>
+                </div>
+                
+                <div className="bg-navy-900/50 p-2 rounded border border-emerald-500/20">
+                  <div className="flex items-center">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 mr-2" />
+                    <p className="text-emerald-300 font-mono">Passed</p>
+                    <p className="ml-auto font-mono text-emerald-400">{stats.passedCount}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-navy-900/50 p-2 rounded border border-amber-500/20">
+                  <div className="flex items-center">
+                    <AlertTriangle className="h-4 w-4 text-amber-400 mr-2" />
+                    <p className="text-amber-300 font-mono">Warnings</p>
+                    <p className="ml-auto font-mono text-amber-400">{stats.warningCount}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-navy-900/50 p-2 rounded border border-rose-500/20 col-span-2">
+                  <div className="flex items-center">
+                    <XCircle className="h-4 w-4 text-rose-400 mr-2" />
+                    <p className="text-rose-300 font-mono">Failed Surveys</p>
+                    <p className="ml-auto font-mono text-rose-400">{stats.failedCount}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-2">
+                {stats.failedCount > 0 && (
+                  <div className="bg-rose-900/20 p-2 rounded border border-rose-500/20">
+                    <p className="text-rose-300 flex items-center font-mono text-xs">
+                      <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                      {stats.failedCount} survey(s) with excessive dogleg severity detected. Check previous surveys for potential issues.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* Gamma Analysis */}
         <div className="glass-panel p-3 space-y-3 border border-cyan-500/20">
           <div className="flex items-center">

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useSurveyContext } from '@/context/SurveyContext';
-import { Settings2, Mail } from 'lucide-react';
+import { Settings2, Mail, BarChart4, Compass, Ruler, Activity, Wrench, Sliders } from 'lucide-react';
 
 export default function CurveData() {
   const { curveData, updateCurveData } = useSurveyContext();
@@ -79,106 +79,166 @@ export default function CurveData() {
   };
 
   return (
-    <Card className="bg-neutral-surface border-neutral-border">
-      <CardHeader>
-        <CardTitle className="flex items-center font-heading text-lg">
-          <Settings2 className="mr-2 h-5 w-5 text-primary" />
-          Curve Data
-        </CardTitle>
-        <CardDescription>
-          Input parameters for calculating directional requirements
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="motorYield">Motor Yield</Label>
-              <Input
-                id="motorYield"  
-                name="motorYield"
-                type="number"
-                value={formData.motorYield}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className="bg-neutral-background border-neutral-border"
-              />
-            </div>
-            <div>
-              <Label htmlFor="dogLegNeeded">Dog Leg Needed</Label>
-              <Input
-                id="dogLegNeeded"
-                name="dogLegNeeded" 
-                type="number"
-                value={formData.dogLegNeeded}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className="bg-neutral-background border-neutral-border"
-              />
-            </div>
-            <div>
-              <Label htmlFor="projectedInc">Projected Inc</Label>
-              <Input
-                id="projectedInc"
-                name="projectedInc"
-                type="number"
-                value={formData.projectedInc}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className="bg-neutral-background border-neutral-border"
-              />
-            </div>
-            <div>
-              <Label htmlFor="projectedAz">Projected Az</Label>
-              <Input
-                id="projectedAz"
-                name="projectedAz"
-                type="number"
-                value={formData.projectedAz}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className="bg-neutral-background border-neutral-border"
-              />
-            </div>
-            <div>
-              <Label htmlFor="slideSeen">Slide Seen</Label>
-              <Input
-                id="slideSeen"
-                name="slideSeen"
-                type="number"
-                value={formData.slideSeen}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className="bg-neutral-background border-neutral-border"
-              />
-            </div>
-            <div>
-              <Label htmlFor="slideAhead">Slide Ahead</Label>
-              <Input
-                id="slideAhead"
-                name="slideAhead"
-                type="number"
-                value={formData.slideAhead}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className="bg-neutral-background border-neutral-border"
-              />
+    <div className="premium-card overflow-hidden">
+      <div className="p-4 bg-gradient-to-r from-gray-900/90 to-gray-800/90 flex justify-between items-center border-b border-gray-700/30">
+        <h2 className="font-heading text-lg font-semibold flex items-center text-white">
+          <Sliders className="h-5 w-5 mr-2 text-cyan-400" />
+          Directional Calculations
+        </h2>
+        <div className="flex items-center space-x-2">
+          <Badge variant="outline" className="bg-gray-800/50 text-cyan-300 border-cyan-500/30 flex items-center">
+            <Ruler className="h-3 w-3 mr-1.5" />
+            <span>Motor: {formData.motorYield.toFixed(2)}°</span>
+          </Badge>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Column 1: Directional Tool Parameters */}
+          <div className="space-y-4">
+            <div className="glass-panel p-3 rounded border border-gray-700/30">
+              <div className="flex items-center mb-2 pb-2 border-b border-gray-700/20">
+                <div className="h-7 w-7 flex items-center justify-center bg-cyan-900/30 rounded-full text-cyan-400 mr-2">
+                  <Wrench className="h-4 w-4" />
+                </div>
+                <h3 className="text-sm font-medium text-gray-200">Tool Parameters</h3>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="motorYield" className="text-xs text-gray-400">Motor Yield (°/100ft)</Label>
+                  <Input
+                    id="motorYield"  
+                    name="motorYield"
+                    type="number"
+                    value={formData.motorYield}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className="h-8 bg-gray-800/40 border-gray-700/50 text-sm font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <Label htmlFor="dogLegNeeded" className="text-xs text-gray-400">Dog Leg Needed (°/100ft)</Label>
+                  <Input
+                    id="dogLegNeeded"
+                    name="dogLegNeeded" 
+                    type="number"
+                    value={formData.dogLegNeeded}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className="h-8 bg-gray-800/40 border-gray-700/50 text-sm font-mono"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           
-          {/* Include in Email Toggle */}
-          <div className="flex items-center space-x-2 mt-4 bg-neutral-background p-3 rounded-md border border-primary/20">
-            <Mail className="h-4 w-4 text-primary" />
-            <Label htmlFor="include-in-email" className="flex-1">Include curve data in emails</Label>
-            <Switch
-              id="include-in-email"
-              checked={formData.includeInEmail}
-              onCheckedChange={handleSwitchChange}
-              className="data-[state=checked]:bg-primary"
-            />
+          {/* Column 2: Projection Values */}
+          <div className="space-y-4">
+            <div className="glass-panel p-3 rounded border border-gray-700/30">
+              <div className="flex items-center mb-2 pb-2 border-b border-gray-700/20">
+                <div className="h-7 w-7 flex items-center justify-center bg-blue-900/30 rounded-full text-blue-400 mr-2">
+                  <Compass className="h-4 w-4" />
+                </div>
+                <h3 className="text-sm font-medium text-gray-200">Projected Survey</h3>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="projectedInc" className="text-xs text-gray-400">Projected Inc (°)</Label>
+                  <Input
+                    id="projectedInc"
+                    name="projectedInc"
+                    type="number"
+                    value={formData.projectedInc}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className="h-8 bg-gray-800/40 border-gray-700/50 text-sm font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <Label htmlFor="projectedAz" className="text-xs text-gray-400">Projected Az (°)</Label>
+                  <Input
+                    id="projectedAz"
+                    name="projectedAz"
+                    type="number"
+                    value={formData.projectedAz}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className="h-8 bg-gray-800/40 border-gray-700/50 text-sm font-mono"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+          
+          {/* Column 3: Slide Requirements */}
+          <div className="space-y-4">
+            <div className="glass-panel p-3 rounded border border-gray-700/30">
+              <div className="flex items-center mb-2 pb-2 border-b border-gray-700/20">
+                <div className="h-7 w-7 flex items-center justify-center bg-green-900/30 rounded-full text-green-400 mr-2">
+                  <Activity className="h-4 w-4" />
+                </div>
+                <h3 className="text-sm font-medium text-gray-200">Slide Requirements</h3>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="slideSeen" className="text-xs text-gray-400">Slide Seen (ft)</Label>
+                  <Input
+                    id="slideSeen"
+                    name="slideSeen"
+                    type="number"
+                    value={formData.slideSeen}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className="h-8 bg-gray-800/40 border-gray-700/50 text-sm font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <Label htmlFor="slideAhead" className="text-xs text-gray-400">Slide Ahead (ft)</Label>
+                  <Input
+                    id="slideAhead"
+                    name="slideAhead"
+                    type="number"
+                    value={formData.slideAhead}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className="h-8 bg-gray-800/40 border-gray-700/50 text-sm font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Footer section with email toggle */}
+        <div className="glass-panel p-3 rounded border border-gray-700/30 flex items-center">
+          <div className="h-7 w-7 flex items-center justify-center bg-blue-900/30 rounded-full text-blue-400 mr-3">
+            <Mail className="h-4 w-4" />
+          </div>
+          <Label htmlFor="include-in-email" className="flex-1 text-sm text-gray-300">Include curve data in emails</Label>
+          <Switch
+            id="include-in-email"
+            checked={formData.includeInEmail}
+            onCheckedChange={handleSwitchChange}
+            className="data-[state=checked]:bg-cyan-600"
+          />
+        </div>
+      </div>
+      
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .glass-panel {
+          background: rgba(17, 24, 39, 0.4);
+          backdrop-filter: blur(4px);
+        }
+        `
+      }}></style>
+    </div>
   );
 }

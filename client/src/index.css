@@ -15,6 +15,35 @@
     position: relative;
     animation: gradientShift 15s ease infinite;
   }
+  
+  /* Add custom styling for the premium components */
+  .premium-card {
+    @apply rounded-lg bg-gray-900/95 border border-gray-700/50 shadow-xl;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.2);
+  }
+  
+  .glass-panel {
+    background: rgba(11, 18, 32, 0.4);
+    backdrop-filter: blur(4px);
+  }
+  
+  .glow-text {
+    @apply text-cyan-300 font-semibold;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+  }
+  
+  .pulse-effect {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
 
   @keyframes gradientShift {
     0% { background-position: 0% 50% }
@@ -284,6 +313,48 @@
     border: 1px solid rgba(100, 116, 139, 0.2);
     overflow: hidden;
     transition: all 0.3s ease;
+  }
+  
+  /* AI Analytics futuristic container */
+  .futuristic-container {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.85));
+    backdrop-filter: blur(12px);
+    border-radius: 0.6rem;
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    overflow: hidden;
+    box-shadow: 
+      0 10px 25px -5px rgba(0, 0, 0, 0.3),
+      0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .futuristic-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.15), transparent 25%),
+      radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.1), transparent 25%);
+    z-index: -1;
+  }
+  
+  .text-navy-100 {
+    color: #e2e8f0;
+  }
+  
+  .text-navy-200 {
+    color: #cbd5e1;
+  }
+  
+  .bg-navy-800 {
+    background-color: rgba(15, 23, 42, 0.75);
+  }
+  
+  .bg-navy-900 {
+    background-color: rgba(11, 18, 35, 0.8);
+  }
+  
+  .bg-navy-950 {
+    background-color: rgba(8, 14, 27, 0.9);
   }
 
   .premium-card:hover {
