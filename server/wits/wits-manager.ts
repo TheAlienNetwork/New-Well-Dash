@@ -25,6 +25,7 @@ export class WitsManager {
       this.witsStatus.connected = true;
       this.witsStatus.address = `${host}:${port}`;
       this.broadcastStatus();
+      console.log(`WITS connection established to ${host}:${port}`);
     });
 
     this.witsClient.on('disconnected', () => {
