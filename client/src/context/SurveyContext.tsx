@@ -400,6 +400,17 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } finally {
       setLoading(false);
     }
+    } catch (err) {
+      console.error('Error adding survey:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add survey",
+        variant: "destructive"
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateSurvey = async (id: number, survey: Partial<InsertSurvey>): Promise<Survey | null> => {
