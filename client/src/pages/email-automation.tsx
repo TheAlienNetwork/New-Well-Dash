@@ -842,7 +842,8 @@ export default function EmailAutomation() {
                 </div>
               ) : (
                 <div className="py-8 text-center">
-                  <div className="inline-flex items-center justify-center rounded-full bg-neutral-background p-3 mb-4<MailCheck className="h-8 w-8 text-primary/50" />
+                  <div className="inline-flex items-center justify-center rounded-full bg-neutral-background p-3 mb-4">
+                    <MailCheck className="h-8 w-8 text-primary/50" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-400 mb-2">No Survey Data</h3>
                   <p className="text-sm text-gray-500">
