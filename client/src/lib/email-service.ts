@@ -403,14 +403,41 @@ export class EmailService {
   // Capture screenshot of an element
   async captureElementScreenshot(element: HTMLElement): Promise<string> {
     try {
+      // Save original styles
+      const originalStyle = element.style.cssText;
+      const originalPosition = element.style.position;
+      const originalHeight = element.style.height;
+      const originalOverflow = element.style.overflow;
+
+      // Set styles for full capture
+      element.style.position = 'relative';
+      element.style.height = 'auto';
+      element.style.overflow = 'visible';
+
       const canvas = await html2canvas(element, {
         scale: 1.5, // Increase quality
         useCORS: true, // Enable CORS to capture external images
         allowTaint: true, // Allow tainted canvas for cross-origin images
-        backgroundColor: null, // Preserve transparency
-        logging: false // Disable logging
+        backgroundColor: '#0f172a', // Match email background
+        logging: false, // Disable logging
+        windowHeight: element.scrollHeight,
+        height: element.scrollHeight,
+        width: element.clientWidth,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.body.querySelector('#' + element.id) as HTMLElement;
+          if (clonedElement) {
+            clonedElement.style.height = 'auto';
+            clonedElement.style.overflow = 'visible';
+          }
+        }
       });
       
+      // Restore original styles
+      element.style.cssText = originalStyle;
+      element.style.position = originalPosition;
+      element.style.height = originalHeight;
+      element.style.overflow = originalOverflow;
+
       // Convert canvas to data URL (JPG format)
       return canvas.toDataURL('image/jpeg', 0.95);
     } catch (error) {
