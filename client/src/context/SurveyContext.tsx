@@ -296,19 +296,20 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const processedSurvey: Record<string, any> = {};
       
       // Auto-calculate TVD, N/S, E/W, VS, and DLS if we have the necessary data
-      if (wellInfo && surveys.length > 0) {
+      // Always process the survey with proper calculations
+      const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md || 0);
+      const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc || 0);
+      const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi || 0);
+      const proposedDirection = wellInfo ? Number(wellInfo.proposedDirection || 0) : 0;
+
+      if (surveys.length > 0) {
         // Get the reference survey to calculate from (latest survey)
         const prevSurvey = surveys[surveys.length - 1];
-        const proposedDirection = Number(wellInfo.proposedDirection || 0);
         
-        // Convert string values to numbers for calculation
-        const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md);
-        const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc);
-        const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi);
-        
-        const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md);
-        const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc);
-        const prevAzi = typeof prevSurvey.azi === 'string' ? parseFloat(prevSurvey.azi) : Number(prevSurvey.azi);
+        // Convert previous survey values with proper type handling
+        const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md || 0);
+        const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc || 0);
+        const prevAzi = typeof prevSurvey.azi === 'string' ? parseFloat(prevSurvey.azi) : Number(prevSurvey.azi || 0);
         const prevTvd = typeof prevSurvey.tvd === 'string' ? parseFloat(prevSurvey.tvd) : Number(prevSurvey.tvd || 0);
         const prevNS = typeof prevSurvey.northSouth === 'string' ? parseFloat(prevSurvey.northSouth) : Number(prevSurvey.northSouth || 0);
         const prevEW = typeof prevSurvey.eastWest === 'string' ? parseFloat(prevSurvey.eastWest) : Number(prevSurvey.eastWest || 0);
@@ -322,30 +323,29 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const vs = calculateVS(northSouth, eastWest, proposedDirection);
         const dls = calculateDLS(inc, azi, prevInc, prevAzi, md, prevMd);
         
-        // Add calculated values to survey
-        processedSurvey.tvd = String(tvd);
-        processedSurvey.northSouth = String(northSouth);
+        // Add calculated values to survey with proper formatting
+        processedSurvey.tvd = tvd.toFixed(2);
+        processedSurvey.northSouth = northSouth.toFixed(2);
         processedSurvey.isNorth = isNorth;
-        processedSurvey.eastWest = String(eastWest);
+        processedSurvey.eastWest = eastWest.toFixed(2);
         processedSurvey.isEast = isEast;
-        processedSurvey.vs = String(vs);
-        processedSurvey.dls = String(dls);
-      } else if (wellInfo && surveys.length === 0) {
-        // For the first survey, set some initial values
-        const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md);
-        const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc);
-        
-        // For first survey, TVD is approximately equal to MD (with inclination adjustment)
+        processedSurvey.vs = vs.toFixed(2);
+        processedSurvey.dls = dls.toFixed(2);
+      } else {
+        // For first survey, calculate initial values
         const tvd = md * Math.cos(inc * Math.PI / 180);
+        const northSouth = md * Math.sin(inc * Math.PI / 180) * Math.cos(azi * Math.PI / 180);
+        const eastWest = md * Math.sin(inc * Math.PI / 180) * Math.sin(azi * Math.PI / 180);
+        const vs = calculateVS(Math.abs(northSouth), Math.abs(eastWest), proposedDirection);
         
-        // Initial values for other fields
-        processedSurvey.tvd = String(tvd);
-        processedSurvey.northSouth = "0";
-        processedSurvey.isNorth = true;
-        processedSurvey.eastWest = "0";
-        processedSurvey.isEast = true;
-        processedSurvey.vs = "0";
-        processedSurvey.dls = "0";
+        // Add calculated values with proper formatting
+        processedSurvey.tvd = tvd.toFixed(2);
+        processedSurvey.northSouth = Math.abs(northSouth).toFixed(2);
+        processedSurvey.isNorth = northSouth >= 0;
+        processedSurvey.eastWest = Math.abs(eastWest).toFixed(2);
+        processedSurvey.isEast = eastWest >= 0;
+        processedSurvey.vs = vs.toFixed(2);
+        processedSurvey.dls = "0.00";
       }
       
       // Process the survey data to ensure correct types for the API
