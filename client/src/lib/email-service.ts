@@ -79,9 +79,58 @@ class EmailService {
     attachments?: File[];
     imageDataUrl?: string;
   }) {
-    // Create mailto URL
-    const mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
+    // Create mailto URL with all components
+    let mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}`;
+    
+    // Add HTML body if available
+    if (body) {
+      mailtoUrl += `&body=${encodeURIComponent(body)}`;
+    }
+
+    // Create a temporary link and click it to open email client
+    const tempLink = document.createElement('a');
+    tempLink.href = mailtoUrl;
+    tempLink.target = '_blank';
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    document.body.removeChild(tempLink);
+
+    // Show instructions dialog
+    const dialog = document.createElement('div');
+    dialog.innerHTML = `
+      <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                  background: #1a1b26; padding: 20px; border-radius: 8px; 
+                  box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 10000;
+                  border: 1px solid #2d2e3b; color: #c5c6c7; max-width: 400px;">
+        <h3 style="margin-top: 0; color: #3b82f6;">Email Draft Ready</h3>
+        <p>Your email client has been opened. To complete the email:</p>
+        <ol style="margin-bottom: 15px; padding-left: 20px;">
+          <li style="margin-bottom: 8px;">Click in the email body</li>
+          <li style="margin-bottom: 8px;">Press Ctrl+V (or ⌘+V on Mac) to paste the content</li>
+          ${imageDataUrl ? '<li style="margin-bottom: 8px;">The screenshot has been copied to your clipboard</li>' : ''}
+          ${attachments?.length ? `
+          <li>Add these attachments:
+            <ul style="margin-top: 5px; color: #9ca3af; font-size: 0.9em;">
+              ${attachments.map(file => `<li>${file.name}</li>`).join('')}
+            </ul>
+          </li>` : ''}
+        </ol>
+        <button onclick="this.parentElement.parentElement.remove()" 
+                style="background: #3b82f6; color: white; border: none; 
+                       padding: 8px 16px; border-radius: 4px; cursor: pointer;
+                       font-size: 14px;">
+          Got it
+        </button>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    // Auto-remove dialog after 15 seconds
+    setTimeout(() => {
+      if (document.body.contains(dialog)) {
+        document.body.removeChild(dialog);
+      }
+    }, 15000);
   }
 
   // Generate HTML body content
