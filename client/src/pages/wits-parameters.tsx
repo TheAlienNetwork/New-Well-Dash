@@ -57,49 +57,6 @@ export default function WitsParametersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Raw WITS Data Feed */}
-      <Card className="bg-neutral-surface border-neutral-border">
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="flex items-center font-heading text-lg">
-                <Activity className="mr-2 h-5 w-5 text-primary" />
-                Raw WITS Data Feed
-              </CardTitle>
-              <CardDescription>
-                Real-time WITS data transmission feed
-              </CardDescription>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Badge variant={witsStatus.connected ? "default" : "destructive"}>
-                {witsStatus.connected ? `Connected to ${witsStatus.address}` : 'Disconnected'}
-              </Badge>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px] overflow-auto font-mono text-xs bg-neutral-background/50 rounded-lg p-4 border border-neutral-border">
-            {witsRawData.length > 0 ? (
-              <div className="space-y-2">
-                {witsRawData.map((record, i) => (
-                  <div key={i} className="flex space-x-2 text-neutral-foreground/80">
-                    <span className="text-cyan-400">[{new Date(record.recordTime).toLocaleTimeString()}]</span>
-                    <span className="text-emerald-400">Channel {record.data.channelId}</span>
-                    <span className="text-yellow-400">{record.data.value.toFixed(2)}</span>
-                    {record.data.mappedName && (
-                      <span className="text-purple-400">({record.data.mappedName})</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-full text-neutral-foreground/50">
-                {witsStatus.connected ? 'Waiting for WITS data...' : 'Connect to WITS server to see data feed'}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
       {/* Current Parameters Summary */}
       <WitsParameters />
       
@@ -357,7 +314,7 @@ export default function WitsParametersPage() {
         </div>
       </div>
 
-      <style>{`
+      <style jsx>{`
         .futuristic-border {
           border: 1px solid rgba(52, 152, 219, 0.3);
           position: relative;
