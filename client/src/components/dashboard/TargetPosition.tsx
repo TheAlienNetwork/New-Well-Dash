@@ -30,10 +30,10 @@ export default function TargetPosition({ projections, verticalPosition: initialV
   const { wellInfo } = useWellContext();
   
   const [includeInEmail, setIncludeInEmail] = useState(curveData?.includeTargetPosition || false);
-  const [verticalInput, setVerticalInput] = useState<string>("0");
-  const [horizontalInput, setHorizontalInput] = useState<string>("0");
-  const [verticalPosition, setVerticalPosition] = useState<number | undefined>(initialVertical);
-  const [horizontalPosition, setHorizontalPosition] = useState<number | undefined>(initialHorizontal);
+  const [verticalInput, setVerticalInput] = useState<string>(initialVertical?.toString() || "0");
+  const [horizontalInput, setHorizontalInput] = useState<string>(initialHorizontal?.toString() || "0");
+  const [verticalPosition, setVerticalPosition] = useState<number>(initialVertical || 0);
+  const [horizontalPosition, setHorizontalPosition] = useState<number>(initialHorizontal || 0);
   const [isAbove, setIsAbove] = useState(projections?.isAbove || false);
   const [isBelow, setIsBelow] = useState(projections?.isBelow || false);
   const [isLeft, setIsLeft] = useState(projections?.isLeft || false);
@@ -216,7 +216,7 @@ export default function TargetPosition({ projections, verticalPosition: initialV
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-mono text-cyan-400">
-                {(verticalPosition !== undefined) ? verticalPosition.toFixed(2) : "0.00"}<span className="text-xs text-gray-400 ml-1">ft</span>
+                {verticalPosition.toFixed(2)}<span className="text-xs text-gray-400 ml-1">ft</span>
               </div>
               <div className="flex items-center">
                 {isAbove && (
@@ -245,7 +245,7 @@ export default function TargetPosition({ projections, verticalPosition: initialV
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-mono text-purple-400">
-                {(horizontalPosition !== undefined) ? horizontalPosition.toFixed(2) : "0.00"}<span className="text-xs text-gray-400 ml-1">ft</span>
+                {horizontalPosition.toFixed(2)}<span className="text-xs text-gray-400 ml-1">ft</span>
               </div>
               <div className="flex items-center">
                 {isLeft && (

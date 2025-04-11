@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { useWellContext } from '@/context/WellContext';
 import { Card } from '@/components/ui/card';
-import { Compass, ArrowDown } from 'lucide-react';
+import { Compass, ArrowDown, Activity } from 'lucide-react';
 
 // Simplified version of the wellbore trajectory component
 const WellboreTrajectory = () => {
@@ -65,6 +65,7 @@ const WellboreTrajectory = () => {
         </h2>
       </div>
       <div className="p-4 glass-panel border border-gray-700/30">
+        <h3 className="text-center text-gray-300 mb-4">2D Wellbore Trajectory Visualization</h3>
         {trajectoryPoints.length > 0 ? (
           <div className="space-y-5">
             {/* Wellbore stats */}

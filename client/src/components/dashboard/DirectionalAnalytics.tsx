@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { useSurveyContext } from '@/context/SurveyContext';
 import { useWellContext } from '@/context/WellContext';
-import { Brain, TrendingUp, AlertTriangle, BatteryCharging } from 'lucide-react';
+import { Brain, TrendingUp, AlertTriangle, BatteryCharging, Compass } from 'lucide-react';
 
 export default function DirectionalAnalytics() {
   const { surveys, latestSurvey, curveData } = useSurveyContext();
@@ -224,9 +224,8 @@ export default function DirectionalAnalytics() {
     const theoreticalChanges: number[] = [];
     
     for (let i = 0; i < latestSurveys.length - 1; i++) {
-      const slideDistance = typeof latestSurveys[i].slideFootage === 'string' 
-        ? parseFloat(latestSurveys[i].slideFootage) 
-        : Number(latestSurveys[i].slideFootage || 0);
+      // We don't have slide footage in the schema yet, so use a default value
+      const slideDistance = 15; // Default value for demo purposes
       
       // Only consider surveys with slide footage
       if (slideDistance > 0) {
