@@ -292,18 +292,9 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       setLoading(true);
 
-      // Process numeric fields to ensure they're all strings
-      const processedSurvey: Record<string, any> = {};
-
-      // Parse incoming survey values
-      const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md || 0);
-      const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc || 0);
-      const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi || 0);
       const proposedDirection = wellInfo ? Number(wellInfo.proposedDirection || 0) : 0;
-
-      if (surveys.length > 0) {
-        // Get the previous survey for calculations
-        const prevSurvey = surveys[surveys.length - 1];
+      const prevSurvey = surveys.length > 0 ? surveys[surveys.length - 1] : null;
+      const processedSurvey = processSurveyData(survey, prevSurvey, proposedDirection);
 
         // Convert previous survey values
         const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md);

@@ -66,7 +66,7 @@ export class WitsClient {
           resolve();
           return;
         }
-        
+
         // If socket exists but is in connecting state, wait for it
         if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
           this.socket.addEventListener('open', () => resolve());
@@ -82,7 +82,7 @@ export class WitsClient {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws`;
         console.log('Connecting to WebSocket:', wsUrl);
-        
+
         this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {
@@ -101,12 +101,15 @@ export class WitsClient {
               address: ''
             };
             this.notifyHandlers('wits_status', this.witsStatus);
-            
+
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
               this.reconnectTimeout = setTimeout(() => {
                 this.reconnectAttempts++;
                 this.connect().catch(console.error);
               }, 2000 * Math.pow(2, this.reconnectAttempts));
+            } else {
+              console.error("Max reconnect attempts reached.  WebSocket connection failed.");
+              // Handle the failure appropriately, perhaps trigger an alert or retry mechanism.
             }
           }
         };
