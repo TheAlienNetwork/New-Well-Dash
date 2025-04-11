@@ -2,12 +2,15 @@
 import { createTransport } from 'nodemailer';
 
 const transport = createTransport({
-  host: "localhost",
-  port: 1025,
+  host: "0.0.0.0",
+  port: 5000,
   secure: false,
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  streamTransport: true,
+  newline: 'unix',
+  buffer: true
 });
 
 export async function createEmailDraft({ to, subject, body, attachments }: {

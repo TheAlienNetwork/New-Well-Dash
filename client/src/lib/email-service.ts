@@ -98,24 +98,18 @@ class EmailService {
       formData.append('image', imageBlob, 'survey-screenshot.png');
     }
 
-    // Send to backend to create draft
-    fetch('/api/email/create-draft', {
-      method: 'POST',
-      body: formData
-    }).then(() => {
-      // Show success message
-      const toast = document.createElement('div');
-      toast.innerHTML = `
-        <div style="position: fixed; bottom: 20px; right: 20px; background: #10B981; color: white; 
-                    padding: 12px 20px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-          Email draft created successfully!
-        </div>
-      `;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }).catch(err => {
-      console.error('Failed to create email draft:', err);
-    });
+    // Create mailto link with the content
+    const mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}`;
+    window.location.href = mailtoUrl;
+    
+    // Handle clipboard content
+    if (imageDataUrl) {
+      const blob = this.dataURLtoBlob(imageDataUrl);
+      const item = new ClipboardItem({ 'image/png': blob });
+      navigator.clipboard.write([item]).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(body).catch(console.error);
+    }
 
     // Show instructions dialog
     const dialog = document.createElement('div');
