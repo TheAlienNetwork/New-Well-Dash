@@ -295,17 +295,17 @@ export const SurveyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Process numeric fields to ensure they're all strings
       const processedSurvey: Record<string, any> = {};
       
-      // Auto-calculate TVD, N/S, E/W, VS, and DLS if we have the necessary data
       // Always process the survey with proper calculations
       const md = typeof survey.md === 'string' ? parseFloat(survey.md) : Number(survey.md || 0);
       const inc = typeof survey.inc === 'string' ? parseFloat(survey.inc) : Number(survey.inc || 0);
       const azi = typeof survey.azi === 'string' ? parseFloat(survey.azi) : Number(survey.azi || 0);
       const proposedDirection = wellInfo ? Number(wellInfo.proposedDirection || 0) : 0;
 
-      if (surveys.length > 0) {
-        // Get the reference survey to calculate from (latest survey)
-        const prevSurvey = surveys[surveys.length - 1];
-        
+      // Get the previous survey for calculations if it exists
+      const prevSurvey = surveys.length > 0 ? surveys[surveys.length - 1] : null;
+
+      // Calculate survey values based on whether there's a previous survey
+      if (prevSurvey) {
         // Convert previous survey values with proper type handling
         const prevMd = typeof prevSurvey.md === 'string' ? parseFloat(prevSurvey.md) : Number(prevSurvey.md || 0);
         const prevInc = typeof prevSurvey.inc === 'string' ? parseFloat(prevSurvey.inc) : Number(prevSurvey.inc || 0);
