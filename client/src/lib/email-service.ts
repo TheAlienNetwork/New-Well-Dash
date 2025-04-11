@@ -1,10 +1,12 @@
 import { Survey } from '@shared/schema';
+import html2canvas from 'html2canvas';
 
 interface EmailOptions {
   to: string;
   subject: string;
   body: string;
   attachments?: File[];
+  imageDataUrl?: string; // Added for screenshot functionality
 }
 
 // Define the GammaDataPoint interface to avoid TypeScript errors
@@ -398,6 +400,25 @@ export class EmailService {
   }
   
   // Generate an animated GIF of the gamma plot for emails
+  // Capture screenshot of an element
+  async captureElementScreenshot(element: HTMLElement): Promise<string> {
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 1.5, // Increase quality
+        useCORS: true, // Enable CORS to capture external images
+        allowTaint: true, // Allow tainted canvas for cross-origin images
+        backgroundColor: null, // Preserve transparency
+        logging: false // Disable logging
+      });
+      
+      // Convert canvas to data URL (JPG format)
+      return canvas.toDataURL('image/jpeg', 0.95);
+    } catch (error) {
+      console.error('Error capturing element screenshot:', error);
+      return '';
+    }
+  }
+  
   async generateAnimatedGammaPlotGif(): Promise<string> {
     try {
       // We'll create multiple frames to simulate animation
@@ -1044,9 +1065,39 @@ export class EmailService {
 
   openEmailClient(options: EmailOptions): void {
     try {
-      const { to, subject, body, attachments } = options;
+      const { to, subject, body, attachments, imageDataUrl } = options;
       
-      // Check if the body is HTML content
+      // Check if we have a screenshot image
+      if (imageDataUrl) {
+        // If we have a screenshot image, we'll use that instead of the HTML content
+        
+        // Create a mailto link that will open Outlook if it's the default client
+        const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`;
+        
+        // Copy the image to clipboard (this works with modern browsers)
+        this.copyImageToClipboard(imageDataUrl);
+        
+        // Open the email client
+        window.location.href = mailtoLink;
+        
+        // Show a more Outlook-focused helper message
+        setTimeout(() => {
+          const message = [
+            "Email draft opened in Outlook",
+            "",
+            "1. The email preview image is copied to your clipboard",
+            "2. Use Ctrl+V (or Cmd+V) to paste the image into the email body",
+            attachments?.length ? `3. Add the ${attachments.length} selected attachment${attachments.length > 1 ? 's' : ''}:` : '',
+            ...(attachments?.map(file => `   • ${file.name}`) || [])
+          ].join('\n');
+          
+          window.alert(message);
+        }, 1500); // Slightly longer delay to ensure Outlook opens first
+        
+        return;
+      }
+      
+      // If no image data URL, proceed with the original HTML approach
       const isHtmlContent = body.trim().startsWith('<') && body.includes('</');
       
       // Generate a blob URL for copying HTML to clipboard
@@ -1100,6 +1151,75 @@ export class EmailService {
     } catch (error) {
       console.error('Error opening email client:', error);
       throw new Error('Failed to open email client');
+    }
+  }
+  
+  // Helper function to copy an image to clipboard
+  async copyImageToClipboard(imageDataUrl: string): Promise<void> {
+    try {
+      // Create a temporary image element
+      const img = new Image();
+      img.src = imageDataUrl;
+      
+      // Wait for the image to load
+      await new Promise(resolve => {
+        img.onload = resolve;
+      });
+      
+      // Create a canvas and draw the image onto it
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Failed to get canvas context');
+      }
+      
+      ctx.drawImage(img, 0, 0);
+      
+      // Convert the canvas to a Blob
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          throw new Error('Failed to create blob from canvas');
+        }
+        
+        try {
+          // Use the modern Clipboard API if available
+          if (navigator.clipboard && navigator.clipboard.write) {
+            const clipboardItem = new ClipboardItem({
+              [blob.type]: blob
+            });
+            await navigator.clipboard.write([clipboardItem]);
+            console.log('Image copied to clipboard using Clipboard API');
+          } else {
+            // Fallback for browsers that don't support the Clipboard API
+            // Create a temporary image element and try to copy it
+            const tempImg = document.createElement('img');
+            tempImg.src = imageDataUrl;
+            tempImg.style.position = 'fixed';
+            tempImg.style.left = '-9999px';
+            document.body.appendChild(tempImg);
+            
+            const selection = window.getSelection();
+            if (selection) {
+              selection.removeAllRanges();
+              const range = document.createRange();
+              range.selectNode(tempImg);
+              selection.addRange(range);
+              document.execCommand('copy');
+              selection.removeAllRanges();
+            }
+            
+            document.body.removeChild(tempImg);
+            console.log('Image copied to clipboard using fallback method');
+          }
+        } catch (err) {
+          console.error('Failed to copy image to clipboard:', err);
+        }
+      }, 'image/png');
+    } catch (error) {
+      console.error('Error preparing image for clipboard:', error);
     }
   }
 
