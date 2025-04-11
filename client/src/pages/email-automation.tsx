@@ -1186,7 +1186,7 @@ export default function EmailAutomation() {
               className="bg-cyan-700 hover:bg-cyan-600"
             >
               <Camera className="h-4 w-4 mr-2" />
-              Email as Image
+              Email as Screenshot
             </Button>
             <Button 
               type="button" 

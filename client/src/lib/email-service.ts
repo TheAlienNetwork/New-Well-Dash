@@ -1080,18 +1080,58 @@ export class EmailService {
         // Open the email client
         window.location.href = mailtoLink;
         
-        // Show a more Outlook-focused helper message
+        // Create a better, more focused Outlook experience
         setTimeout(() => {
-          const message = [
-            "Email draft opened in Outlook",
-            "",
-            "1. The email preview image is copied to your clipboard",
-            "2. Use Ctrl+V (or Cmd+V) to paste the image into the email body",
-            attachments?.length ? `3. Add the ${attachments.length} selected attachment${attachments.length > 1 ? 's' : ''}:` : '',
-            ...(attachments?.map(file => `   • ${file.name}`) || [])
-          ].join('\n');
+          // Get clipboard permissions if needed for future automated operations
+          try {
+            navigator.clipboard.readText(); // This will trigger permission prompt if needed
+          } catch (e) {
+            // Ignore errors, just trying to trigger the permission prompt
+          }
           
-          window.alert(message);
+          // Improve user experience with clearer instructions
+          const instructions = document.createElement('div');
+          instructions.innerHTML = `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 400px; padding: 20px; background-color: #f0f8ff; border: 1px solid #007FFF; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <h3 style="color: #007FFF; margin-top: 0;">Outlook Email Ready</h3>
+              <p style="margin-bottom: 20px;">Outlook has been opened with your email draft. Please follow these steps:</p>
+              
+              <div style="background-color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="font-weight: bold; margin-top: 0;">1. Paste the screenshot</p>
+                <p style="margin-bottom: 0;">Press <kbd style="background: #e9e9e9; border-radius: 4px; padding: 2px 4px; font-size: 0.9em; box-shadow: 1px 1px 1px rgba(0,0,0,0.2);">Ctrl+V</kbd> (or <kbd style="background: #e9e9e9; border-radius: 4px; padding: 2px 4px; font-size: 0.9em; box-shadow: 1px 1px 1px rgba(0,0,0,0.2);">⌘+V</kbd> on Mac) in the email body to insert the screenshot.</p>
+              </div>
+              
+              ${attachments?.length ? `
+              <div style="background-color: white; padding: 15px; border-radius: 8px;">
+                <p style="font-weight: bold; margin-top: 0;">2. Add ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}</p>
+                <ul style="margin-bottom: 0; padding-left: 20px;">
+                  ${attachments.map(file => `<li>${file.name}</li>`).join('')}
+                </ul>
+              </div>` : ''}
+              
+              <p style="font-size: 0.9em; color: #666; margin-top: 20px; margin-bottom: 0;">Browser security prevents automatic pasting and attachment. We're working on better integration solutions.</p>
+            </div>
+          `;
+          
+          // Add to document, center on screen
+          instructions.style.position = 'fixed';
+          instructions.style.top = '50%';
+          instructions.style.left = '50%';
+          instructions.style.transform = 'translate(-50%, -50%)';
+          instructions.style.zIndex = '10000';
+          document.body.appendChild(instructions);
+          
+          // Close on click or after timeout
+          instructions.onclick = () => {
+            document.body.removeChild(instructions);
+          };
+          
+          setTimeout(() => {
+            if (document.body.contains(instructions)) {
+              document.body.removeChild(instructions);
+            }
+          }, 12000);
+          
         }, 1500); // Slightly longer delay to ensure Outlook opens first
         
         return;
@@ -1130,18 +1170,48 @@ export class EmailService {
         // Open the email client
         window.location.href = mailtoLink; // Use location.href instead of window.open() for better Outlook integration
         
-        // Show a more Outlook-focused helper message
+        // Create a better, more focused Outlook experience for HTML emails
         setTimeout(() => {
-          const message = [
-            "Email draft opened in Outlook",
-            "",
-            "1. The formatted content is copied to your clipboard",
-            "2. Use Ctrl+V (or Cmd+V) to paste the content into the email body",
-            attachments?.length ? `3. Add the ${attachments.length} selected attachment${attachments.length > 1 ? 's' : ''}:` : '',
-            ...(attachments?.map(file => `   • ${file.name}`) || [])
-          ].join('\n');
+          // Improve user experience with clearer instructions
+          const instructions = document.createElement('div');
+          instructions.innerHTML = `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 400px; padding: 20px; background-color: #f0f8ff; border: 1px solid #007FFF; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <h3 style="color: #007FFF; margin-top: 0;">Outlook Email Ready</h3>
+              <p style="margin-bottom: 20px;">Outlook has been opened with your email draft. Please follow these steps:</p>
+              
+              <div style="background-color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="font-weight: bold; margin-top: 0;">1. Paste the formatted content</p>
+                <p style="margin-bottom: 0;">Press <kbd style="background: #e9e9e9; border-radius: 4px; padding: 2px 4px; font-size: 0.9em; box-shadow: 1px 1px 1px rgba(0,0,0,0.2);">Ctrl+V</kbd> (or <kbd style="background: #e9e9e9; border-radius: 4px; padding: 2px 4px; font-size: 0.9em; box-shadow: 1px 1px 1px rgba(0,0,0,0.2);">⌘+V</kbd> on Mac) in the email body to insert the formatted content.</p>
+              </div>
+              
+              ${attachments?.length ? `
+              <div style="background-color: white; padding: 15px; border-radius: 8px;">
+                <p style="font-weight: bold; margin-top: 0;">2. Add ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}</p>
+                <ul style="margin-bottom: 0; padding-left: 20px;">
+                  ${attachments.map(file => `<li>${file.name}</li>`).join('')}
+                </ul>
+              </div>` : ''}
+            </div>
+          `;
           
-          window.alert(message);
+          // Add to document, center on screen
+          instructions.style.position = 'fixed';
+          instructions.style.top = '50%';
+          instructions.style.left = '50%';
+          instructions.style.transform = 'translate(-50%, -50%)';
+          instructions.style.zIndex = '10000';
+          document.body.appendChild(instructions);
+          
+          // Close on click or after timeout
+          instructions.onclick = () => {
+            document.body.removeChild(instructions);
+          };
+          
+          setTimeout(() => {
+            if (document.body.contains(instructions)) {
+              document.body.removeChild(instructions);
+            }
+          }, 12000);
         }, 1500); // Slightly longer delay to ensure Outlook opens first
       } else {
         // For plain text emails, include the body directly
