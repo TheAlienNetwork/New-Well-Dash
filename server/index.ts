@@ -12,6 +12,29 @@ app.use((req, res, next) => {
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
+
+import { createEmailDraft } from './email-service';
+
+// Add this route handler with your other routes
+app.post('/api/email/create-draft', async (req, res) => {
+  try {
+    const files = req.files as Express.Multer.File[];
+    const body = req.body;
+    
+    await createEmailDraft({
+      to: body.to,
+      subject: body.subject,
+      body: body.body,
+      attachments: files
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error creating email draft:', error);
+    res.status(500).json({ error: 'Failed to create email draft' });
+  }
+});
+
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
     capturedJsonResponse = bodyJson;

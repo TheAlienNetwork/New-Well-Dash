@@ -79,24 +79,43 @@ class EmailService {
     attachments?: File[];
     imageDataUrl?: string;
   }) {
-    // Create temporary div to hold HTML content
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = body;
-    document.body.appendChild(tempDiv);
+    // Create form data for email content
+    const formData = new FormData();
+    formData.append('to', to);
+    formData.append('subject', subject);
+    formData.append('body', body);
+    
+    // Add attachments if present
+    if (attachments?.length) {
+      attachments.forEach(file => {
+        formData.append('attachments', file);
+      });
+    }
 
-    // Select and copy the content
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(tempDiv);
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-    document.execCommand('copy');
-    selection?.removeAllRanges();
-    document.body.removeChild(tempDiv);
+    // Add image if present
+    if (imageDataUrl) {
+      const imageBlob = this.dataURLtoBlob(imageDataUrl);
+      formData.append('image', imageBlob, 'survey-screenshot.png');
+    }
 
-    // Create and open mailto link
-    const mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}`;
-    window.location.href = mailtoUrl;
+    // Send to backend to create draft
+    fetch('/api/email/create-draft', {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      // Show success message
+      const toast = document.createElement('div');
+      toast.innerHTML = `
+        <div style="position: fixed; bottom: 20px; right: 20px; background: #10B981; color: white; 
+                    padding: 12px 20px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+          Email draft created successfully!
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }).catch(err => {
+      console.error('Failed to create email draft:', err);
+    });
 
     // Show instructions dialog
     const dialog = document.createElement('div');
