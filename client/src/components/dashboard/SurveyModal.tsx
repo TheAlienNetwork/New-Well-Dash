@@ -295,23 +295,49 @@ export default function SurveyModal({ open, onOpenChange, survey, mode }: Survey
   );
 }
 
-// Placeholder functions - replace with actual implementations
 function calculateTVD(md: number, inc: number, prevMd: number, prevTvd: number): number {
-  return 0;
+  const deltaDepth = md - prevMd;
+  const avgInc = inc * Math.PI / 180;
+  const deltaTvd = deltaDepth * Math.cos(avgInc);
+  return prevTvd + deltaTvd;
 }
 
-function calculateNorthSouth(md: number, inc: number, azi: number, prevMd: number, prevNS: number, isNorth: boolean): { northSouth: number; isNorth: boolean } {
-  return { northSouth: 0, isNorth: true };
+function calculateNorthSouth(md: number, inc: number, azi: number, prevMd: number, prevNS: number, prevIsNorth: boolean): { northSouth: number; isNorth: boolean } {
+  const deltaDepth = md - prevMd;
+  const avgInc = inc * Math.PI / 180;
+  const avgAzi = azi * Math.PI / 180;
+  const deltaNS = deltaDepth * Math.sin(avgInc) * Math.cos(avgAzi);
+  const newNS = prevNS + (prevIsNorth ? deltaNS : -deltaNS);
+  return { northSouth: Math.abs(newNS), isNorth: newNS >= 0 };
 }
 
-function calculateEastWest(md: number, inc: number, azi: number, prevMd: number, prevEW: number, isEast: boolean): { eastWest: number; isEast: boolean } {
-  return { eastWest: 0, isEast: true };
+function calculateEastWest(md: number, inc: number, azi: number, prevMd: number, prevEW: number, prevIsEast: boolean): { eastWest: number; isEast: boolean } {
+  const deltaDepth = md - prevMd;
+  const avgInc = inc * Math.PI / 180;
+  const avgAzi = azi * Math.PI / 180;
+  const deltaEW = deltaDepth * Math.sin(avgInc) * Math.sin(avgAzi);
+  const newEW = prevEW + (prevIsEast ? deltaEW : -deltaEW);
+  return { eastWest: Math.abs(newEW), isEast: newEW >= 0 };
 }
 
 function calculateVS(northSouth: number, eastWest: number, proposedDirection: number): number {
-  return 0;
+  const angle = proposedDirection * Math.PI / 180;
+  return Math.abs(northSouth * Math.cos(angle) + eastWest * Math.sin(angle));
 }
 
 function calculateDLS(inc: number, azi: number, prevInc: number, prevAzi: number, md: number, prevMd: number): number {
-  return 0;
+  const deltaDepth = md - prevMd;
+  if (deltaDepth === 0) return 0;
+  
+  const incRad1 = prevInc * Math.PI / 180;
+  const incRad2 = inc * Math.PI / 180;
+  const aziRad1 = prevAzi * Math.PI / 180;
+  const aziRad2 = azi * Math.PI / 180;
+  
+  const dogleg = Math.acos(
+    Math.cos(incRad1) * Math.cos(incRad2) +
+    Math.sin(incRad1) * Math.sin(incRad2) * Math.cos(aziRad2 - aziRad1)
+  );
+  
+  return (dogleg * 180 / Math.PI) / (deltaDepth / 100);
 }
